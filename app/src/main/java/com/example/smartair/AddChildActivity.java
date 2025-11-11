@@ -34,7 +34,6 @@ public class AddChildActivity extends AppCompatActivity {
             finish();
             return;
         }
-
         editChildName = findViewById(R.id.editChildName);
         editChildDOB = findViewById(R.id.editChildDOB);
         editChildNotes = findViewById(R.id.editChildNotes);
@@ -49,7 +48,7 @@ public class AddChildActivity extends AppCompatActivity {
         String notes = editChildNotes.getText().toString().trim();
 
         if (name.isEmpty() || dob.isEmpty()) {
-            Toast.makeText(this, "Please enter name and date of birth.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter name or/and date of birth.", Toast.LENGTH_SHORT).show();
             return;
         }
 
