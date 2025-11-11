@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -34,6 +35,24 @@ android {
 }
 
 dependencies {
+    // Firebase Platform (BoM)
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
+
+    // Firebase Services
+    implementation("com.google.firebase:firebase-auth")       // For user authentication
+    implementation("com.google.firebase:firebase-firestore")  // For database (child info storage)
+    implementation("com.google.firebase:firebase-analytics")
+
+    // Existing Android dependencies
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
+
+    // Test libraries
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
