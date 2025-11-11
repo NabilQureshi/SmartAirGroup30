@@ -5,14 +5,12 @@ plugins {
 
 android {
     namespace = "com.example.smartair"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.smartair"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -28,6 +26,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -39,24 +38,20 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
     // Firebase Services
-    implementation("com.google.firebase:firebase-auth")       // For user authentication
-    implementation("com.google.firebase:firebase-firestore")  // For database (child info storage)
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
 
-    // Existing Android dependencies
+    //for ViewChildrenActivity
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // Android UI dependencies
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
     // Test libraries
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

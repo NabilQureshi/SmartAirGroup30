@@ -1,11 +1,12 @@
 package com.example.smartair;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import android.content.Intent;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,7 +33,7 @@ public class AddChildActivity extends AppCompatActivity {
         if (auth.getCurrentUser() == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
             finish();
-            return;
+           return;
         }
         editChildName = findViewById(R.id.editChildName);
         editChildDOB = findViewById(R.id.editChildDOB);
@@ -75,6 +76,9 @@ public class AddChildActivity extends AppCompatActivity {
                     editChildName.setText("");
                     editChildDOB.setText("");
                     editChildNotes.setText("");
+                    Intent intent = new Intent(AddChildActivity.this, ViewChildrenActivity.class);
+                    startActivity(intent);
+                    finish();
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Error adding child: " + e.getMessage(), Toast.LENGTH_SHORT).show());
