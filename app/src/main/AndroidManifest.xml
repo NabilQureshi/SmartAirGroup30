@@ -15,14 +15,24 @@
         <!-- List screen -->
         <activity
             android:name=".ViewChildrenActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <!-- Add-child screen -->
         <activity
             android:name=".AddChildActivity"
-            android:exported="false" />
+            android:exported="true" />
 
-        <!-- Launcher -->
+        <!-- Manage-child screen -->
+        <activity
+            android:name=".ManageChildActivity"
+            android:exported="true" />
+
+        <!-- Homepage (AFTER LOGIN) -->
+        <activity
+            android:name=".HomepageActivity"
+            android:exported="true" />
+
+        <!-- Login screen (LAUNCHER) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">

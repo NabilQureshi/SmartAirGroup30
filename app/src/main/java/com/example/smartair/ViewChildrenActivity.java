@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.widget.Toast;
+import android.content.Intent;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -17,13 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ViewChildrenActivity extends AppCompatActivity {
+
     private RecyclerView recyclerChildren;
     private ChildAdapter adapter;
     private List<Child> childList = new ArrayList<>();
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-    private FirebaseUser user; // added
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,13 +34,23 @@ public class ViewChildrenActivity extends AppCompatActivity {
 
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ChildAdapter(childList);
+
+        adapter = new ChildAdapter(childList, (child, childId) -> {
+            Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
+            intent.putExtra("childId", childId);
+            intent.putExtra("name", child.getName());
+            intent.putExtra("dob", child.getDob());
+            intent.putExtra("notes", child.getNotes());
+            startActivity(intent);
+        });
+
         recyclerChildren.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
 
+        // IMPORTANT: check login
         if (user == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
             finish();
@@ -49,29 +61,32 @@ public class ViewChildrenActivity extends AppCompatActivity {
     }
 
     private void loadChildren() {
-        String parentId = user.getUid();
+        String parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         db.collection("parents")
                 .document(parentId)
                 .collection("children")
                 .addSnapshotListener((querySnapshot, error) -> {
+
                     if (error != null) {
                         Toast.makeText(this, "Error loading children.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
+                    childList.clear();
+
                     if (querySnapshot == null || querySnapshot.isEmpty()) {
                         Toast.makeText(this, "No children found.", Toast.LENGTH_SHORT).show();
-                        childList.clear();
                         adapter.notifyDataSetChanged();
                         return;
                     }
 
-                    childList.clear();
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Child child = doc.toObject(Child.class);
+                        child.setId(doc.getId());
                         childList.add(child);
                     }
+
                     adapter.notifyDataSetChanged();
                 });
     }

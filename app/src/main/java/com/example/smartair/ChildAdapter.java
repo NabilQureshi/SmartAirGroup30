@@ -6,13 +6,22 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
 
 public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHolder> {
-    private List<Child> childList;
 
-    public ChildAdapter(List<Child> childList) {
+    private List<Child> childList;
+    private OnChildClickListener listener;
+
+    // Interface for click handling
+    public interface OnChildClickListener {
+        void onChildClick(Child child, String childId);
+    }
+
+    public ChildAdapter(List<Child> childList, OnChildClickListener listener) {
         this.childList = childList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -26,9 +35,17 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHol
     @Override
     public void onBindViewHolder(@NonNull ChildViewHolder holder, int position) {
         Child child = childList.get(position);
+
         holder.txtChildName.setText(child.getName());
         holder.txtChildDOB.setText("DOB: " + child.getDob());
         holder.txtChildNotes.setText("Notes: " + child.getNotes());
+
+        // Add the click listener
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onChildClick(child, child.getId());
+            }
+        });
     }
 
     @Override
