@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/pef_value_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="300 L/min"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/colorPrimary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/medicine_tag_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Before Medicine"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toEndOf="@+id/pef_value_text"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/comparison_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Before medicine"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="2dp"
+            app:layout_constraintStart_toEndOf="@+id/pef_value_text"
+            app:layout_constraintTop_toBottomOf="@+id/medicine_tag_text" />
+
+        <TextView
+            android:id="@+id/timestamp_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Jan 01, 2024 at 12:00 PM"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pef_value_text" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
+
