@@ -40,6 +40,8 @@ public class PrePostCheckActivity extends AppCompatActivity {
     private ArrayList<String> listItems = new ArrayList<>();
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    private FirebaseUser user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +56,7 @@ public class PrePostCheckActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
+        user = auth.getCurrentUser();
         if (user == null) {
             Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
             finish();
@@ -102,13 +104,19 @@ public class PrePostCheckActivity extends AppCompatActivity {
         float rating = ratingBar.getRating();
         String note = etNote.getText().toString();
 
+        String uid = user.getUid();
+        String email = user.getEmail();
+
         long now = System.currentTimeMillis();
         HashMap<String, Object> data = new HashMap<>();
+        data.put("uid", uid);
+        data.put("email", email);
         data.put("when", when);
         data.put("result", result);
         data.put("rating", rating);
         data.put("note", note);
         data.put("timestamp", now);
+
 
         btnSubmit.setEnabled(false);
         checkRef.add(data).addOnSuccessListener(documentReference -> {

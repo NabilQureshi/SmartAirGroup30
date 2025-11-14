@@ -41,6 +41,8 @@ public class LogMedicineActivity extends AppCompatActivity {
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    private FirebaseUser user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,11 +114,17 @@ public class LogMedicineActivity extends AppCompatActivity {
             return;
         }
 
+        String uid = user.getUid();
+        String email = user.getEmail();
+
         long now = System.currentTimeMillis();
         HashMap<String, Object> data = new HashMap<>();
+        data.put("uid", uid);
+        data.put("email", email);
         data.put("type", type);
         data.put("dose", dose);
         data.put("timestamp", now);
+
 
         btnSubmit.setEnabled(false);
         logRef.add(data).addOnSuccessListener(documentReference -> {

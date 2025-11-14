@@ -14,6 +14,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
+            android:name=".BadgeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HomepageProvidersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HomepageParentsActivity"
+            android:exported="false" />
+        <activity
             android:name=".PrePostCheckActivity"
             android:exported="false" />
         <activity
