@@ -2,42 +2,30 @@ package com.example.smartair;
 
 public class Child {
 
-    private String id;     // Firestore document ID
+    private String id;
+    private String username;
+    private String password;
     private String name;
     private String dob;
     private String notes;
 
-    public Child() {
-        // Firestore requires empty constructor
-    }
+    public Child() {}
 
-    public Child(String id, String name, String dob, String notes) {
+    public Child(String id, String username, String password, String name, String dob, String notes) {
         this.id = id;
+        this.username = username;
+        this.password = password;
         this.name = name;
         this.dob = dob;
         this.notes = notes;
     }
 
-    // ID (Firestore document ID)
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    // Name
-    public String getName() {
-        return name;
-    }
-
-    // DOB
-    public String getDob() {
-        return dob;
-    }
-
-    // Notes
-    public String getNotes() {
-        return notes;
-    }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public String getName() { return name; }
+    public String getDob() { return dob; }
+    public String getNotes() { return notes; }
 }

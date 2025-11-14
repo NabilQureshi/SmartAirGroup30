@@ -38,11 +38,14 @@ public class ViewChildrenActivity extends AppCompatActivity {
         adapter = new ChildAdapter(childList, (child, childId) -> {
             Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
             intent.putExtra("childId", childId);
+            intent.putExtra("username", child.getUsername());
+            intent.putExtra("password", child.getPassword());
             intent.putExtra("name", child.getName());
             intent.putExtra("dob", child.getDob());
             intent.putExtra("notes", child.getNotes());
             startActivity(intent);
         });
+
 
         recyclerChildren.setAdapter(adapter);
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="24dp">
 
     <LinearLayout
@@ -10,48 +10,73 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Username -->
+        <EditText
+            android:id="@+id/editChildUsername"
+            android:hint="Child Username"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Password -->
+        <EditText
+            android:id="@+id/editChildPassword"
+            android:hint="Child Password"
+            android:inputType="textPassword"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Name -->
         <EditText
             android:id="@+id/editChildName"
             android:hint="Child Name"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
+        <!-- DOB -->
         <EditText
             android:id="@+id/editChildDOB"
             android:hint="Date of Birth"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
+        <!-- Notes -->
         <EditText
             android:id="@+id/editChildNotes"
             android:hint="Notes"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
-
+        <!-- Save -->
         <Button
             android:id="@+id/btnSave"
             android:text="Save Changes"
             android:minHeight="48dp"
-            android:minWidth="48dp"
-            android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnDelete"
-            android:text="Delete Child"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#B00020"
-            android:textColor="@android:color/white"
+            android:padding="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <!-- Delete -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDelete"
+            android:text="Delete Child"
+            android:minHeight="48dp"
+            android:padding="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:backgroundTint="#B00020"
+            app:cornerRadius="8dp"
+            android:textColor="@android:color/white" />
 
 
     </LinearLayout>

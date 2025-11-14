@@ -15,6 +15,7 @@ import java.util.Map;
 
 public class ManageChildActivity extends AppCompatActivity {
 
+    private EditText editChildUsername, editChildPassword;
     private EditText editChildName, editChildDOB, editChildNotes;
     private Button btnSave, btnDelete;
 
@@ -31,29 +32,38 @@ public class ManageChildActivity extends AppCompatActivity {
 
         // Get data from intent
         childId = getIntent().getStringExtra("childId");
+        String username = getIntent().getStringExtra("username");
+        String password = getIntent().getStringExtra("password");
         String name = getIntent().getStringExtra("name");
         String dob = getIntent().getStringExtra("dob");
         String notes = getIntent().getStringExtra("notes");
 
         // Connect views
+        editChildUsername = findViewById(R.id.editChildUsername);
+        editChildPassword = findViewById(R.id.editChildPassword);
         editChildName = findViewById(R.id.editChildName);
         editChildDOB = findViewById(R.id.editChildDOB);
         editChildNotes = findViewById(R.id.editChildNotes);
         btnSave = findViewById(R.id.btnSave);
         btnDelete = findViewById(R.id.btnDelete);
 
-        // Put existing data in the fields
+        // Pre-fill fields
+        editChildUsername.setText(username);
+        editChildPassword.setText(password);
         editChildName.setText(name);
         editChildDOB.setText(dob);
         editChildNotes.setText(notes);
 
-        // Button listeners
+        // Button actions
         btnSave.setOnClickListener(v -> updateChild());
         btnDelete.setOnClickListener(v -> deleteChild());
     }
 
     private void updateChild() {
         Map<String, Object> updates = new HashMap<>();
+
+        updates.put("username", editChildUsername.getText().toString().trim());
+        updates.put("password", editChildPassword.getText().toString().trim());
         updates.put("name", editChildName.getText().toString().trim());
         updates.put("dob", editChildDOB.getText().toString().trim());
         updates.put("notes", editChildNotes.getText().toString().trim());
@@ -63,8 +73,10 @@ public class ManageChildActivity extends AppCompatActivity {
                 .collection("children")
                 .document(childId)
                 .update(updates)
-                .addOnSuccessListener(a -> Toast.makeText(this, "Child updated!", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnSuccessListener(a ->
+                        Toast.makeText(this, "Child updated!", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     private void deleteChild() {
@@ -75,8 +87,9 @@ public class ManageChildActivity extends AppCompatActivity {
                 .delete()
                 .addOnSuccessListener(a -> {
                     Toast.makeText(this, "Child deleted.", Toast.LENGTH_SHORT).show();
-                    finish(); // go back after deletion
+                    finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
     }
 }

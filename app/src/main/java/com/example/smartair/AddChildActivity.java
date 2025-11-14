@@ -1,12 +1,12 @@
 package com.example.smartair;
 
-
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.content.Intent;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AddChildActivity extends AppCompatActivity {
+
+    private EditText editChildUsername, editChildPassword;
     private EditText editChildName, editChildDOB, editChildNotes;
     private Button btnAddChild;
 
@@ -33,8 +35,14 @@ public class AddChildActivity extends AppCompatActivity {
         if (auth.getCurrentUser() == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
             finish();
-           return;
+            return;
         }
+
+        // Username + Password fields
+        editChildUsername = findViewById(R.id.editChildUsername);
+        editChildPassword = findViewById(R.id.editChildPassword);
+
+        // Existing fields
         editChildName = findViewById(R.id.editChildName);
         editChildDOB = findViewById(R.id.editChildDOB);
         editChildNotes = findViewById(R.id.editChildNotes);
@@ -44,12 +52,20 @@ public class AddChildActivity extends AppCompatActivity {
     }
 
     private void addChild() {
+        String username = editChildUsername.getText().toString().trim();
+        String password = editChildPassword.getText().toString().trim();
         String name = editChildName.getText().toString().trim();
         String dob = editChildDOB.getText().toString().trim();
         String notes = editChildNotes.getText().toString().trim();
 
+        // Validate fields
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter a username and password.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (name.isEmpty() || dob.isEmpty()) {
-            Toast.makeText(this, "Please enter name or/and date of birth.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter name and date of birth.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -58,10 +74,13 @@ public class AddChildActivity extends AppCompatActivity {
             Toast.makeText(this, "You must be signed in to add a child.", Toast.LENGTH_SHORT).show();
             return;
         }
+
         String parentId = user.getUid();
 
-
+        // Data saved to Firestore
         Map<String, Object> child = new HashMap<>();
+        child.put("username", username);
+        child.put("password", password);
         child.put("name", name);
         child.put("dob", dob);
         child.put("notes", notes);
@@ -73,9 +92,15 @@ public class AddChildActivity extends AppCompatActivity {
                 .add(child)
                 .addOnSuccessListener(docRef -> {
                     Toast.makeText(this, "Child added successfully!", Toast.LENGTH_SHORT).show();
+
+                    // Clear fields
+                    editChildUsername.setText("");
+                    editChildPassword.setText("");
                     editChildName.setText("");
                     editChildDOB.setText("");
                     editChildNotes.setText("");
+
+                    // Go back to list
                     Intent intent = new Intent(AddChildActivity.this, ViewChildrenActivity.class);
                     startActivity(intent);
                     finish();
