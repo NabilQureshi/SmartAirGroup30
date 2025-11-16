@@ -40,7 +40,7 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHol
         holder.txtChildDOB.setText("DOB: " + child.getDob());
         holder.txtChildNotes.setText("Notes: " + child.getNotes());
 
-        // Add the click listener
+        // Add the click listener(runs when clicked)
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onChildClick(child, child.getId());

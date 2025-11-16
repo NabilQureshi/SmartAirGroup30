@@ -31,6 +31,10 @@
         <activity
             android:name=".HomepageActivity"
             android:exported="true" />
+        <activity
+            android:name=".ManageSharingActivity"
+            android:exported="false"/>
+
 
         <!-- Login screen (LAUNCHER) -->
         <activity

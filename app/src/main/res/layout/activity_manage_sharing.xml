@@ -2,7 +2,6 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="24dp">
 
     <LinearLayout
@@ -10,83 +9,70 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Username -->
-        <EditText
-            android:id="@+id/editChildUsername"
-            android:hint="Child Username"
+        <Switch
+            android:id="@+id/switchRescueLogs"
+            android:text="Share Rescue Logs"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Password -->
-        <EditText
-            android:id="@+id/editChildPassword"
-            android:hint="Child Password"
-            android:inputType="textPassword"
+        <Switch
+            android:id="@+id/switchController"
+            android:text="Share Controller Adherence Summary"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Name -->
-        <EditText
-            android:id="@+id/editChildName"
-            android:hint="Child Name"
+        <Switch
+            android:id="@+id/switchSymptoms"
+            android:text="Share Symptoms"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- DOB -->
-        <EditText
-            android:id="@+id/editChildDOB"
-            android:hint="Date of Birth"
+        <Switch
+            android:id="@+id/switchTriggers"
+            android:text="Share Triggers"
             android:minHeight="48dp"
             android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Notes -->
-        <EditText
-            android:id="@+id/editChildNotes"
-            android:hint="Notes"
+        <Switch
+            android:id="@+id/switchPEF"
             android:minHeight="48dp"
             android:padding="12dp"
+            android:text="Share Peak-Flow (PEF)"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Save -->
-        <Button
-            android:id="@+id/btnSave"
-            android:text="Save Changes"
+        <Switch
+            android:id="@+id/switchTriage"
             android:minHeight="48dp"
-            android:padding="16dp"
+            android:padding="12dp"
+            android:text="Share Triage Incidents"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Delete -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDelete"
-            android:text="Delete Child"
+        <Switch
+            android:id="@+id/switchCharts"
             android:minHeight="48dp"
-            android:padding="16dp"
-            android:layout_marginTop="12dp"
+            android:padding="12dp"
+            android:text="Share Summary Charts / Dashboard Visuals"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:backgroundTint="#B00020"
-            app:cornerRadius="8dp"
-            android:textColor="@android:color/white" />
+            android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/btnManageSharing"
-            android:text="Manage Sharing Settings"
+            android:id="@+id/btnSaveSharing"
+            android:text="Save Sharing Settings"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:layout_marginTop="24dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
-
-
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
-
 </ScrollView>

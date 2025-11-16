@@ -47,6 +47,8 @@ public class ViewChildrenActivity extends AppCompatActivity {
         });
 
 
+
+
         recyclerChildren.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();

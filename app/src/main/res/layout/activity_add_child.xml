@@ -70,7 +70,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Add Child Button -->
+    <!-- Add Child-->
     <Button
         android:id="@+id/btnAddChild"
         android:layout_width="0dp"

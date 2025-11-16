@@ -1,5 +1,6 @@
 package com.example.smartair;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,6 +47,14 @@ public class ManageChildActivity extends AppCompatActivity {
         editChildNotes = findViewById(R.id.editChildNotes);
         btnSave = findViewById(R.id.btnSave);
         btnDelete = findViewById(R.id.btnDelete);
+
+        Button btnManageSharing = findViewById(R.id.btnManageSharing);
+
+        btnManageSharing.setOnClickListener(v -> {
+            Intent intent = new Intent(ManageChildActivity.this, ManageSharingActivity.class);
+            intent.putExtra("childId", childId);
+            startActivity(intent);
+        });
 
         // Pre-fill fields
         editChildUsername.setText(username);
