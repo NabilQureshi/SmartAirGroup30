@@ -1,5 +1,6 @@
 package com.example.smartair;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -122,6 +124,10 @@ public class PrePostCheckActivity extends AppCompatActivity {
         checkRef.add(data).addOnSuccessListener(documentReference -> {
             btnSubmit.setEnabled(true);
             Toast.makeText(PrePostCheckActivity.this, "评估已保存", Toast.LENGTH_SHORT).show();
+
+            // 自动检查徽章
+            checkAndUnlockBadge(uid);
+
             String display = when + " | " + result + " | rating: " + rating + " | " + sdf.format(new Date(now));
             listItems.add(0, display);
             adapter.notifyDataSetChanged();
@@ -131,5 +137,66 @@ public class PrePostCheckActivity extends AppCompatActivity {
             btnSubmit.setEnabled(true);
             Toast.makeText(PrePostCheckActivity.this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void checkAndUnlockBadge(String uid) {
+        db.collection("users")
+                .document(uid)
+                .collection("prepost_checks")
+                .whereGreaterThanOrEqualTo("rating", 4)
+                .get()
+                .addOnSuccessListener(snap -> {
+
+                    // 条件：分数 >=4 的记录 >=5 条
+                    if (snap.size() >= 5) {
+                        unlockBadge(uid);
+                    }
+
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "检查徽章失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private void unlockBadge(String uid) {
+        db.collection("users")
+                .document(uid)
+                .collection("badges")
+                .document("badge_1")
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        return; // 已经解锁过，不重复弹窗
+                    }
+
+                    HashMap<String, Object> data = new HashMap<>();
+                    String description = "有 5 次呼吸评分都达到 4 分以上，说明你越来越懂得照顾自己了！";
+                    data.put("unlocked", true);
+                    data.put("timestamp", System.currentTimeMillis());
+                    data.put("description", description);
+
+                    db.collection("users")
+                            .document(uid)
+                            .collection("badges")
+                            .document("badge_1")
+                            .set(data);
+
+                    showBadgePopup();
+                });
+    }
+
+    private void showBadgePopup() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🎉 恭喜获得徽章！");
+        builder.setMessage("你已经连续获得 5 次高评分呼吸记录！");
+
+        builder.setPositiveButton("查看徽章", (dialog, which) -> {
+            Intent intent = new Intent(this, BadgeActivity.class);
+            intent.putExtra("newBadge", "badge_2");   // ← 就是在这里加的
+            startActivity(intent);
+        });
+
+        builder.setNegativeButton("关闭", null);
+        builder.show();
     }
 }

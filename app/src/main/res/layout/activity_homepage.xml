@@ -33,4 +33,12 @@
         android:textSize="18sp"
         android:padding="12dp" />
 
+    <Button
+        android:id="@+id/btnBadges"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Badges"
+        android:textSize="18sp"
+        android:padding="12dp" />
+
 </LinearLayout>

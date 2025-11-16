@@ -13,6 +13,8 @@ public class HomepageActivity extends AppCompatActivity {
     private Button btnTechnique;
     private Button btnPrePostCheck;
 
+    private Button btnBadges;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,6 +24,7 @@ public class HomepageActivity extends AppCompatActivity {
         btnLogMedicine = findViewById(R.id.btnLogMedicine);
         btnTechnique = findViewById(R.id.btnTechnique);
         btnPrePostCheck = findViewById(R.id.btnPrePostCheck);
+        btnBadges = findViewById(R.id.btnBadges);
 
         // 点击跳转到 LogMedicineActivity
         btnLogMedicine.setOnClickListener(new View.OnClickListener() {
@@ -46,6 +49,15 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(HomepageActivity.this, PrePostCheckActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // 点击跳转到BadgeActivity
+        btnBadges.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(HomepageActivity.this, BadgeActivity.class);
                 startActivity(intent);
             }
         });
