@@ -12,6 +12,10 @@ public class HomepageActivity extends AppCompatActivity {
     private Button btnLogMedicine;
     private Button btnTechnique;
     private Button btnPrePostCheck;
+    private Button btnAddChild;
+    private Button btnViewChildren;
+    private Button btnManageChild;
+    private Button btnManageSharing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +26,24 @@ public class HomepageActivity extends AppCompatActivity {
         btnLogMedicine = findViewById(R.id.btnLogMedicine);
         btnTechnique = findViewById(R.id.btnTechnique);
         btnPrePostCheck = findViewById(R.id.btnPrePostCheck);
+        btnAddChild = findViewById(R.id.btnAddChild);
+        btnViewChildren = findViewById(R.id.btnViewChildren);
+        btnManageChild = findViewById(R.id.btnManageChild);
+        btnManageSharing = findViewById(R.id.btnManageSharing);
+
+        btnAddChild.setOnClickListener(v ->
+                startActivity(new Intent(this, AddChildActivity.class)));
+
+        btnViewChildren.setOnClickListener(v ->
+                startActivity(new Intent(this, ViewChildrenActivity.class)));
+
+        btnManageChild.setOnClickListener(v ->
+                startActivity(new Intent(this, ManageChildActivity.class)));
+
+        btnManageSharing.setOnClickListener(v -> {
+            startActivity(new Intent(this, ChooseChildForSharingActivity.class));
+        });
+
 
         // 点击跳转到 LogMedicineActivity
         btnLogMedicine.setOnClickListener(new View.OnClickListener() {

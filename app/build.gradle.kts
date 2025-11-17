@@ -1,7 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    id("com.google.gms.google-services")
     id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -27,6 +26,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -34,34 +34,21 @@ android {
 }
 
 dependencies {
-    // Firebase Platform (BoM)
-    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
-    // Firebase Services
+    implementation(platform(libs.firebase.bom))
+
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
 
-    //for ViewChildrenActivity
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-
-    // Android UI dependencies
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.auth)
 
-    // Test libraries
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
-    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    // module: app/build.gradle.kts - 在 dependencies {} 里加入
-    implementation("com.google.firebase:firebase-auth:23.1.0")
-    implementation("com.google.firebase:firebase-firestore:24.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-
 }

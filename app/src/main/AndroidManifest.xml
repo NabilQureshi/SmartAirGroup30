@@ -14,31 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
 
-        <!-- List screen -->
-        <activity
-            android:name=".ViewChildrenActivity"
-            android:exported="true" />
-
-        <!-- Add-child screen -->
-        <activity
-            android:name=".AddChildActivity"
-            android:exported="true" />
-
-        <!-- Manage-child screen -->
-        <activity
-            android:name=".ManageChildActivity"
-            android:exported="true" />
-
-        <!-- Homepage (AFTER LOGIN) -->
-        <activity
-            android:name=".HomepageActivity"
-            android:exported="true" />
-        <activity
-            android:name=".ManageSharingActivity"
-            android:exported="false"/>
-
-
-        <!-- Login screen (LAUNCHER) -->
+        <!-- LOGIN (Launcher) -->
         <activity
             android:name=".auth.LoginActivity"
             android:exported="true">
@@ -48,12 +24,46 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".auth.RegisterActivity" android:exported="false" />
-        <activity android:name=".HomepageActivity" android:exported="false" />
+        <!-- REGISTER -->
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false" />
+
+        <!-- HOMEPAGE (after login) -->
+        <activity
+            android:name=".HomepageActivity"
+            android:exported="true" />
+
+        <!-- CHILD MANAGEMENT -->
+        <activity
+            android:name=".ViewChildrenActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".AddChildActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ManageChildActivity"
+            android:exported="true" />
+
+        <!-- SHARING MANAGEMENT -->
+        <activity
+            android:name=".ManageSharingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChooseChildForSharingActivity"
+            android:exported="true" />
+
+
+        <!-- OTHER SCREENS -->
         <activity android:name=".LogMedicineActivity" android:exported="false" />
         <activity android:name=".TechniqueActivity" android:exported="false" />
         <activity android:name=".PrePostCheckActivity" android:exported="false" />
+
+        <!-- MAIN ACTIVITY (if used) -->
         <activity android:name=".MainActivity" android:exported="false" />
+
     </application>
 
 </manifest>

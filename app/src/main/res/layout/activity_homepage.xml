@@ -1,36 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="24dp"
     android:background="#FFFFFF">
 
-    <Button
-        android:id="@+id/btnLogMedicine"
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Log Medicine"
-        android:textSize="18sp"
-        android:layout_marginBottom="16dp"
-        android:padding="12dp" />
+        android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/btnTechnique"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Technique Helper"
-        android:textSize="18sp"
-        android:layout_marginBottom="16dp"
-        android:padding="12dp" />
+        <Button
+            android:id="@+id/btnAddChild"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Child"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
 
-    <Button
-        android:id="@+id/btnPrePostCheck"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Pre/Post Check"
-        android:textSize="18sp"
-        android:padding="12dp" />
+        <Button
+            android:id="@+id/btnViewChildren"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Children"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnManageChild"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Child Activity"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnManageSharing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Sharing"
+            android:textSize="18sp"
+            android:layout_marginBottom="32dp"
+            android:padding="12dp" />
+
+        <!-- Existing Features -->
+        <Button
+            android:id="@+id/btnLogMedicine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Log Medicine"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnTechnique"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Technique Helper"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnPrePostCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pre/Post Check"
+            android:textSize="18sp"
+            android:padding="12dp" />
+    </LinearLayout>
+
+</ScrollView>
