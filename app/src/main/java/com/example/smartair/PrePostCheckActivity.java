@@ -4,10 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -15,16 +13,19 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class PrePostCheckActivity extends AppCompatActivity {
 
@@ -33,15 +34,13 @@ public class PrePostCheckActivity extends AppCompatActivity {
     private RatingBar ratingBar;
     private EditText etNote;
     private Button btnSubmit;
-    private ListView lvHistory;
+    private RecyclerView rvCheckHistory;
+    private PrePostCheckAdapter adapter;
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private CollectionReference checkRef;
-    private ArrayAdapter<String> adapter;
-    private ArrayList<String> listItems = new ArrayList<>();
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     private FirebaseUser user;
 
     @Override
@@ -54,7 +53,7 @@ public class PrePostCheckActivity extends AppCompatActivity {
         ratingBar = findViewById(R.id.ratingBar);
         etNote = findViewById(R.id.etNote);
         btnSubmit = findViewById(R.id.btnSubmitCheck);
-        lvHistory = findViewById(R.id.lvCheckHistory);
+        rvCheckHistory = findViewById(R.id.rvCheckHistory);
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -64,34 +63,22 @@ public class PrePostCheckActivity extends AppCompatActivity {
             finish();
             return;
         }
-        checkRef = db.collection("users").document(user.getUid()).collection("prepost_checks");
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listItems);
-        lvHistory.setAdapter(adapter);
+        checkRef = db.collection("users")
+                .document(user.getUid())
+                .collection("prepost_checks");
 
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitCheck();
-            }
-        });
+        // 初始化 RecyclerView
+        adapter = new PrePostCheckAdapter();
+        rvCheckHistory.setAdapter(adapter);
+        rvCheckHistory.setLayoutManager(new LinearLayoutManager(this));
 
-        // 读取历史
-        checkRef.orderBy("timestamp").limit(50).get().addOnSuccessListener(queryDocumentSnapshots -> {
-            listItems.clear();
-            for (var doc : queryDocumentSnapshots.getDocuments()) {
-                String when = doc.getString("when");
-                String result = doc.getString("result");
-                Double rating = doc.getDouble("rating");
-                String note = doc.getString("note");
-                Long ts = doc.getLong("timestamp");
-                String time = ts == null ? "" : sdf.format(new Date(ts));
-                listItems.add(when + " | " + result + " | rating: " + (rating==null ? "-" : rating) + " | " + time + (TextUtils.isEmpty(note) ? "" : " | note:" + note));
-            }
-            adapter.notifyDataSetChanged();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(PrePostCheckActivity.this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+        // 读取历史记录
+        checkRef.orderBy("timestamp").limit(50).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> adapter.setChecks(queryDocumentSnapshots.getDocuments()))
+                .addOnFailureListener(e -> Toast.makeText(this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+
+        btnSubmit.setOnClickListener(view -> submitCheck());
     }
 
     private void submitCheck() {
@@ -101,6 +88,7 @@ public class PrePostCheckActivity extends AppCompatActivity {
             Toast.makeText(this, "请选择 Before/After 和 Better/Same/Worse", Toast.LENGTH_SHORT).show();
             return;
         }
+
         String when = ((RadioButton) findViewById(whenId)).getText().toString();
         String result = ((RadioButton) findViewById(resId)).getText().toString();
         float rating = ratingBar.getRating();
@@ -108,8 +96,8 @@ public class PrePostCheckActivity extends AppCompatActivity {
 
         String uid = user.getUid();
         String email = user.getEmail();
-
         long now = System.currentTimeMillis();
+
         HashMap<String, Object> data = new HashMap<>();
         data.put("uid", uid);
         data.put("email", email);
@@ -119,23 +107,22 @@ public class PrePostCheckActivity extends AppCompatActivity {
         data.put("note", note);
         data.put("timestamp", now);
 
-
         btnSubmit.setEnabled(false);
         checkRef.add(data).addOnSuccessListener(documentReference -> {
             btnSubmit.setEnabled(true);
-            Toast.makeText(PrePostCheckActivity.this, "评估已保存", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "评估已保存", Toast.LENGTH_SHORT).show();
 
             // 自动检查徽章
             checkAndUnlockBadge(uid);
 
-            String display = when + " | " + result + " | rating: " + rating + " | " + sdf.format(new Date(now));
-            listItems.add(0, display);
-            adapter.notifyDataSetChanged();
+            // 将刚提交的数据直接插入 RecyclerView
+            documentReference.get().addOnSuccessListener(doc -> adapter.addCheck(doc));
+
             ratingBar.setRating(0);
             etNote.setText("");
         }).addOnFailureListener(e -> {
             btnSubmit.setEnabled(true);
-            Toast.makeText(PrePostCheckActivity.this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -146,12 +133,9 @@ public class PrePostCheckActivity extends AppCompatActivity {
                 .whereGreaterThanOrEqualTo("rating", 4)
                 .get()
                 .addOnSuccessListener(snap -> {
-
-                    // 条件：分数 >=4 的记录 >=5 条
                     if (snap.size() >= 5) {
                         unlockBadge(uid);
                     }
-
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "检查徽章失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
@@ -165,15 +149,12 @@ public class PrePostCheckActivity extends AppCompatActivity {
                 .document("badge_1")
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        return; // 已经解锁过，不重复弹窗
-                    }
+                    if (doc.exists()) return; // 已经解锁过，不重复弹窗
 
                     HashMap<String, Object> data = new HashMap<>();
-                    String description = "有 5 次呼吸评分都达到 4 分以上，说明你越来越懂得照顾自己了！";
                     data.put("unlocked", true);
                     data.put("timestamp", System.currentTimeMillis());
-                    data.put("description", description);
+                    data.put("description", "有 5 次呼吸评分都达到 4 分以上，说明你越来越懂得照顾自己了！");
 
                     db.collection("users")
                             .document(uid)
@@ -192,7 +173,7 @@ public class PrePostCheckActivity extends AppCompatActivity {
 
         builder.setPositiveButton("查看徽章", (dialog, which) -> {
             Intent intent = new Intent(this, BadgeActivity.class);
-            intent.putExtra("newBadge", "badge_2");   // ← 就是在这里加的
+            intent.putExtra("newBadge", "badge_2");
             startActivity(intent);
         });
 

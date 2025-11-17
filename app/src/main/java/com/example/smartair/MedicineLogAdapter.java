@@ -1,0 +1,84 @@
+package com.example.smartair;
+
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.firestore.DocumentSnapshot;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+public class MedicineLogAdapter extends RecyclerView.Adapter<MedicineLogAdapter.LogViewHolder> {
+
+    private List<DocumentSnapshot> logList = new ArrayList<>();
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+    public void setLogs(List<DocumentSnapshot> logs) {
+        this.logList = logs != null ? logs : new ArrayList<>();
+        notifyDataSetChanged();
+    }
+
+    @NonNull
+    @Override
+    public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_medicine_log, parent, false);
+        return new LogViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
+        holder.bind(logList.get(position));
+    }
+
+    @Override
+    public int getItemCount() {
+        return logList.size();
+    }
+
+    static class LogViewHolder extends RecyclerView.ViewHolder {
+
+        TextView typeText, doseText, timestampText;
+
+        public LogViewHolder(@NonNull View itemView) {
+            super(itemView);
+            typeText = itemView.findViewById(R.id.type_text);
+            doseText = itemView.findViewById(R.id.dose_text);
+            timestampText = itemView.findViewById(R.id.timestamp_text);
+        }
+
+        public void bind(DocumentSnapshot doc) {
+            String type = doc.getString("type");
+            Long dose = doc.getLong("dose");
+            Long ts = doc.getLong("timestamp");
+
+            typeText.setText(type != null ? type : "-");
+            doseText.setText("Dose: " + (dose != null ? dose : "-") + " puffs");
+
+            if (type != null) {
+                if (type.equalsIgnoreCase("Rescue")) {
+                    typeText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_orange_dark));
+                } else if (type.equalsIgnoreCase("Controller")) {
+                    typeText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_green_dark));
+                }
+            }
+
+            if (ts != null) {
+                timestampText.setText(sdf.format(new Date(ts)));
+            } else {
+                timestampText.setText("-");
+            }
+        }
+    }
+}
+

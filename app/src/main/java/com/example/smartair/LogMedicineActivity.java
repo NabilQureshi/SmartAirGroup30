@@ -3,44 +3,38 @@ package com.example.smartair;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 public class LogMedicineActivity extends AppCompatActivity {
 
     private RadioGroup rgType;
-    private EditText etDose;
-    private Button btnSubmit;
-    private ListView lvHistory;
+    private TextInputEditText etDose;
+    private MaterialButton btnSubmit;
+    private RecyclerView rvHistory;
+    private MedicineLogAdapter adapter;
+    private View emptyStateText;
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private CollectionReference logRef;
-    private ArrayAdapter<String> adapter;
-    private ArrayList<String> listItems = new ArrayList<>();
-
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     private FirebaseUser user;
 
     @Override
@@ -51,12 +45,13 @@ public class LogMedicineActivity extends AppCompatActivity {
         rgType = findViewById(R.id.rgType);
         etDose = findViewById(R.id.etDose);
         btnSubmit = findViewById(R.id.btnSubmitLog);
-        lvHistory = findViewById(R.id.lvLogHistory);
+        rvHistory = findViewById(R.id.rvLogHistory);
+        emptyStateText = findViewById(R.id.empty_state_text);
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        user = auth.getCurrentUser();
 
-        FirebaseUser user = auth.getCurrentUser();
         if (user == null) {
             Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
             finish();
@@ -65,30 +60,13 @@ public class LogMedicineActivity extends AppCompatActivity {
 
         logRef = db.collection("users").document(user.getUid()).collection("medicine_logs");
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listItems);
-        lvHistory.setAdapter(adapter);
+        rvHistory.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new MedicineLogAdapter();
+        rvHistory.setAdapter(adapter);
 
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitLog();
-            }
-        });
+        btnSubmit.setOnClickListener(v -> submitLog());
 
-        // 读取现有记录（简单实现：按创建时间降序读取最近 50 条）
-        logRef.orderBy("timestamp").limit(50).get().addOnSuccessListener(queryDocumentSnapshots -> {
-            listItems.clear();
-            for (var doc : queryDocumentSnapshots.getDocuments()) {
-                String type = doc.getString("type");
-                Long ts = doc.getLong("timestamp");
-                Long dose = doc.getLong("dose");
-                String time = ts == null ? "" : sdf.format(new Date(ts));
-                listItems.add(type + " | dose: " + (dose==null? "-" : dose) + " | " + time);
-            }
-            adapter.notifyDataSetChanged();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(LogMedicineActivity.this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+        fetchLogs();
     }
 
     private void submitLog() {
@@ -114,29 +92,39 @@ public class LogMedicineActivity extends AppCompatActivity {
             return;
         }
 
-        String uid = user.getUid();
-        String email = user.getEmail();
-
         long now = System.currentTimeMillis();
         HashMap<String, Object> data = new HashMap<>();
-        data.put("uid", uid);
-        data.put("email", email);
+        data.put("uid", user.getUid());
+        data.put("email", user.getEmail());
         data.put("type", type);
         data.put("dose", dose);
         data.put("timestamp", now);
 
-
         btnSubmit.setEnabled(false);
         logRef.add(data).addOnSuccessListener(documentReference -> {
             btnSubmit.setEnabled(true);
-            Toast.makeText(LogMedicineActivity.this, "记录已保存", Toast.LENGTH_SHORT).show();
-            String display = type + " | dose: " + dose + " | " + sdf.format(new Date(now));
-            listItems.add(0, display); // add to top
-            adapter.notifyDataSetChanged();
+            Toast.makeText(this, "记录已保存", Toast.LENGTH_SHORT).show();
             etDose.setText("");
+            fetchLogs(); // 更新列表
         }).addOnFailureListener(e -> {
             btnSubmit.setEnabled(true);
-            Toast.makeText(LogMedicineActivity.this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void fetchLogs() {
+        logRef.orderBy("timestamp").limit(50).get().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<DocumentSnapshot> logs = queryDocumentSnapshots.getDocuments();
+            if (logs.isEmpty()) {
+                emptyStateText.setVisibility(View.VISIBLE);
+                rvHistory.setVisibility(View.GONE);
+            } else {
+                emptyStateText.setVisibility(View.GONE);
+                rvHistory.setVisibility(View.VISIBLE);
+                adapter.setLogs(logs);
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 }
