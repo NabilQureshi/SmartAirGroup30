@@ -17,13 +17,4 @@ public interface LoginContract {
         void onLoginClicked();
         void onDestroy();
     }
-
-    interface Model {
-        void login(String email, String password, AuthCallback callback);
-    }
-
-    interface AuthCallback {
-        void onSuccess(String uid, UserRole role);
-        void onFailure(String error);
-    }
 }

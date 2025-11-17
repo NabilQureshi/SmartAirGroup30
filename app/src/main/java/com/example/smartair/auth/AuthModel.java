@@ -1,71 +1,58 @@
 package com.example.smartair.auth;
 
+import androidx.annotation.NonNull;
+
 import com.example.smartair.models.UserRole;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-public class AuthModel implements LoginContract.Model {
-    private final FirebaseAuth firebaseAuth;
-    private final FirebaseFirestore firestore;
+public class AuthModel {
 
-    public AuthModel() {
-        this.firebaseAuth = FirebaseAuth.getInstance();
-        this.firestore = FirebaseFirestore.getInstance();
+    public interface AuthCallback {
+        void onSuccess(UserRole role);
+        void onError(String message);
     }
 
-    @Override
-    public void login(String email, String password, LoginContract.AuthCallback callback) {
-        firebaseAuth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(authResult -> {
-                    FirebaseUser user = authResult.getUser();
-                    if (user != null) {
-                        fetchUserRole(user.getUid(), callback);
-                    } else {
-                        callback.onFailure("Authentication failed");
+    private final FirebaseAuth mAuth;
+
+    public AuthModel() {
+        mAuth = FirebaseAuth.getInstance();
+    }
+
+    public void login(String email, String password, AuthCallback callback) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            UserRole role = UserRole.CHILD;
+                            callback.onSuccess(role);
+                        } else {
+                            String msg = task.getException() != null
+                                    ? task.getException().getMessage()
+                                    : "Login failed.";
+                            callback.onError(msg);
+                        }
                     }
-                })
-                .addOnFailureListener(e -> {
-                    String errorMessage = parseAuthError(e.getMessage());
-                    callback.onFailure(errorMessage);
                 });
     }
 
-    private void fetchUserRole(String uid, LoginContract.AuthCallback callback) {
-        firestore.collection("users")
-                .document(uid)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String roleString = documentSnapshot.getString("role");
-                        if (roleString != null) {
-                            try {
-                                UserRole role = UserRole.fromString(roleString);
-                                callback.onSuccess(uid, role);
-                            } catch (IllegalArgumentException e) {
-                                callback.onFailure("Invalid user role");
-                            }
+    public void register(String email, String password, UserRole role, AuthCallback callback) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            callback.onSuccess(role);
                         } else {
-                            callback.onFailure("User role not found");
+                            String msg = task.getException() != null
+                                    ? task.getException().getMessage()
+                                    : "Sign up failed.";
+                            callback.onError(msg);
                         }
-                    } else {
-                        callback.onFailure("User data not found");
                     }
-                })
-                .addOnFailureListener(e -> callback.onFailure("Failed to fetch user data"));
-    }
-
-    private String parseAuthError(String errorMessage) {
-        if (errorMessage == null) {
-            return "Authentication failed";
-        }
-        if (errorMessage.contains("no user record")) {
-            return "No account found with this email";
-        } else if (errorMessage.contains("password is invalid")) {
-            return "Incorrect password";
-        } else if (errorMessage.contains("network error")) {
-            return "Network error. Please check your connection";
-        }
-        return "Authentication failed. Please try again";
+                });
     }
 }

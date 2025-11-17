@@ -3,66 +3,63 @@ package com.example.smartair.auth;
 import android.text.TextUtils;
 import android.util.Patterns;
 
-public class LoginPresenter implements LoginContract.Presenter {
-    private final LoginContract.View view;
-    private final LoginContract.Model model;
+import com.example.smartair.models.UserRole;
 
-    public LoginPresenter(LoginContract.View view, LoginContract.Model model) {
+public class LoginPresenter implements LoginContract.Presenter {
+
+    private LoginContract.View view;
+    private final AuthModel model;
+
+    public LoginPresenter(LoginContract.View view, AuthModel model) {
         this.view = view;
         this.model = model;
     }
 
     @Override
     public void onLoginClicked() {
+        if (view == null) {
+            return;
+        }
+
         String email = view.getEmail();
         String password = view.getPassword();
 
-        if (!validateInput(email, password)) {
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+            view.showError("Email and password are required.");
+            return;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            view.showError("Please enter a valid email address.");
+            return;
+        }
+
+        if (password.length() < 6) {
+            view.showError("Password must be at least 6 characters.");
             return;
         }
 
         view.showLoading();
 
-        model.login(email, password, new LoginContract.AuthCallback() {
+        model.login(email, password, new AuthModel.AuthCallback() {
             @Override
-            public void onSuccess(String uid, com.example.smartair.models.UserRole role) {
+            public void onSuccess(UserRole role) {
+                if (view == null) return;
                 view.hideLoading();
                 view.navigateToHome(role);
             }
 
             @Override
-            public void onFailure(String error) {
+            public void onError(String message) {
+                if (view == null) return;
                 view.hideLoading();
-                view.showError(error);
+                view.showError("Login failed: " + message);
             }
         });
     }
 
     @Override
     public void onDestroy() {
-    }
-
-    private boolean validateInput(String email, String password) {
-        if (TextUtils.isEmpty(email)) {
-            view.showError("Email is required");
-            return false;
-        }
-
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            view.showError("Invalid email format");
-            return false;
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            view.showError("Password is required");
-            return false;
-        }
-
-        if (password.length() < 6) {
-            view.showError("Password must be at least 6 characters");
-            return false;
-        }
-
-        return true;
+        view = null;
     }
 }

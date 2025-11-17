@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.smartair.MainActivity;
+import com.example.smartair.HomepageActivity;
 import com.example.smartair.R;
 import com.example.smartair.models.UserRole;
 import com.example.smartair.utils.SharedPrefsHelper;
@@ -32,24 +32,16 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        initializeViews();
-
-        AuthModel model = new AuthModel();
-        presenter = new LoginPresenter(this, model);
-        prefsHelper = new SharedPrefsHelper(this);
-
-        setupClickListeners();
-    }
-
-    private void initializeViews() {
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
-    }
 
-    private void setupClickListeners() {
+        AuthModel model = new AuthModel();
+        presenter = new LoginPresenter(this, model);
+        prefsHelper = new SharedPrefsHelper(this);
+
         loginButton.setOnClickListener(v -> presenter.onLoginClicked());
 
         registerTextView.setOnClickListener(v -> {
@@ -78,9 +70,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void navigateToHome(UserRole role) {
         prefsHelper.saveUserRole(role.getValue());
-
-        // For now, just go to MainActivity
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, HomepageActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
