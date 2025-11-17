@@ -32,16 +32,5 @@
         android:text="Pre/Post Check"
         android:textSize="18sp"
         android:padding="12dp" />
-    <Button
-        android:id="@+id/btnAddChild"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Child" />
-
-    <Button
-        android:id="@+id/btnViewChildren"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="View Children" />
 
 </LinearLayout>

@@ -13,27 +13,41 @@ public class HomepageActivity extends AppCompatActivity {
     private Button btnTechnique;
     private Button btnPrePostCheck;
 
-
-    private Button btnAddChild;
-    private Button btnViewChildren;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_homepage);
+        setContentView(R.layout.activity_homepage); // 确保布局文件存在
 
+        // 获取按钮控件
         btnLogMedicine = findViewById(R.id.btnLogMedicine);
         btnTechnique = findViewById(R.id.btnTechnique);
         btnPrePostCheck = findViewById(R.id.btnPrePostCheck);
-        btnAddChild = findViewById(R.id.btnAddChild);
-        btnViewChildren = findViewById(R.id.btnViewChildren);
-        btnAddChild.setOnClickListener(v -> {
-            Intent intent = new Intent(HomepageActivity.this, AddChildActivity.class);
-            startActivity(intent);
+
+        // 点击跳转到 LogMedicineActivity
+        btnLogMedicine.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(HomepageActivity.this, LogMedicineActivity.class);
+                startActivity(intent);
+            }
         });
-        btnViewChildren.setOnClickListener(v -> {
-            Intent intent = new Intent(HomepageActivity.this, ViewChildrenActivity.class);
-            startActivity(intent);
+
+        // 点击跳转到 TechniqueActivity
+        btnTechnique.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(HomepageActivity.this, TechniqueActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // 点击跳转到 PrePostCheckActivity
+        btnPrePostCheck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(HomepageActivity.this, PrePostCheckActivity.class);
+                startActivity(intent);
+            }
         });
     }
 }
