@@ -1,5 +1,7 @@
 package com.example.smartair;
 
+import androidx.appcompat.app.AlertDialog;// used for warnings
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -19,7 +21,7 @@ public class ManageChildActivity extends AppCompatActivity {
     private EditText editChildUsername, editChildPassword;
     private EditText editChildName, editChildDOB, editChildNotes;
     private Button btnSave, btnDelete;
-
+    private Button btnManageSharing;
     private String childId, parentId;
     private FirebaseFirestore db;
 
@@ -31,7 +33,6 @@ public class ManageChildActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // Get data from intent
         childId = getIntent().getStringExtra("childId");
         String username = getIntent().getStringExtra("username");
         String password = getIntent().getStringExtra("password");
@@ -39,7 +40,6 @@ public class ManageChildActivity extends AppCompatActivity {
         String dob = getIntent().getStringExtra("dob");
         String notes = getIntent().getStringExtra("notes");
 
-        // Connect views
         editChildUsername = findViewById(R.id.editChildUsername);
         editChildPassword = findViewById(R.id.editChildPassword);
         editChildName = findViewById(R.id.editChildName);
@@ -48,7 +48,7 @@ public class ManageChildActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btnSave);
         btnDelete = findViewById(R.id.btnDelete);
 
-        Button btnManageSharing = findViewById(R.id.btnManageSharing);
+        btnManageSharing = findViewById(R.id.btnManageSharing);
 
         btnManageSharing.setOnClickListener(v -> {
             Intent intent = new Intent(ManageChildActivity.this, ManageSharingActivity.class);
@@ -56,24 +56,35 @@ public class ManageChildActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Pre-fill fields
         editChildUsername.setText(username);
         editChildPassword.setText(password);
         editChildName.setText(name);
         editChildDOB.setText(dob);
         editChildNotes.setText(notes);
 
-        // Button actions
         btnSave.setOnClickListener(v -> updateChild());
-        btnDelete.setOnClickListener(v -> deleteChild());
+
+        btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
     }
 
     private void updateChild() {
-        Map<String, Object> updates = new HashMap<>();
+        String name = editChildName.getText().toString().trim();
+        String username = editChildUsername.getText().toString().trim();
+        String password = editChildPassword.getText().toString().trim();
 
-        updates.put("username", editChildUsername.getText().toString().trim());
-        updates.put("password", editChildPassword.getText().toString().trim());
-        updates.put("name", editChildName.getText().toString().trim());
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Child name cannot be empty.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Username and password cannot be empty.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("username", username);
+        updates.put("password", password);
+        updates.put("name", name);
         updates.put("dob", editChildDOB.getText().toString().trim());
         updates.put("notes", editChildNotes.getText().toString().trim());
 
@@ -81,12 +92,25 @@ public class ManageChildActivity extends AppCompatActivity {
                 .document(parentId)
                 .collection("children")
                 .document(childId)
-                .update(updates)
+                .update(updates) // .update() is correct!
                 .addOnSuccessListener(a ->
                         Toast.makeText(this, "Child updated!", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e ->
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
     }
+
+    private void showDeleteConfirmationDialog() {// added this to say are you sure
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Child")
+                .setMessage("Are you sure you want to permanently delete this child's profile?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    deleteChild();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 
     private void deleteChild() {
         db.collection("parents")

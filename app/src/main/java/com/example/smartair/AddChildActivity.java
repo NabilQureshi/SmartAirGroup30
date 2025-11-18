@@ -1,5 +1,10 @@
 package com.example.smartair;
 
+import java.util.Calendar;
+import android.app.DatePickerDialog;
+import android.widget.DatePicker;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
@@ -18,7 +23,12 @@ import java.util.Map;
 public class AddChildActivity extends AppCompatActivity {
 
     private EditText editChildUsername, editChildPassword;
-    private EditText editChildName, editChildDOB, editChildNotes;
+    private TextView textDOB;
+    private Button btnPickDate;
+
+    private String selectedDOB = "";
+
+    private EditText editChildName, editChildNotes;
     private Button btnAddChild;
 
     private FirebaseFirestore db;
@@ -28,44 +38,68 @@ public class AddChildActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_child);
-
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-
         if (auth.getCurrentUser() == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Username + Password fields
+
         editChildUsername = findViewById(R.id.editChildUsername);
         editChildPassword = findViewById(R.id.editChildPassword);
 
-        // Existing fields
         editChildName = findViewById(R.id.editChildName);
-        editChildDOB = findViewById(R.id.editChildDOB);
         editChildNotes = findViewById(R.id.editChildNotes);
         btnAddChild = findViewById(R.id.btnAddChild);
 
+        textDOB = findViewById(R.id.textDOB);
+        btnPickDate = findViewById(R.id.btnPickDate);
+
+        btnPickDate.setOnClickListener(v -> showDatePickerDialog());
+
         btnAddChild.setOnClickListener(v -> addChild());
+    }
+
+    private void showDatePickerDialog() {
+        final Calendar c = Calendar.getInstance();
+        int year = c.get(Calendar.YEAR);
+        int month = c.get(Calendar.MONTH);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog.OnDateSetListener dateSetListener = (view, yearPicked, monthPicked, dayPicked) -> {
+
+            // month picked starts from 0 thats why we add
+            int monthActual = monthPicked + 1;
+
+            selectedDOB = String.format("%02d/%02d/%d", dayPicked, monthActual, yearPicked);
+
+            textDOB.setText("Date of Birth: " + selectedDOB);
+        };
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, dateSetListener, year, month, day);
+
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());//limits to the present
+
+        datePickerDialog.show();
     }
 
     private void addChild() {
         String username = editChildUsername.getText().toString().trim();
         String password = editChildPassword.getText().toString().trim();
         String name = editChildName.getText().toString().trim();
-        String dob = editChildDOB.getText().toString().trim();
+        String dob = selectedDOB;
         String notes = editChildNotes.getText().toString().trim();
 
-        // Validate fields
         if (username.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please enter a username and password.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+
         if (name.isEmpty() || dob.isEmpty()) {
-            Toast.makeText(this, "Please enter name and date of birth.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter a name and select a date of birth.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -77,10 +111,9 @@ public class AddChildActivity extends AppCompatActivity {
 
         String parentId = user.getUid();
 
-        // Data saved to Firestore
         Map<String, Object> child = new HashMap<>();
         child.put("username", username);
-        child.put("password", password);
+        child.put("childPin", password);
         child.put("name", name);
         child.put("dob", dob);
         child.put("notes", notes);
@@ -93,14 +126,14 @@ public class AddChildActivity extends AppCompatActivity {
                 .addOnSuccessListener(docRef -> {
                     Toast.makeText(this, "Child added successfully!", Toast.LENGTH_SHORT).show();
 
-                    // Clear fields
                     editChildUsername.setText("");
                     editChildPassword.setText("");
                     editChildName.setText("");
-                    editChildDOB.setText("");
                     editChildNotes.setText("");
 
-                    // Go back to list
+                    textDOB.setText("Date of Birth: Not Set");
+                    selectedDOB = "";
+
                     Intent intent = new Intent(AddChildActivity.this, ViewChildrenActivity.class);
                     startActivity(intent);
                     finish();

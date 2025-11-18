@@ -1,8 +1,13 @@
 package com.example.smartair;
 
 import android.os.Bundle;
-import android.widget.Button;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,10 +23,19 @@ public class ManageSharingActivity extends AppCompatActivity {
 
     private Switch switchRescue, switchController, switchSymptoms, switchTriggers;
     private Switch switchPEF, switchTriage, switchCharts;
-    private Button btnSave;
+    private ProgressBar loadingIndicator;
+
+    private TextView textSaving;
 
     private String parentId, childId;
     private FirebaseFirestore db;
+    private DocumentReference docRef;
+
+    private boolean isLoading = true;
+
+    private Handler debounceHandler = new Handler(Looper.getMainLooper());
+    private Runnable saveRunnable;
+    private static final long DEBOUNCE_DELAY = 800; //remember to check if i need to change the value
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +46,19 @@ public class ManageSharingActivity extends AppCompatActivity {
         parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         childId = getIntent().getStringExtra("childId");
 
-        // Bind switches
+        if (childId == null) {
+            Toast.makeText(this, "Error: No child selected.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        docRef = db.collection("parents")
+                .document(parentId)
+                .collection("children")
+                .document(childId)
+                .collection("settings")
+                .document("sharing");
+
         switchRescue = findViewById(R.id.switchRescueLogs);
         switchController = findViewById(R.id.switchController);
         switchSymptoms = findViewById(R.id.switchSymptoms);
@@ -41,21 +67,18 @@ public class ManageSharingActivity extends AppCompatActivity {
         switchTriage = findViewById(R.id.switchTriage);
         switchCharts = findViewById(R.id.switchCharts);
 
-        btnSave = findViewById(R.id.btnSaveSharing);
-
+        loadingIndicator = findViewById(R.id.loadingIndicator);
+        textSaving = findViewById(R.id.textSaving);
+        saveRunnable = this::saveAllSettings;
         loadExistingSettings();
-        btnSave.setOnClickListener(v -> saveSettings());
     }
 
     private void loadExistingSettings() {
-        DocumentReference ref = db.collection("parents")
-                .document(parentId)
-                .collection("children")
-                .document(childId)
-                .collection("settings")
-                .document("sharing");
+        loadingIndicator.setVisibility(View.VISIBLE);
+        textSaving.setVisibility(View.GONE);
+        isLoading = true;
 
-        ref.get().addOnSuccessListener(doc -> {
+        docRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 switchRescue.setChecked(Boolean.TRUE.equals(doc.getBoolean("rescueLogs")));
                 switchController.setChecked(Boolean.TRUE.equals(doc.getBoolean("controller")));
@@ -65,10 +88,42 @@ public class ManageSharingActivity extends AppCompatActivity {
                 switchTriage.setChecked(Boolean.TRUE.equals(doc.getBoolean("triage")));
                 switchCharts.setChecked(Boolean.TRUE.equals(doc.getBoolean("charts")));
             }
+
+            isLoading = false;
+            loadingIndicator.setVisibility(View.GONE);
+            setupToggleListeners();
+
+        }).addOnFailureListener(e -> {
+            isLoading = false;
+            loadingIndicator.setVisibility(View.GONE);
+            setupToggleListeners();
+            Toast.makeText(this, "Failed to load settings.", Toast.LENGTH_LONG).show();
         });
     }
 
-    private void saveSettings() {
+    private void setupToggleListeners() {
+        CompoundButton.OnCheckedChangeListener listener = (buttonView, isChecked) -> {
+            if (!isLoading) {
+                // Show inline “Saving…”
+                textSaving.setVisibility(View.VISIBLE);
+
+                // Reset debounce
+                debounceHandler.removeCallbacks(saveRunnable);
+                debounceHandler.postDelayed(saveRunnable, DEBOUNCE_DELAY);
+            }
+        };
+
+        switchRescue.setOnCheckedChangeListener(listener);
+        switchController.setOnCheckedChangeListener(listener);
+        switchSymptoms.setOnCheckedChangeListener(listener);
+        switchTriggers.setOnCheckedChangeListener(listener);
+        switchPEF.setOnCheckedChangeListener(listener);
+        switchTriage.setOnCheckedChangeListener(listener);
+        switchCharts.setOnCheckedChangeListener(listener);
+    }
+
+    private void saveAllSettings() {
+
         Map<String, Object> data = new HashMap<>();
         data.put("rescueLogs", switchRescue.isChecked());
         data.put("controller", switchController.isChecked());
@@ -78,16 +133,24 @@ public class ManageSharingActivity extends AppCompatActivity {
         data.put("triage", switchTriage.isChecked());
         data.put("charts", switchCharts.isChecked());
 
-        db.collection("parents")
-                .document(parentId)
-                .collection("children")
-                .document(childId)
-                .collection("settings")
-                .document("sharing")
-                .set(data)
-                .addOnSuccessListener(a ->
-                        Toast.makeText(this, "Sharing settings updated!", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+        docRef.set(data)
+                .addOnSuccessListener(a -> {
+                    textSaving.setVisibility(View.VISIBLE);
+                    textSaving.setText("All changes saved!");
+                    textSaving.postDelayed(() -> {
+                        textSaving.setVisibility(View.GONE);
+                        textSaving.setText("Saving...");
+                    }, 1500);
+                })
+                .addOnFailureListener(e -> {
+                    textSaving.setVisibility(View.GONE);
+                    Toast.makeText(this, "Error saving settings", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+        @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        debounceHandler.removeCallbacks(saveRunnable);
     }
 }

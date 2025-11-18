@@ -44,18 +44,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- DOB -->
-    <EditText
-        android:id="@+id/editChildDOB"
-        android:layout_width="0dp"
+    <!-- DOB Label -->
+    <TextView
+        android:id="@+id/textDOB"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Date of Birth (DD-MM-YY)"
-        android:minHeight="48dp"
-        android:padding="12dp"
-        android:layout_marginTop="16dp"
+        android:text="Date of Birth: Not Set"
+        android:textSize="18sp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         app:layout_constraintTop_toBottomOf="@id/editChildName"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- DOB Button -->
+    <Button
+        android:id="@+id/btnPickDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Date"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toBottomOf="@id/editChildName"
+        app:layout_constraintStart_toEndOf="@id/textDOB"/>
 
     <!-- Notes -->
     <EditText
@@ -66,11 +75,11 @@
         android:minHeight="48dp"
         android:padding="12dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/editChildDOB"
+        app:layout_constraintTop_toBottomOf="@id/btnPickDate"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Add Child-->
+    <!-- Add Child Button -->
     <Button
         android:id="@+id/btnAddChild"
         android:layout_width="0dp"
