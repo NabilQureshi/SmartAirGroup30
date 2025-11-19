@@ -36,6 +36,28 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_text" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/triage_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/triage_button_text"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/subtitle_text" />
+
+        <TextView
+            android:id="@+id/triage_safety_note"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/triage_safety_note"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/triage_button" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/personal_best_card"
             android:layout_width="0dp"
@@ -45,7 +67,7 @@
             app:cardElevation="3dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/subtitle_text">
+            app:layout_constraintTop_toBottomOf="@+id/triage_safety_note">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"

@@ -27,6 +27,19 @@
     <string name="zone_based_on_latest_entry">Based on your latest saved entry.</string>
     <string name="zone_missing_pb">Add your Personal Best to unlock this color card.</string>
     <string name="zone_missing_entries">Log a PEF value to see your color zone.</string>
+    <string name="triage_button_text">Having trouble breathing?</string>
+    <string name="triage_safety_note">This is guidance, not a diagnosis. If in doubt, call emergency.</string>
+    <string name="triage_title">Having trouble breathing?</string>
+    <string name="triage_intro">Answer these quick red-flag questions so we can guide your next step.</string>
+    <string name="triage_question_speech">I can\'t speak in full sentences.</string>
+    <string name="triage_question_chest">My chest or ribs are pulling in when I breathe.</string>
+    <string name="triage_question_color">My lips or nails look blue or gray.</string>
+    <string name="triage_check_next_steps">Check next steps</string>
+    <string name="triage_result_emergency_title">Call emergency now</string>
+    <string name="triage_result_emergency_message">These red flags mean breathing trouble could be serious. Tell an adult and call emergency services right away.</string>
+    <string name="triage_result_home_title">Start home steps</string>
+    <string name="triage_result_home_message">Keep calm, follow your action plan with an adult, and re-check after your timer.</string>
+    <string name="triage_no_flags_hint">Answer the red-flag questions above to see guidance.</string>
     <string name="recent_entries_title">Recent Entries</string>
     <string name="empty_history_message">No PEF entries yet.\nEnter your first PEF value above.</string>
 </resources>

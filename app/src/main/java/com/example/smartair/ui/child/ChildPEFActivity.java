@@ -1,5 +1,6 @@
 package com.example.smartair.ui.child;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -108,6 +109,13 @@ public class ChildPEFActivity extends AppCompatActivity {
         pefHistoryRecyclerView.setAdapter(historyAdapter);
 
         saveButton.setOnClickListener(v -> savePEFEntry());
+
+        MaterialButton triageButton = findViewById(R.id.triage_button);
+        if (triageButton != null) {
+            triageButton.setOnClickListener(v ->
+                startActivity(new Intent(this, ChildTriageActivity.class))
+            );
+        }
 
         updatePersonalBestCard();
         refreshHistory();
