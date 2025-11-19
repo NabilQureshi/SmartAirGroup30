@@ -16,7 +16,7 @@
             android:id="@+id/title_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Enter PEF Value"
+            android:text="@string/child_pef_title"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
@@ -28,13 +28,152 @@
             android:id="@+id/subtitle_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Track how medicine affects your breathing"
+            android:text="@string/child_pef_subtitle"
             android:textSize="14sp"
             android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="24dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_text" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/personal_best_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/subtitle_text">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/personal_best_label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/personal_best_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/personal_best_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/personal_best_status_missing"
+                    android:textSize="16sp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginTop="12dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/personal_best_label" />
+
+                <TextView
+                    android:id="@+id/personal_best_status_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/personal_best_description"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="14sp"
+                    android:layout_marginTop="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/personal_best_value" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/zone_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="@color/zone_neutral_bg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/personal_best_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/zone_card_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/zone_card_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/zone_content_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/zone_state_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/zone_label_unknown"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:text="@string/zone_label_green" />
+
+                    <TextView
+                        android:id="@+id/zone_percent_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="16sp"
+                        android:layout_marginTop="2dp"
+                        tools:text="82% of PB" />
+
+                    <TextView
+                        android:id="@+id/zone_guidance_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/zone_unknown_guidance"
+                        android:textSize="16sp"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:id="@+id/zone_source_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/zone_based_on_latest_entry"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/zone_empty_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/zone_missing_pb"
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/input_card"
@@ -45,7 +184,7 @@
             app:cardElevation="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/subtitle_text">
+            app:layout_constraintTop_toBottomOf="@+id/zone_card">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -56,7 +195,7 @@
                     android:id="@+id/pef_input_layout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="PEF Value (L/min)"
+                    android:hint="@string/pef_input_hint"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -88,7 +227,7 @@
                     android:id="@+id/medicine_tag_label"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Medicine Tag:"
+                    android:text="@string/medicine_tag_label"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_marginTop="16dp"
@@ -110,21 +249,21 @@
                         android:id="@+id/pre_medicine_radio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Before Medicine"
+                        android:text="@string/radio_pre_medicine"
                         android:textSize="14sp" />
 
                     <RadioButton
                         android:id="@+id/post_medicine_radio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="After Medicine"
+                        android:text="@string/radio_post_medicine"
                         android:textSize="14sp" />
 
                     <RadioButton
                         android:id="@+id/none_radio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="No Tag"
+                        android:text="@string/radio_none"
                         android:textSize="14sp"
                         android:checked="true" />
 
@@ -134,7 +273,7 @@
                     android:id="@+id/save_pef_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Save PEF Entry"
+                    android:text="@string/save_pef_entry"
                     android:layout_marginTop="16dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -148,7 +287,7 @@
             android:id="@+id/history_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Recent Entries"
+            android:text="@string/recent_entries_title"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
@@ -169,7 +308,7 @@
             android:id="@+id/empty_state_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="No PEF entries yet.\nEnter your first PEF value above."
+            android:text="@string/empty_history_message"
             android:textAlignment="center"
             android:textSize="16sp"
             android:textColor="?android:attr/textColorSecondary"

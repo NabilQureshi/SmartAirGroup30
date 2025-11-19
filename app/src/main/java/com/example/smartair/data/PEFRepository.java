@@ -19,6 +19,7 @@ public class PEFRepository {
     private static final String TAG = "PEFRepository";
     private static final String PREFS_NAME = "SmartAir_PEF";
     private static final String KEY_PEF_ENTRIES = "pef_entries";
+    private static final String KEY_PERSONAL_BEST = "personal_best";
     
     private final SharedPreferences sharedPreferences;
     
@@ -93,6 +94,28 @@ public class PEFRepository {
         } catch (Exception e) {
             Log.e(TAG, "Error saving PEF entries to JSON", e);
         }
+    }
+
+    /**
+     * Stores the Personal Best (PB) value provided by a parent.
+     */
+    public void setPersonalBest(int personalBest) {
+        if (personalBest <= 0) {
+            throw new IllegalArgumentException("Personal best must be a positive number");
+        }
+        sharedPreferences.edit().putInt(KEY_PERSONAL_BEST, personalBest).apply();
+    }
+
+    /**
+     * @return saved Personal Best or null if it has not been set.
+     */
+    public Integer getPersonalBest() {
+        int storedValue = sharedPreferences.getInt(KEY_PERSONAL_BEST, -1);
+        return storedValue > 0 ? storedValue : null;
+    }
+
+    public boolean hasPersonalBest() {
+        return getPersonalBest() != null;
     }
 }
 
