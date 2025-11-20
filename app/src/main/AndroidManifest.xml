@@ -54,6 +54,13 @@
         <activity
             android:name=".ChooseChildForSharingActivity"
             android:exported="true" />
+        <activity
+            android:name=".InviteProviderActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".EnterInviteCodeActivity"
+            android:exported="false" />
 
 
         <!-- OTHER SCREENS -->
