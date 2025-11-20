@@ -36,7 +36,6 @@
             android:visibility="gone"
             android:paddingBottom="16dp"/>
 
-        <!-- Saving indicator -->
         <TextView
             android:id="@+id/textSaving"
             android:layout_width="wrap_content"
@@ -48,10 +47,6 @@
             android:paddingTop="8dp"
             android:paddingBottom="16dp" />
 
-        <!--
-             ROW 1: Rescue Logs
-             FIXED: Added an ID, clickable, focusable, and background.
-        -->
         <LinearLayout
             android:id="@+id/rowRescueLogs"
             android:layout_width="match_parent"
@@ -88,7 +83,6 @@
                     android:paddingTop="2dp"/>
             </LinearLayout>
 
-            <!-- DuplicateParentState passes the row's click state to the switch -->
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switchRescueLogs"
                 android:layout_width="wrap_content"
