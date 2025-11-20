@@ -65,6 +65,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <Button
+            android:id="@+id/btnInviteProvider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Generate Provider Invite"
+            android:backgroundTint="#673AB7"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp"
+            style="?android:attr/buttonStyleSmall"/>
+
         <!-- Delete -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDelete"
