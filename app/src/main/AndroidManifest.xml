@@ -24,10 +24,16 @@
             android:name=".ui.child.ChildPEFActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".ui.child.ChildTriageActivity"
             android:exported="false"
             android:parentActivityName=".ui.child.ChildPEFActivity" />
+
+        <activity
+            android:name=".ui.parent.ParentHomeActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
