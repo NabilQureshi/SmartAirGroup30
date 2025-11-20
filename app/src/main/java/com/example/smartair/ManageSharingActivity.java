@@ -6,12 +6,12 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.appcompat.widget.SwitchCompat;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -21,21 +21,24 @@ import java.util.Map;
 
 public class ManageSharingActivity extends AppCompatActivity {
 
-    private Switch switchRescue, switchController, switchSymptoms, switchTriggers;
-    private Switch switchPEF, switchTriage, switchCharts;
-    private ProgressBar loadingIndicator;
+    private SwitchCompat switchRescue, switchController, switchSymptoms, switchTriggers;
+    private SwitchCompat switchPEF, switchTriage, switchCharts;
 
+    private TextView tagRescue, tagController, tagSymptoms, tagTriggers;
+    private TextView tagPEF, tagTriage, tagCharts;
+
+    private ProgressBar loadingIndicator;
     private TextView textSaving;
 
     private String parentId, childId;
-    private FirebaseFirestore db;
     private DocumentReference docRef;
+    private FirebaseFirestore db;
 
     private boolean isLoading = true;
 
     private Handler debounceHandler = new Handler(Looper.getMainLooper());
     private Runnable saveRunnable;
-    private static final long DEBOUNCE_DELAY = 800; //remember to check if i need to change the value
+    private static final long DEBOUNCE_DELAY = 800;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +70,19 @@ public class ManageSharingActivity extends AppCompatActivity {
         switchTriage = findViewById(R.id.switchTriage);
         switchCharts = findViewById(R.id.switchCharts);
 
+        tagRescue = findViewById(R.id.tagRescue);
+        tagController = findViewById(R.id.tagController);
+        tagSymptoms = findViewById(R.id.tagSymptoms);
+        tagTriggers = findViewById(R.id.tagTriggers);
+        tagPEF = findViewById(R.id.tagPEF);
+        tagTriage = findViewById(R.id.tagTriage);
+        tagCharts = findViewById(R.id.tagCharts);
+
         loadingIndicator = findViewById(R.id.loadingIndicator);
         textSaving = findViewById(R.id.textSaving);
+
         saveRunnable = this::saveAllSettings;
+
         loadExistingSettings();
     }
 
@@ -80,13 +93,14 @@ public class ManageSharingActivity extends AppCompatActivity {
 
         docRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
-                switchRescue.setChecked(Boolean.TRUE.equals(doc.getBoolean("rescueLogs")));
-                switchController.setChecked(Boolean.TRUE.equals(doc.getBoolean("controller")));
-                switchSymptoms.setChecked(Boolean.TRUE.equals(doc.getBoolean("symptoms")));
-                switchTriggers.setChecked(Boolean.TRUE.equals(doc.getBoolean("triggers")));
-                switchPEF.setChecked(Boolean.TRUE.equals(doc.getBoolean("pef")));
-                switchTriage.setChecked(Boolean.TRUE.equals(doc.getBoolean("triage")));
-                switchCharts.setChecked(Boolean.TRUE.equals(doc.getBoolean("charts")));
+
+                setToggleState(switchRescue, tagRescue, doc.getBoolean("rescueLogs"));
+                setToggleState(switchController, tagController, doc.getBoolean("controller"));
+                setToggleState(switchSymptoms, tagSymptoms, doc.getBoolean("symptoms"));
+                setToggleState(switchTriggers, tagTriggers, doc.getBoolean("triggers"));
+                setToggleState(switchPEF, tagPEF, doc.getBoolean("pef"));
+                setToggleState(switchTriage, tagTriage, doc.getBoolean("triage"));
+                setToggleState(switchCharts, tagCharts, doc.getBoolean("charts"));
             }
 
             isLoading = false;
@@ -101,13 +115,30 @@ public class ManageSharingActivity extends AppCompatActivity {
         });
     }
 
-    private void setupToggleListeners() {
-        CompoundButton.OnCheckedChangeListener listener = (buttonView, isChecked) -> {
-            if (!isLoading) {
-                // Show inline “Saving…”
-                textSaving.setVisibility(View.VISIBLE);
+    private void setToggleState(SwitchCompat sw, TextView tag, Boolean value) {
+        boolean checked = Boolean.TRUE.equals(value);
+        sw.setChecked(checked);
+        tag.setVisibility(checked ? View.VISIBLE : View.GONE);
+    }
 
-                // Reset debounce
+    private void setupToggleListeners() {
+
+        CompoundButton.OnCheckedChangeListener listener = (buttonView, isChecked) -> {
+
+            int id = buttonView.getId();
+
+            if (id == R.id.switchRescueLogs) tagRescue.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            else if (id == R.id.switchController) tagController.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            else if (id == R.id.switchSymptoms) tagSymptoms.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            else if (id == R.id.switchTriggers) tagTriggers.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            else if (id == R.id.switchPEF) tagPEF.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            else if (id == R.id.switchTriage) tagTriage.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            else if (id == R.id.switchCharts) tagCharts.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+
+            if (!isLoading) {
+                textSaving.setVisibility(View.VISIBLE);
+                textSaving.setText("Saving...");
+
                 debounceHandler.removeCallbacks(saveRunnable);
                 debounceHandler.postDelayed(saveRunnable, DEBOUNCE_DELAY);
             }
@@ -133,10 +164,10 @@ public class ManageSharingActivity extends AppCompatActivity {
         data.put("triage", switchTriage.isChecked());
         data.put("charts", switchCharts.isChecked());
 
-        docRef.set(data)
+        docRef.set(data, SetOptions.merge())
                 .addOnSuccessListener(a -> {
-                    textSaving.setVisibility(View.VISIBLE);
                     textSaving.setText("All changes saved!");
+
                     textSaving.postDelayed(() -> {
                         textSaving.setVisibility(View.GONE);
                         textSaving.setText("Saving...");
@@ -148,7 +179,8 @@ public class ManageSharingActivity extends AppCompatActivity {
                 });
     }
 
-        @Override
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         debounceHandler.removeCallbacks(saveRunnable);

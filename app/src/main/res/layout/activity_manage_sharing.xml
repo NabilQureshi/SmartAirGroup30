@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Title -->
         <TextView
             android:id="@+id/textSharingTitle"
             android:layout_width="wrap_content"
@@ -18,21 +19,24 @@
             android:textStyle="bold"
             android:paddingBottom="16dp"/>
 
+        <!-- Subtitle -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Share the following data with the provider. Changes are saved automatically."
+            android:text="Choose what data (per child) is shared with the provider. All changes save automatically."
             android:textSize="16sp"
-            android:paddingBottom="16dp"/>
+            android:paddingBottom="20dp" />
 
+        <!-- Loading Indicator -->
         <ProgressBar
             android:id="@+id/loadingIndicator"
-            style="?android:attr/progressBarStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:visibility="gone"
             android:paddingBottom="16dp"/>
+
+        <!-- Saving indicator -->
         <TextView
             android:id="@+id/textSaving"
             android:layout_width="wrap_content"
@@ -42,63 +46,330 @@
             android:textColor="#888888"
             android:visibility="gone"
             android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+            android:paddingBottom="16dp" />
 
-        <Switch
-            android:id="@+id/switchRescueLogs"
-            android:text="Share Rescue Logs"
-            android:minHeight="48dp"
-            android:padding="12dp"
+        <!--
+             ROW 1: Rescue Logs
+             FIXED: Added an ID, clickable, focusable, and background.
+        -->
+        <LinearLayout
+            android:id="@+id/rowRescueLogs"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
 
-        <Switch
-            android:id="@+id/switchController"
-            android:text="Share Controller Adherence Summary"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
 
-        <Switch
-            android:id="@+id/switchSymptoms"
-            android:text="Share Symptoms"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Rescue Logs"
+                    android:textSize="18sp"/>
 
-        <Switch
-            android:id="@+id/switchTriggers"
-            android:text="Share Triggers"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/tagRescue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
 
-        <Switch
-            android:id="@+id/switchPEF"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:text="Share Peak-Flow (PEF)"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <!-- DuplicateParentState passes the row's click state to the switch -->
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchRescueLogs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
 
-        <Switch
-            android:id="@+id/switchTriage"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:text="Share Triage Incidents"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
-        <Switch
-            android:id="@+id/switchCharts"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:text="Share Summary Charts / Dashboard Visuals"
+        <!-- ROW 2: CONTROLLER ADHERENCE -->
+        <LinearLayout
+            android:id="@+id/rowController"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Controller Adherence Summary"
+                    android:textSize="18sp"
+                    android:singleLine="false"
+                    android:ellipsize="none"/>
+
+                <TextView
+                    android:id="@+id/tagController"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+
+                android:id="@+id/switchController"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
+
+
+        <!-- ROW 3: SYMPTOMS -->
+        <LinearLayout
+            android:id="@+id/rowSymptoms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Symptoms"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tagSymptoms"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchSymptoms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
+
+
+        <!-- ROW 4: TRIGGERS -->
+        <LinearLayout
+            android:id="@+id/rowTriggers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Triggers"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tagTriggers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchTriggers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
+
+
+        <!-- ROW 5: PEF -->
+        <LinearLayout
+            android:id="@+id/rowPEF"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Peak-Flow (PEF)"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tagPEF"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchPEF"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
+
+
+        <!-- ROW 6: TRIAGE INCIDENTS -->
+        <LinearLayout
+            android:id="@+id/rowTriage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Triage Incidents"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tagTriage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchTriage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
+
+
+        <!-- ROW 7: CHARTS -->
+        <LinearLayout
+            android:id="@+id/rowCharts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Summary Charts / Dashboard Visuals"
+                    android:textSize="18sp"
+                    android:singleLine="false"
+                    android:ellipsize="none"/>
+
+                <TextView
+                    android:id="@+id/tagCharts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shared with Provider"
+                    android:textSize="13sp"
+                    android:textColor="#33AA33"
+                    android:visibility="gone"
+                    android:paddingTop="2dp"/>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchCharts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
