@@ -44,33 +44,34 @@
 
         <!-- HOMEPAGE -->
         <activity
-            android:name=".HomepageActivity"
+            android:name=".homepages.HomepageActivity"
             android:exported="true" />
         <activity
-            android:name=".HomepageParentsActivity"
+            android:name=".homepages.HomepageParentsActivity"
             android:exported="true" />
         <activity
-            android:name=".HomepageProvidersActivity"
+            android:name=".homepages.HomepageProvidersActivity"
             android:exported="true" />
 
         <!-- CHILD MANAGEMENT -->
-        <activity android:name=".ViewChildrenActivity" android:exported="true" />
-        <activity android:name=".AddChildActivity" android:exported="true" />
-        <activity android:name=".ManageChildActivity" android:exported="true" />
+        <activity android:name=".child_managent.ViewChildrenActivity" android:exported="true" />
+        <activity android:name=".child_managent.AddChildActivity" android:exported="true" />
+        <activity android:name=".child_managent.ManageChildActivity" android:exported="true" />
 
         <!-- SHARING MANAGEMENT -->
-        <activity android:name=".ManageSharingActivity" android:exported="false" />
-        <activity android:name=".ChooseChildForSharingActivity" android:exported="true" />
+        <activity android:name=".sharing.ManageSharingActivity" android:exported="false" />
+        <activity android:name=".child_managent.ChooseChildForSharingActivity" android:exported="true" />
 
         <!-- OTHER SCREENS -->
-        <activity android:name=".LogMedicineActivity" android:exported="false" />
-        <activity android:name=".TechniqueActivity" android:exported="false" />
-        <activity android:name=".PrePostCheckActivity" android:exported="false" />
+        <activity android:name=".medicine_logs.LogMedicineActivity" android:exported="false" />
+        <activity android:name=".technique_guidance.TechniqueActivity" android:exported="false" />
+        <activity android:name=".pre_post_checks.PrePostCheckActivity" android:exported="false" />
+        <activity android:name=".sharing.InviteProviderActivity" android:exported="false" />
 
         <!-- OPTIONAL: remove if not used anymore -->
         <activity android:name=".MainActivity" android:exported="false" />
 
-        <activity android:name=".BadgeActivity" />
+        <activity android:name=".badges_system.BadgeActivity" />
 
     </application>
 

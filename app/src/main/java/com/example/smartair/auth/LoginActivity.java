@@ -12,10 +12,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.smartair.HomepageActivity;
-import com.example.smartair.HomepageParentsActivity;
-import com.example.smartair.HomepageProvidersActivity;
 import com.example.smartair.R;
+import com.example.smartair.homepages.HomepageActivity;
+import com.example.smartair.homepages.HomepageParentsActivity;
+import com.example.smartair.homepages.HomepageProvidersActivity;
 import com.example.smartair.models.UserRole;
 import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.FirebaseApp;

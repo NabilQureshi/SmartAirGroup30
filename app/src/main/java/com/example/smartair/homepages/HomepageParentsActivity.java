@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.homepages;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +11,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.smartair.R;
+import com.example.smartair.child_managent.AddChildActivity;
+import com.example.smartair.child_managent.ChooseChildForSharingActivity;
+import com.example.smartair.child_managent.ManageChildActivity;
+import com.example.smartair.child_managent.ViewChildrenActivity;
 import com.example.smartair.ui.parent.ParentHomeActivity;
 
 public class HomepageParentsActivity extends AppCompatActivity {

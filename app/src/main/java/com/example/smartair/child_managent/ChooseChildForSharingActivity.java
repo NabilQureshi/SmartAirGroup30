@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.child_managent;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+
+import com.example.smartair.R;
+import com.example.smartair.sharing.ManageSharingActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -26,6 +29,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private String parentId;
+    private String mode = "sharing";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +41,26 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
         loadingIndicator = findViewById(R.id.loadingIndicator);
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
+        String m = getIntent().getStringExtra("mode");
+        if (m != null) mode = m;
+
+        loadingIndicator = findViewById(R.id.loadingIndicator);
+        recyclerChildren = findViewById(R.id.recyclerChildren);
+        recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ChildAdapter(childList, (child, childId) -> {
-            Intent intent = new Intent(this, ManageSharingActivity.class);
+            Intent intent;
+            if ("manageChild".equals(mode)) {
+                intent = new Intent(this, ManageChildActivity.class);
+            } else {
+                intent = new Intent(this, ManageSharingActivity.class);
+            }
             intent.putExtra("childId", childId);
             startActivity(intent);
         });
+
         recyclerChildren.setAdapter(adapter);
         loadChildren();
+
     }
 
     private void loadChildren() {

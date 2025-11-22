@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.badges_system;
 
 public class BadgeModel {
     public String id;

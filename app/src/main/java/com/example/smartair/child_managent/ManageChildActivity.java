@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.child_managent;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -10,6 +10,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.smartair.R;
+import com.example.smartair.sharing.InviteProviderActivity;
+import com.example.smartair.sharing.ManageSharingActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -71,6 +74,15 @@ public class ManageChildActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> updateChild());
 
         btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
+        if (childId == null) {
+            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
+            intent.putExtra("mode", "manageChild");
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+
     }
 
     private void updateChild() {

@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.badges_system;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -11,6 +11,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+
+
+import com.example.smartair.R;
 
 import java.util.List;
 

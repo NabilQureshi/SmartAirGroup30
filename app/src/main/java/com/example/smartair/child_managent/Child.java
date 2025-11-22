@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.child_managent;
 
 public class Child {
 

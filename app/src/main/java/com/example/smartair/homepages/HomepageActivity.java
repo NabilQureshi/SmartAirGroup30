@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.homepages;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,13 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+
+import com.example.smartair.R;
+
+import com.example.smartair.badges_system.BadgeActivity;
+import com.example.smartair.medicine_logs.LogMedicineActivity;
+import com.example.smartair.pre_post_checks.PrePostCheckActivity;
+import com.example.smartair.technique_guidance.TechniqueActivity;
 import com.example.smartair.ui.child.ChildPEFActivity;
 import com.example.smartair.ui.child.ChildTriageActivity;
 

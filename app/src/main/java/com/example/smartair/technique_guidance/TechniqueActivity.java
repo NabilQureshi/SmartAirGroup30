@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.technique_guidance;
 
 import android.os.Bundle;
 
@@ -6,7 +6,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.smartair.PageItem;
 import com.example.smartair.R;
 
 import java.util.ArrayList;

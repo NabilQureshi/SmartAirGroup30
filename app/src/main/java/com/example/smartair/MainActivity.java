@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        btnGoSignUp.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
+        btnGoSignUp.setOnClickListener(v -> startActivity(new Intent(this, com.example.smartair.unsure.SignUpActivity.class)));
 
         btnLogin.setOnClickListener(v -> loginUser());
     }
@@ -64,13 +64,13 @@ public class MainActivity extends AppCompatActivity {
                                             if(role == null) role = "child";
                                             switch(role) {
                                                 case "child":
-                                                    startActivity(new Intent(this, HomepageActivity.class));
+                                                    startActivity(new Intent(this, com.example.smartair.homepages.HomepageActivity.class));
                                                     break;
                                                 case "parent":
-                                                    startActivity(new Intent(this, HomepageParentsActivity.class));
+                                                    startActivity(new Intent(this, com.example.smartair.homepages.HomepageParentsActivity.class));
                                                     break;
                                                 case "provider":
-                                                    startActivity(new Intent(this, HomepageProvidersActivity.class));
+                                                    startActivity(new Intent(this, com.example.smartair.homepages.HomepageProvidersActivity.class));
                                                     break;
                                             }
                                             finish();

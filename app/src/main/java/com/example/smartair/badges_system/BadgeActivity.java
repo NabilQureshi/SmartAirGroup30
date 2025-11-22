@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.badges_system;
 
 import android.os.Bundle;
 import android.widget.Toast;
@@ -6,7 +6,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.smartair.BadgeAdapter;
+
+import com.example.smartair.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;

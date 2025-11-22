@@ -1,4 +1,4 @@
-package com.example.smartair;
+package com.example.smartair.technique_guidance;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -12,6 +12,8 @@ import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.example.smartair.R;
 
 public class YoutubePageFragment extends Fragment {
 
