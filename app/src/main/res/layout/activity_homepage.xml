@@ -11,41 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <Button
-            android:id="@+id/btnAddChild"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Add Child"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp"
-            android:padding="12dp" />
 
-        <Button
-            android:id="@+id/btnViewChildren"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="View Children"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp"
-            android:padding="12dp" />
-
-        <Button
-            android:id="@+id/btnManageChild"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Manage Child Activity"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp"
-            android:padding="12dp" />
-
-        <Button
-            android:id="@+id/btnManageSharing"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Manage Sharing"
-            android:textSize="18sp"
-            android:layout_marginBottom="32dp"
-            android:padding="12dp" />
 
         <!-- Existing Features -->
         <Button
@@ -82,6 +48,25 @@
             android:layout_height="wrap_content"
             android:text="Badges"
             android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnCheckPeakFlow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check Peak Flow"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnCheckSymptom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check Symptom"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
             android:padding="12dp" />
 
     </LinearLayout>

@@ -2,36 +2,37 @@ package com.example.smartair;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
-public class HomepageActivity extends AppCompatActivity {
+import com.example.smartair.R;
+import com.example.smartair.ui.parent.ParentHomeActivity;
 
-    private Button btnLogMedicine;
-    private Button btnTechnique;
-    private Button btnPrePostCheck;
+public class HomepageParentsActivity extends AppCompatActivity {
+
     private Button btnAddChild;
     private Button btnViewChildren;
     private Button btnManageChild;
     private Button btnManageSharing;
-    private Button btnBadge; // 只声明，不初始化
+    private Button btnManagePB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_homepage); // 确保布局文件存在
+        setContentView(R.layout.activity_homepage_parents); // 你的新布局文件
 
         // 初始化按钮
-        btnLogMedicine = findViewById(R.id.btnLogMedicine);
-        btnTechnique = findViewById(R.id.btnTechnique);
-        btnPrePostCheck = findViewById(R.id.btnPrePostCheck);
         btnAddChild = findViewById(R.id.btnAddChild);
         btnViewChildren = findViewById(R.id.btnViewChildren);
         btnManageChild = findViewById(R.id.btnManageChild);
         btnManageSharing = findViewById(R.id.btnManageSharing);
-        btnBadge = findViewById(R.id.btnBadges); // ✅ 放到这里初始化
+        btnManagePB = findViewById(R.id.btnManagePB);
+
 
         // 设置点击事件
         btnAddChild.setOnClickListener(v ->
@@ -45,17 +46,7 @@ public class HomepageActivity extends AppCompatActivity {
 
         btnManageSharing.setOnClickListener(v ->
                 startActivity(new Intent(this, ChooseChildForSharingActivity.class)));
-
-        btnLogMedicine.setOnClickListener(v ->
-                startActivity(new Intent(this, LogMedicineActivity.class)));
-
-        btnTechnique.setOnClickListener(v ->
-                startActivity(new Intent(this, TechniqueActivity.class)));
-
-        btnPrePostCheck.setOnClickListener(v ->
-                startActivity(new Intent(this, PrePostCheckActivity.class)));
-
-        btnBadge.setOnClickListener(v ->
-                startActivity(new Intent(this, BadgeActivity.class)));
+        btnManagePB.setOnClickListener(v ->
+                startActivity(new Intent(this, ParentHomeActivity.class)));
     }
 }

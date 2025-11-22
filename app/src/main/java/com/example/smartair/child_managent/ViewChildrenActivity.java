@@ -68,7 +68,7 @@ public class ViewChildrenActivity extends AppCompatActivity {
     private void loadChildren() {
         String parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        db.collection("parents")
+        db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .addSnapshotListener((querySnapshot, error) -> {

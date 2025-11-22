@@ -94,7 +94,7 @@ public class ManageChildActivity extends AppCompatActivity {
         updates.put("dob", editChildDOB.getText().toString().trim());
         updates.put("notes", editChildNotes.getText().toString().trim());
 
-        db.collection("parents")
+        db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .document(childId)
@@ -119,7 +119,7 @@ public class ManageChildActivity extends AppCompatActivity {
 
 
     private void deleteChild() {
-        db.collection("parents")
+        db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .document(childId)

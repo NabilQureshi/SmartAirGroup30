@@ -24,7 +24,7 @@ public class StepsAdapter extends FragmentStateAdapter {
         PageItem item = pages.get(position);
         if (item.imageRes == 0 && item.text != null && item.text.startsWith("youtube:")) {
             String videoId = item.text.substring("youtube:".length());
-            return YoutubePageFragment.newInstance(videoId);
+            return com.example.smartair.YoutubePageFragment.newInstance(videoId);
         } else {
             return StepFragment.newInstance(item.imageRes, item.text);
         }

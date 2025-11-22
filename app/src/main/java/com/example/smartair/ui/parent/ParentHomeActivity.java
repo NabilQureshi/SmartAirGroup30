@@ -65,7 +65,7 @@ public class ParentHomeActivity extends AppCompatActivity {
     }
 
     private View createChildCard(Child child) {
-        View cardView = getLayoutInflater().inflate(R.layout.item_child, childrenContainer, false);
+        View cardView = getLayoutInflater().inflate(R.layout.item_child_pb, childrenContainer, false);
 
         TextView nameText = cardView.findViewById(R.id.child_name);
         TextView pbText = cardView.findViewById(R.id.child_pb);

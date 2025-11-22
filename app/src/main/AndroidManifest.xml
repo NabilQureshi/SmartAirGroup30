@@ -46,6 +46,12 @@
         <activity
             android:name=".HomepageActivity"
             android:exported="true" />
+        <activity
+            android:name=".HomepageParentsActivity"
+            android:exported="true" />
+        <activity
+            android:name=".HomepageProvidersActivity"
+            android:exported="true" />
 
         <!-- CHILD MANAGEMENT -->
         <activity android:name=".ViewChildrenActivity" android:exported="true" />

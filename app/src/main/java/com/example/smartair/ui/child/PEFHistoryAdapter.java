@@ -4,11 +4,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.smartair.R;
 import com.example.smartair.model.PEFEntry;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,9 +20,11 @@ import java.util.Locale;
 
 /**
  * RecyclerView adapter for displaying PEF entry history.
- * Shows PEF values with pre/post-medicine tags to help children see how medicine affects breathing.
+ * Shows PEF values with pre/post-medicine tags to help children see
+ * how medicine affects breathing.
  */
 public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PEFViewHolder> {
+
     private List<PEFEntry> pefEntries;
     private final SimpleDateFormat dateFormat;
 
@@ -53,6 +58,7 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
     }
 
     static class PEFViewHolder extends RecyclerView.ViewHolder {
+
         private final TextView pefValueText;
         private final TextView medicineTagText;
         private final TextView timestampText;
@@ -69,40 +75,44 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
         }
 
         public void bind(PEFEntry entry) {
+            // 显示 PEF 数值
             pefValueText.setText(entry.getPefValue() + " L/min");
-            
-            // Display medicine tag
+
+            // 显示 medicine 标签
             if (entry.getMedicineTag() != PEFEntry.MedicineTag.NONE) {
                 medicineTagText.setText(entry.getMedicineTag().getDisplayName());
                 medicineTagText.setVisibility(View.VISIBLE);
-                
-                // Color code the tag
+
+                // 根据标签颜色标记
                 if (entry.isPreMedicine()) {
-                    medicineTagText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_orange_dark));
+                    medicineTagText.setTextColor(
+                            ContextCompat.getColor(itemView.getContext(), android.R.color.holo_orange_dark));
                 } else if (entry.isPostMedicine()) {
-                    medicineTagText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_green_dark));
+                    medicineTagText.setTextColor(
+                            ContextCompat.getColor(itemView.getContext(), android.R.color.holo_green_dark));
                 }
             } else {
                 medicineTagText.setVisibility(View.GONE);
             }
 
-            // Display timestamp
+            // 显示时间戳
             Date date = new Date(entry.getTimestamp());
             timestampText.setText(dateFormat.format(date));
 
-            // Show comparison indicator
+            // 显示对比信息
             if (entry.isPostMedicine()) {
                 comparisonText.setVisibility(View.VISIBLE);
                 comparisonText.setText("✓ After medicine");
-                comparisonText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_green_dark));
+                comparisonText.setTextColor(
+                        ContextCompat.getColor(itemView.getContext(), android.R.color.holo_green_dark));
             } else if (entry.isPreMedicine()) {
                 comparisonText.setVisibility(View.VISIBLE);
                 comparisonText.setText("Before medicine");
-                comparisonText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_orange_dark));
+                comparisonText.setTextColor(
+                        ContextCompat.getColor(itemView.getContext(), android.R.color.holo_orange_dark));
             } else {
                 comparisonText.setVisibility(View.GONE);
             }
         }
     }
 }
-

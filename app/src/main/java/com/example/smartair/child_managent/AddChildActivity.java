@@ -126,7 +126,7 @@ public class AddChildActivity extends AppCompatActivity {
         childData.put("createdAt", FieldValue.serverTimestamp());
 
         WriteBatch batch = db.batch();
-        DocumentReference newChildRef = db.collection("parents")
+        DocumentReference newChildRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .document();

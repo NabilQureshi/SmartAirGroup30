@@ -13,33 +13,39 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.HomepageActivity;
+import com.example.smartair.HomepageParentsActivity;
+import com.example.smartair.HomepageProvidersActivity;
 import com.example.smartair.R;
 import com.example.smartair.models.UserRole;
 import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseUser;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
 
     private static final String TAG = "LoginActivity";
 
-    private EditText emailEditText;
-    private EditText passwordEditText;
+    private EditText emailEditText, passwordEditText;
     private Button loginButton;
     private TextView registerTextView;
     private ProgressBar progressBar;
 
     private LoginContract.Presenter presenter;
     private SharedPrefsHelper prefsHelper;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         try {
-            FirebaseApp.initializeApp(this); // 确保 Firebase 初始化
+            FirebaseApp.initializeApp(this);
         } catch (Exception e) {
-            Log.e(TAG, "Firebase 初始化失败", e);
-            Toast.makeText(this, "Firebase 初始化失败", Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Firebase init failed", e);
+            Toast.makeText(this, "Firebase initialization failed", Toast.LENGTH_LONG).show();
         }
 
         setContentView(R.layout.activity_login);
@@ -50,50 +56,30 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
 
-        try {
-            AuthModel model = new AuthModel();
-            presenter = new LoginPresenter(this, model);
-        } catch (Exception e) {
-            Log.e(TAG, "Presenter 初始化失败", e);
-            Toast.makeText(this, "登录模块初始化失败", Toast.LENGTH_LONG).show();
-        }
-
+        db = FirebaseFirestore.getInstance();
         prefsHelper = new SharedPrefsHelper(this);
 
+        AuthModel model = new AuthModel();
+        presenter = new LoginPresenter(this, model);
+
         loginButton.setOnClickListener(v -> {
-            try {
-                if (presenter != null) {
-                    presenter.onLoginClicked();
-                } else {
-                    Log.e(TAG, "Presenter 未初始化");
-                    Toast.makeText(this, "登录模块未准备好", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "登录点击异常", e);
-                Toast.makeText(this, "登录异常: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
+            presenter.onLoginClicked();
         });
 
         registerTextView.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(intent);
-            } catch (Exception e) {
-                Log.e(TAG, "跳转注册异常", e);
-                Toast.makeText(this, "无法跳转注册页面", Toast.LENGTH_SHORT).show();
-            }
+            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
     }
 
     @Override
     public void showLoading() {
-        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(ProgressBar.VISIBLE);
         loginButton.setEnabled(false);
     }
 
     @Override
     public void hideLoading() {
-        progressBar.setVisibility(View.GONE);
+        progressBar.setVisibility(ProgressBar.GONE);
         loginButton.setEnabled(true);
     }
 
@@ -104,11 +90,36 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void navigateToHome(UserRole role) {
-        prefsHelper.saveUserRole(role.getValue());
-        Intent intent = new Intent(this, HomepageActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String roleStr = doc.getString("role");
+                        if (roleStr == null) roleStr = "child";
+
+                        UserRole userRole = UserRole.fromString(roleStr);
+                        prefsHelper.saveUserRole(userRole.getValue());
+
+                        switch (userRole) {
+                            case CHILD:
+                                startActivity(new Intent(this, HomepageActivity.class));
+                                break;
+                            case PARENT:
+                                startActivity(new Intent(this, HomepageParentsActivity.class));
+                                break;
+                            case PROVIDER:
+                                startActivity(new Intent(this, HomepageProvidersActivity.class));
+                                break;
+                        }
+                        finish();
+                    } else {
+                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -124,12 +135,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try {
-            if (presenter != null) {
-                presenter.onDestroy();
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Presenter 销毁异常", e);
-        }
+        presenter.onDestroy();
     }
 }

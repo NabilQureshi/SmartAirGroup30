@@ -50,7 +50,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
         loadingIndicator.setVisibility(View.VISIBLE);
         recyclerChildren.setVisibility(View.GONE);
 
-        db.collection("parents")
+        db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .get()

@@ -15,7 +15,9 @@ public class AuthModel {
         void onError(String message);
     }
 
-    private final FirebaseAuth mAuth;
+    // 破坏了封装性，但是不得不改
+    public static FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
 
     public AuthModel() {
         mAuth = FirebaseAuth.getInstance();

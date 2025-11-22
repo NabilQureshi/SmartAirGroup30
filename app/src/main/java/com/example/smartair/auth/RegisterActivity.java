@@ -15,20 +15,22 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
 import com.example.smartair.models.UserRole;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText nameEditText;
-    private EditText emailEditText;
-    private EditText passwordEditText;
-    private EditText confirmPasswordEditText;
+    private EditText nameEditText, emailEditText, passwordEditText, confirmPasswordEditText;
     private RadioGroup roleRadioGroup;
     private Button registerButton;
     private ProgressBar progressBar;
     private TextView backToLoginTextView;
 
     private AuthModel authModel;
-    private final Handler timeoutHandler = new Handler(Looper.getMainLooper());
+    private FirebaseFirestore db;
+    private Handler timeoutHandler = new Handler(Looper.getMainLooper());
     private Runnable timeoutRunnable;
 
     @Override
@@ -46,6 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
         backToLoginTextView = findViewById(R.id.backToLoginTextView);
 
         authModel = new AuthModel();
+        db = FirebaseFirestore.getInstance();
 
         registerButton.setOnClickListener(v -> register());
         backToLoginTextView.setOnClickListener(v -> finish());
@@ -63,12 +66,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (password.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Invalid email address.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -77,28 +75,20 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        // 固定写死 role，也可以按界面选择
+        UserRole role = UserRole.CHILD;
         int checkedId = roleRadioGroup.getCheckedRadioButtonId();
-        if (checkedId == -1) {
-            Toast.makeText(this, "Please select a role.", Toast.LENGTH_LONG).show();
-            return;
-        }
+        if (checkedId == R.id.radioParent) role = UserRole.PARENT;
+        else if (checkedId == R.id.radioProvider) role = UserRole.PROVIDER;
 
-        UserRole role;
-        if (checkedId == R.id.radioParent) {
-            role = UserRole.PARENT;
-        } else if (checkedId == R.id.radioProvider) {
-            role = UserRole.PROVIDER;
-        } else {
-            role = UserRole.CHILD;
-        }
-
-        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(android.view.View.VISIBLE);
         registerButton.setEnabled(false);
 
+        // 超时处理
         timeoutRunnable = () -> {
-            progressBar.setVisibility(View.GONE);
+            progressBar.setVisibility(android.view.View.GONE);
             registerButton.setEnabled(true);
-            Toast.makeText(RegisterActivity.this, "Request timed out. Check your connection or Firebase config.", Toast.LENGTH_LONG).show();
+            Toast.makeText(RegisterActivity.this, "Request timed out.", Toast.LENGTH_LONG).show();
         };
         timeoutHandler.postDelayed(timeoutRunnable, 15000);
 
@@ -106,18 +96,35 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onSuccess(UserRole r) {
                 timeoutHandler.removeCallbacks(timeoutRunnable);
-                progressBar.setVisibility(View.GONE);
-                registerButton.setEnabled(true);
-                Toast.makeText(RegisterActivity.this, "Sign up successful.", Toast.LENGTH_LONG).show();
-                finish();
+
+                // 注册成功后把用户信息写入 Firestore
+                String uid = authModel.mAuth.getCurrentUser().getUid();
+                Map<String, Object> userMap = new HashMap<>();
+                userMap.put("name", name);
+                userMap.put("email", email);
+                userMap.put("role", r.getValue()); // ✅ 用枚举 getValue 写入 Firestore
+
+                db.collection("users").document(uid)
+                        .set(userMap)
+                        .addOnSuccessListener(aVoid -> {
+                            progressBar.setVisibility(android.view.View.GONE);
+                            registerButton.setEnabled(true);
+                            Toast.makeText(RegisterActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
+                            finish(); // 返回登录页
+                        })
+                        .addOnFailureListener(e -> {
+                            progressBar.setVisibility(android.view.View.GONE);
+                            registerButton.setEnabled(true);
+                            Toast.makeText(RegisterActivity.this, "Failed to save user: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
             }
 
             @Override
             public void onError(String message) {
                 timeoutHandler.removeCallbacks(timeoutRunnable);
-                progressBar.setVisibility(View.GONE);
+                progressBar.setVisibility(android.view.View.GONE);
                 registerButton.setEnabled(true);
-                Toast.makeText(RegisterActivity.this, "Sign up failed: " + message, Toast.LENGTH_LONG).show();
+                Toast.makeText(RegisterActivity.this, "Registration failed: " + message, Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -8,6 +8,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.smartair.R;
+
 public class HomepageProvidersActivity extends AppCompatActivity {
 
     @Override
