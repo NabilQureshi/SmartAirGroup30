@@ -1,6 +1,6 @@
 package com.example.smartair;
 
-import androidx.appcompat.app.AlertDialog;// used for warnings
+import androidx.appcompat.app.AlertDialog;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,7 +20,7 @@ public class ManageChildActivity extends AppCompatActivity {
 
     private EditText editChildUsername, editChildPassword;
     private EditText editChildName, editChildDOB, editChildNotes;
-    private Button btnSave, btnDelete;
+    private Button btnSave, btnDelete, btnInviteProvider;
     private Button btnManageSharing;
     private String childId, parentId;
     private FirebaseFirestore db;
@@ -49,10 +49,16 @@ public class ManageChildActivity extends AppCompatActivity {
         btnDelete = findViewById(R.id.btnDelete);
 
         btnManageSharing = findViewById(R.id.btnManageSharing);
+        btnInviteProvider = findViewById(R.id.btnInviteProvider);
 
         btnManageSharing.setOnClickListener(v -> {
             Intent intent = new Intent(ManageChildActivity.this, ManageSharingActivity.class);
             intent.putExtra("childId", childId);
+            startActivity(intent);
+        });
+        btnInviteProvider.setOnClickListener(v -> {
+            Intent intent = new Intent(ManageChildActivity.this, InviteProviderActivity.class);
+            intent.putExtra("CHILD_ID", childId);
             startActivity(intent);
         });
 
@@ -92,14 +98,14 @@ public class ManageChildActivity extends AppCompatActivity {
                 .document(parentId)
                 .collection("children")
                 .document(childId)
-                .update(updates) // .update() is correct!
+                .update(updates)
                 .addOnSuccessListener(a ->
                         Toast.makeText(this, "Child updated!", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e ->
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    private void showDeleteConfirmationDialog() {// added this to say are you sure
+    private void showDeleteConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Child")
                 .setMessage("Are you sure you want to permanently delete this child's profile?")
