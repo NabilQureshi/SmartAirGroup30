@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.smartair">
-
-    <uses-permission android:name="android.permission.INTERNET" />
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -21,9 +18,24 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.child.ChildPEFActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ui.child.ChildTriageActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.child.ChildPEFActivity" />
+
+        <activity
+            android:name=".ui.parent.ParentHomeActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
 
         <!-- REGISTER -->
         <activity
