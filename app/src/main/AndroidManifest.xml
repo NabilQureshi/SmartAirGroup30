@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.smartair">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -13,39 +14,46 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
+
+        <!-- LOGIN (Launcher) -->
         <activity
-            android:name=".BadgeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HomepageProvidersActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SignUpActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HomepageParentsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".PrePostCheckActivity"
-            android:exported="false" />
-        <activity
-            android:name=".TechniqueActivity"
-            android:exported="false" />
-        <activity
-            android:name=".LogMedicineActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HomepageActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
+            android:name=".auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- REGISTER -->
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false" />
+
+        <!-- HOMEPAGE -->
+        <activity
+            android:name=".HomepageActivity"
+            android:exported="true" />
+
+        <!-- CHILD MANAGEMENT -->
+        <activity android:name=".ViewChildrenActivity" android:exported="true" />
+        <activity android:name=".AddChildActivity" android:exported="true" />
+        <activity android:name=".ManageChildActivity" android:exported="true" />
+
+        <!-- SHARING MANAGEMENT -->
+        <activity android:name=".ManageSharingActivity" android:exported="false" />
+        <activity android:name=".ChooseChildForSharingActivity" android:exported="true" />
+
+        <!-- OTHER SCREENS -->
+        <activity android:name=".LogMedicineActivity" android:exported="false" />
+        <activity android:name=".TechniqueActivity" android:exported="false" />
+        <activity android:name=".PrePostCheckActivity" android:exported="false" />
+
+        <!-- OPTIONAL: remove if not used anymore -->
+        <activity android:name=".MainActivity" android:exported="false" />
+
+        <activity android:name=".BadgeActivity" />
+
     </application>
 
 </manifest>

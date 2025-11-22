@@ -12,54 +12,50 @@ public class HomepageActivity extends AppCompatActivity {
     private Button btnLogMedicine;
     private Button btnTechnique;
     private Button btnPrePostCheck;
-
-    private Button btnBadges;
+    private Button btnAddChild;
+    private Button btnViewChildren;
+    private Button btnManageChild;
+    private Button btnManageSharing;
+    private Button btnBadge; // 只声明，不初始化
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage); // 确保布局文件存在
 
-        // 获取按钮控件
+        // 初始化按钮
         btnLogMedicine = findViewById(R.id.btnLogMedicine);
         btnTechnique = findViewById(R.id.btnTechnique);
         btnPrePostCheck = findViewById(R.id.btnPrePostCheck);
-        btnBadges = findViewById(R.id.btnBadges);
+        btnAddChild = findViewById(R.id.btnAddChild);
+        btnViewChildren = findViewById(R.id.btnViewChildren);
+        btnManageChild = findViewById(R.id.btnManageChild);
+        btnManageSharing = findViewById(R.id.btnManageSharing);
+        btnBadge = findViewById(R.id.btnBadges); // ✅ 放到这里初始化
 
-        // 点击跳转到 LogMedicineActivity
-        btnLogMedicine.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(HomepageActivity.this, LogMedicineActivity.class);
-                startActivity(intent);
-            }
-        });
+        // 设置点击事件
+        btnAddChild.setOnClickListener(v ->
+                startActivity(new Intent(this, AddChildActivity.class)));
 
-        // 点击跳转到 TechniqueActivity
-        btnTechnique.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(HomepageActivity.this, TechniqueActivity.class);
-                startActivity(intent);
-            }
-        });
+        btnViewChildren.setOnClickListener(v ->
+                startActivity(new Intent(this, ViewChildrenActivity.class)));
 
-        // 点击跳转到 PrePostCheckActivity
-        btnPrePostCheck.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(HomepageActivity.this, PrePostCheckActivity.class);
-                startActivity(intent);
-            }
-        });
+        btnManageChild.setOnClickListener(v ->
+                startActivity(new Intent(this, ManageChildActivity.class)));
 
-        // 点击跳转到BadgeActivity
-        btnBadges.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(HomepageActivity.this, BadgeActivity.class);
-                startActivity(intent);
-            }
-        });
+        btnManageSharing.setOnClickListener(v ->
+                startActivity(new Intent(this, ChooseChildForSharingActivity.class)));
+
+        btnLogMedicine.setOnClickListener(v ->
+                startActivity(new Intent(this, LogMedicineActivity.class)));
+
+        btnTechnique.setOnClickListener(v ->
+                startActivity(new Intent(this, TechniqueActivity.class)));
+
+        btnPrePostCheck.setOnClickListener(v ->
+                startActivity(new Intent(this, PrePostCheckActivity.class)));
+
+        btnBadge.setOnClickListener(v ->
+                startActivity(new Intent(this, BadgeActivity.class)));
     }
 }

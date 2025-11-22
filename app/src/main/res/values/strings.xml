@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SmartAir</string>
+    <string name="step_image_desc">Step image</string>
 </resources>
