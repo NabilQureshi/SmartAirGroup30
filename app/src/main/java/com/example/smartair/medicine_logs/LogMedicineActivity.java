@@ -29,7 +29,7 @@ public class LogMedicineActivity extends AppCompatActivity {
     private TextInputEditText etDose;
     private MaterialButton btnSubmit;
     private RecyclerView rvHistory;
-    private MedicineLogAdapter adapter;
+    private com.example.smartair.MedicineLogAdapter adapter;
     private View emptyStateText;
 
     private FirebaseFirestore db;
