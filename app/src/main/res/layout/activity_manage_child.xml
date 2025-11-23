@@ -1,104 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="24dp">
+    android:padding="20dp"
+    android:theme="@style/Theme.Material3.DayNight">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-        <!-- Username -->
         <EditText
             android:id="@+id/editChildUsername"
-            android:hint="Child Username"
-            android:minHeight="48dp"
-            android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:padding="14dp"
+            android:background="@drawable/edittext_background"
+            android:layout_marginTop="10dp" />
 
-        <!-- Password -->
-        <EditText
-            android:id="@+id/editChildPassword"
-            android:hint="Child Password"
-            android:inputType="textPassword"
-            android:minHeight="48dp"
-            android:padding="12dp"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutChildPassword"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:endIconMode="password_toggle"
+            android:layout_marginTop="8dp">
 
-        <!-- Name -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editChildPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <EditText
             android:id="@+id/editChildName"
-            android:hint="Child Name"
-            android:minHeight="48dp"
-            android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:hint="Child Name"
+            android:padding="14dp"
+            android:background="@drawable/edittext_background"
+            android:layout_marginTop="10dp" />
 
-        <!-- DOB -->
         <EditText
             android:id="@+id/editChildDOB"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Date of Birth"
-            android:padding="12dp"
-            android:minHeight="48dp"
             android:focusable="false"
             android:clickable="true"
-            android:inputType="none" />
+            android:padding="14dp"
+            android:background="@drawable/edittext_background"
+            android:layout_marginTop="10dp" />
 
-        <!-- Notes -->
         <EditText
             android:id="@+id/editChildNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:hint="Notes"
-            android:minHeight="48dp"
-            android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:minHeight="80dp"
+            android:gravity="top"
+            android:padding="14dp"
+            android:background="@drawable/edittext_background"
+            android:layout_marginTop="10dp" />
 
-        <!-- Save -->
-        <Button
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
-            android:text="Save Changes"
-            android:minHeight="48dp"
-            android:padding="16dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="Save Changes"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="20dp"
+            app:cornerRadius="24dp"
+            app:backgroundTint="?attr/colorPrimary" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnInviteProvider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Generate Provider Invite"
-            android:backgroundTint="#673AB7"
-            android:textColor="#FFFFFF"
-            android:layout_marginTop="8dp"
-            style="?android:attr/buttonStyleSmall"/>
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp"
+            app:cornerRadius="24dp"
+            app:backgroundTint="?attr/colorSecondary" />
 
-        <!-- Delete -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Delete Child"
-            android:minHeight="48dp"
-            android:padding="16dp"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:backgroundTint="#B00020"
-            app:cornerRadius="8dp"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp"
+            app:cornerRadius="24dp"
+            app:backgroundTint="@android:color/holo_red_dark"
+            app:rippleColor="@android:color/holo_red_light" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnManageSharing"
-            android:text="Manage Sharing Settings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
-
-
+            android:text="Manage Sharing Settings"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            app:cornerRadius="24dp"
+            app:backgroundTint="?attr/colorPrimary" />
 
     </LinearLayout>
 

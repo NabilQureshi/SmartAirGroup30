@@ -45,6 +45,21 @@ public class ManageChildActivity extends AppCompatActivity {
         parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         childId = getIntent().getStringExtra("childId");
+        DocumentReference childRef = db.collection("users")
+                .document(parentId)
+                .collection("children")
+                .document(childId);
+
+        childRef.get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                editChildUsername.setText(doc.getString("username"));
+                editChildPassword.setText(doc.getString("password"));
+                editChildName.setText(doc.getString("name"));
+                editChildDOB.setText(doc.getString("dob"));
+                editChildNotes.setText(doc.getString("notes"));
+            }
+        });
+
         if (childId == null) {
             Toast.makeText(this, "Error: No child selected.", Toast.LENGTH_LONG).show();
             finish();

@@ -3,12 +3,9 @@ package com.example.smartair.homepages;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.smartair.R;
 import com.example.smartair.child_managent.AddChildActivity;
@@ -16,6 +13,8 @@ import com.example.smartair.child_managent.ChooseChildForSharingActivity;
 import com.example.smartair.child_managent.ManageChildActivity;
 import com.example.smartair.child_managent.ViewChildrenActivity;
 import com.example.smartair.ui.parent.ParentHomeActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomepageParentsActivity extends AppCompatActivity {
 
@@ -25,11 +24,14 @@ public class HomepageParentsActivity extends AppCompatActivity {
     private Button btnManageSharing;
     private Button btnManagePB;
 
+    private TextView textGreeting;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage_parents); // 你的新布局文件
 
+        textGreeting = findViewById(R.id.textGreeting);
         // 初始化按钮
         btnAddChild = findViewById(R.id.btnAddChild);
         btnViewChildren = findViewById(R.id.btnViewChildren);
@@ -37,6 +39,8 @@ public class HomepageParentsActivity extends AppCompatActivity {
         btnManageSharing = findViewById(R.id.btnManageSharing);
         btnManagePB = findViewById(R.id.btnManagePB);
 
+        // 加载父母名字
+        loadParentName();
 
         // 设置点击事件
         btnAddChild.setOnClickListener(v ->
@@ -44,17 +48,44 @@ public class HomepageParentsActivity extends AppCompatActivity {
 
         btnViewChildren.setOnClickListener(v ->
                 startActivity(new Intent(this, ViewChildrenActivity.class)));
+
         btnManageChild.setOnClickListener(v -> {
             Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
             intent.putExtra("mode", "manageChild");
             startActivity(intent);
         });
+
         btnManageSharing.setOnClickListener(v -> {
             Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
             intent.putExtra("mode", "sharing");
             startActivity(intent);
         });
+
         btnManagePB.setOnClickListener(v ->
                 startActivity(new Intent(this, ParentHomeActivity.class)));
+    }
+
+    private void loadParentName() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+
+                        if (name != null && !name.isEmpty()) {
+                            textGreeting.setText("Hello, " + name + "!");
+                        } else {
+                            String email = doc.getString("email");
+                            textGreeting.setText("Hello, " + (email != null ? email : "Parent") + "!");
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    textGreeting.setText("Hello, Parent!");
+                });
     }
 }

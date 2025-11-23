@@ -10,8 +10,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
+import com.example.smartair.child_managent.ManageChildActivity;
 import com.example.smartair.R;
+import com.example.smartair.child_managent.ChildAdapter;
+import com.example.smartair.child_managent.Child;
 import com.example.smartair.sharing.ManageSharingActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -41,12 +43,10 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
         loadingIndicator = findViewById(R.id.loadingIndicator);
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
+
         String m = getIntent().getStringExtra("mode");
         if (m != null) mode = m;
 
-        loadingIndicator = findViewById(R.id.loadingIndicator);
-        recyclerChildren = findViewById(R.id.recyclerChildren);
-        recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ChildAdapter(childList, (child, childId) -> {
             Intent intent;
             if ("manageChild".equals(mode)) {
@@ -57,29 +57,27 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
             intent.putExtra("childId", childId);
             startActivity(intent);
         });
-
         recyclerChildren.setAdapter(adapter);
-        loadChildren();
 
+        loadChildren();
     }
 
     private void loadChildren() {
         loadingIndicator.setVisibility(View.VISIBLE);
         recyclerChildren.setVisibility(View.GONE);
 
-        db.collection("users")
+        db.collection("users")        // <-- FIXED HERE
                 .document(parentId)
                 .collection("children")
                 .get()
                 .addOnSuccessListener(snapshot -> {
                     loadingIndicator.setVisibility(View.GONE);
                     recyclerChildren.setVisibility(View.VISIBLE);
+
                     if (snapshot.isEmpty()) {
                         Toast.makeText(this, "No children added yet!", Toast.LENGTH_LONG).show();
-                        finish();
                         return;
                     }
-
                     childList.clear();
                     for (QueryDocumentSnapshot doc : snapshot) {
                         Child child = doc.toObject(Child.class);
@@ -90,7 +88,8 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     loadingIndicator.setVisibility(View.GONE);
-                    Toast.makeText(this, "Error loading children: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
+
 }

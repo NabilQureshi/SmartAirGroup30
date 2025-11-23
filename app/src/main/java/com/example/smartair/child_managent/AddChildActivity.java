@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
+import com.example.smartair.child_managent.ViewChildrenActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -27,7 +28,8 @@ public class AddChildActivity extends AppCompatActivity {
     private EditText editChildUsername, editChildPassword;
     private EditText editChildName, editChildNotes;
 
-    private TextView textDOB;
+    // Added textGreeting
+    private TextView textDOB, textGreeting;
     private Button btnPickDate, btnAddChild;
     private String selectedDOB = "";
 
@@ -49,17 +51,32 @@ public class AddChildActivity extends AppCompatActivity {
             return;
         }
 
+        textGreeting = findViewById(R.id.textGreeting);
         editChildUsername = findViewById(R.id.editChildUsername);
         editChildPassword = findViewById(R.id.editChildPassword);
         editChildName = findViewById(R.id.editChildName);
         editChildNotes = findViewById(R.id.editChildNotes);
         btnAddChild = findViewById(R.id.btnAddChild);
-
         textDOB = findViewById(R.id.textDOB);
         btnPickDate = findViewById(R.id.btnPickDate);
 
         btnPickDate.setOnClickListener(v -> showDatePickerDialog());
         btnAddChild.setOnClickListener(v -> checkUsernameAndAddChild());
+
+        loadParentName(parent.getUid());
+    }
+
+    private void loadParentName(String uid) {
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString("name");
+                        if (name != null && !name.isEmpty()) {
+                            textGreeting.setText("Hello, " + name);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {});
     }
 
     private void showDatePickerDialog() {
@@ -101,10 +118,9 @@ public class AddChildActivity extends AppCompatActivity {
 
         FirebaseUser parent = auth.getCurrentUser();
         if (parent == null) {
-            Toast.makeText(this, "Session expired. Log in again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Session expired.", Toast.LENGTH_SHORT).show();
             return;
         }
-        String parentId = parent.getUid();
 
         DocumentReference usernameRef = db.collection("usernames").document(username);
 
@@ -123,7 +139,7 @@ public class AddChildActivity extends AppCompatActivity {
                 );
             }
         }).addOnFailureListener(e ->
-                Toast.makeText(this, "Username check failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Check failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void saveChildFirestore(
@@ -137,7 +153,6 @@ public class AddChildActivity extends AppCompatActivity {
     ) {
         WriteBatch batch = db.batch();
 
-        // Create a new child document with random ID
         DocumentReference childRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
@@ -168,12 +183,10 @@ public class AddChildActivity extends AppCompatActivity {
         batch.commit()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Child added successfully!", Toast.LENGTH_SHORT).show();
-
                     startActivity(new Intent(this, ViewChildrenActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(this, "Firestore save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
-
 }

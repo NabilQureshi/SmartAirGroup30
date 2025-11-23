@@ -1,95 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:fillViewport="true"
+    android:background="#F5F5F5">
 
-    <!-- Username -->
-    <EditText
-        android:id="@+id/editChildUsername"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Child Username"
-        android:minHeight="48dp"
-        android:padding="12dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:padding="24dp">
 
-    <!-- Password -->
-    <EditText
-        android:id="@+id/editChildPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Child Password"
-        android:inputType="textPassword"
-        android:minHeight="48dp"
-        android:padding="12dp"
-        app:layout_constraintTop_toBottomOf="@id/editChildUsername"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <TextView
+            android:id="@+id/textGreeting"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Hello, Parent"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="24dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Child Name -->
-    <EditText
-        android:id="@+id/editChildName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Child Name"
-        android:minHeight="48dp"
-        android:padding="12dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/editChildPassword"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <EditText
+            android:id="@+id/editChildUsername"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Child Username"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/textGreeting"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- DOB Label -->
-    <TextView
-        android:id="@+id/textDOB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Date of Birth: Not Set"
-        android:textSize="18sp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        app:layout_constraintTop_toBottomOf="@id/editChildName"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <!-- Password -->
+        <EditText
+            android:id="@+id/editChildPassword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Child Password"
+            android:inputType="textPassword"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/editChildUsername"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- DOB Button -->
-    <Button
-        android:id="@+id/btnPickDate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Date"
-        android:layout_marginStart="16dp"
-        app:layout_constraintTop_toBottomOf="@id/editChildName"
-        app:layout_constraintStart_toEndOf="@id/textDOB"/>
+        <!-- name -->
+        <EditText
+            android:id="@+id/editChildName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Child Name"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/editChildPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Notes -->
-    <EditText
-        android:id="@+id/editChildNotes"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Notes"
-        android:minHeight="48dp"
-        android:padding="12dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/btnPickDate"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <!-- DOB  -->
+        <TextView
+            android:id="@+id/textDOB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date of Birth: Not Set"
+            android:textSize="16sp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/editChildName"
+            app:layout_constraintStart_toStartOf="parent"/>
 
-    <!-- Add Child Button -->
-    <Button
-        android:id="@+id/btnAddChild"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Add Child"
-        android:minHeight="48dp"
-        android:padding="16dp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/editChildNotes"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <!-- DOB  -->
+        <Button
+            android:id="@+id/btnPickDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Date"
+            android:layout_marginStart="16dp"
+            app:layout_constraintTop_toTopOf="@id/textDOB"
+            app:layout_constraintBottom_toBottomOf="@id/textDOB"
+            app:layout_constraintStart_toEndOf="@id/textDOB"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Notes -->
+        <EditText
+            android:id="@+id/editChildNotes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Notes (Optional)"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/btnPickDate"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Add Child  -->
+        <Button
+            android:id="@+id/btnAddChild"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Create Profile"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="#673AB7"
+            android:textColor="#FFFFFF"
+            app:layout_constraintTop_toBottomOf="@id/editChildNotes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
