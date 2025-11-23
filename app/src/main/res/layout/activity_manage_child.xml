@@ -41,11 +41,14 @@
         <!-- DOB -->
         <EditText
             android:id="@+id/editChildDOB"
-            android:hint="Date of Birth"
-            android:minHeight="48dp"
-            android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:hint="Date of Birth"
+            android:padding="12dp"
+            android:minHeight="48dp"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none" />
 
         <!-- Notes -->
         <EditText

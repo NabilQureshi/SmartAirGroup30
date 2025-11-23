@@ -1,6 +1,5 @@
 package com.example.smartair.child_managent;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,17 +46,13 @@ public class ViewChildrenActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
-
-
         recyclerChildren.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
 
-        // IMPORTANT: check login
-        if (user == null) {
+        if (user == null && getIntent().getStringExtra("parentId") == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -67,7 +62,16 @@ public class ViewChildrenActivity extends AppCompatActivity {
     }
 
     private void loadChildren() {
-        String parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String parentId = getIntent().getStringExtra("parentId");
+        if (parentId == null) {
+            FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
+            if (current == null) {
+                Toast.makeText(this, "No authenticated user.", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+            parentId = current.getUid();
+        }
 
         db.collection("users")
                 .document(parentId)

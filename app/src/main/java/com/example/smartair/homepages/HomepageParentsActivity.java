@@ -44,12 +44,16 @@ public class HomepageParentsActivity extends AppCompatActivity {
 
         btnViewChildren.setOnClickListener(v ->
                 startActivity(new Intent(this, ViewChildrenActivity.class)));
-
-        btnManageChild.setOnClickListener(v ->
-                startActivity(new Intent(this, ManageChildActivity.class)));
-
-        btnManageSharing.setOnClickListener(v ->
-                startActivity(new Intent(this, ChooseChildForSharingActivity.class)));
+        btnManageChild.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
+            intent.putExtra("mode", "manageChild");
+            startActivity(intent);
+        });
+        btnManageSharing.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
+            intent.putExtra("mode", "sharing");
+            startActivity(intent);
+        });
         btnManagePB.setOnClickListener(v ->
                 startActivity(new Intent(this, ParentHomeActivity.class)));
     }

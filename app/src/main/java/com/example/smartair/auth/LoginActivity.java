@@ -19,6 +19,7 @@ import com.example.smartair.homepages.HomepageProvidersActivity;
 import com.example.smartair.models.UserRole;
 import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -36,6 +37,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private LoginContract.Presenter presenter;
     private SharedPrefsHelper prefsHelper;
     private FirebaseFirestore db;
+    private boolean isChildLogin = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +65,82 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         AuthModel model = new AuthModel();
         presenter = new LoginPresenter(this, model);
 
-        loginButton.setOnClickListener(v -> {
-            presenter.onLoginClicked();
-        });
+        loginButton.setOnClickListener(v -> handleLogin());
 
         registerTextView.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
+    }
+    private void handleLogin() {
+        String input = getEmail();
+        String password = getPassword();
+
+        if (input.isEmpty() || password.isEmpty()) {
+            showError("Please enter login credentials");
+            return;
+        }
+        if (!input.contains("@")) {
+            loginChild(input, password);
+            return;
+        }
+
+        presenter.onLoginClicked();
+    }
+    private void loginChild(String username, String password) {
+        showLoading();
+
+        db.collection("usernames")
+                .document(username)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        hideLoading();
+                        showError("Invalid username");
+                        return;
+                    }
+
+                    String parentId = doc.getString("parentId");
+                    String childId = doc.getString("childUid");
+
+                    if (parentId == null || childId == null) {
+                        hideLoading();
+                        showError("Account is not configured correctly");
+                        return;
+                    }
+
+                    db.collection("users")
+                            .document(parentId)
+                            .collection("children")
+                            .document(childId)
+                            .get()
+                            .addOnSuccessListener(childDoc -> {
+                                hideLoading();
+
+                                if (!childDoc.exists()) {
+                                    showError("Child profile missing");
+                                    return;
+                                }
+
+                                String savedPw = childDoc.getString("password");
+
+                                if (!password.equals(savedPw)) {
+                                    showError("Incorrect password");
+                                    return;
+                                }
+                                prefsHelper.saveUserRole("child");
+                                startActivity(new Intent(this, HomepageActivity.class));
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                hideLoading();
+                                showError("Failed to load child account");
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    hideLoading();
+                    showError("Login failed: " + e.getMessage());
+                });
     }
 
     @Override
@@ -92,6 +164,12 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void navigateToHome(UserRole role) {
         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
         if (user == null) return;
+        if (isChildLogin) {
+            prefsHelper.saveUserRole("child");
+            startActivity(new Intent(this, HomepageActivity.class));
+            finish();
+            return;
+        }
 
         db.collection("users").document(user.getUid())
                 .get()
