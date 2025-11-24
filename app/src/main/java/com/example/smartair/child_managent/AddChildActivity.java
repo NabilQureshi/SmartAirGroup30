@@ -3,7 +3,6 @@ package com.example.smartair.child_managent;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,7 +10,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
-import com.example.smartair.child_managent.ViewChildrenActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -26,23 +24,21 @@ import java.util.Map;
 public class AddChildActivity extends AppCompatActivity {
 
     private EditText editChildUsername, editChildPassword;
-    private EditText editChildName, editChildNotes;
+    private EditText editChildName, editChildNotes, editChildDOB;
+    private TextView textGreeting;
 
-    // Added textGreeting
-    private TextView textDOB, textGreeting;
-    private Button btnPickDate, btnAddChild;
     private String selectedDOB = "";
 
-    private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_child);
 
-        db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         FirebaseUser parent = auth.getCurrentUser();
         if (parent == null) {
@@ -50,37 +46,34 @@ public class AddChildActivity extends AppCompatActivity {
             finish();
             return;
         }
-
         textGreeting = findViewById(R.id.textGreeting);
         editChildUsername = findViewById(R.id.editChildUsername);
         editChildPassword = findViewById(R.id.editChildPassword);
         editChildName = findViewById(R.id.editChildName);
         editChildNotes = findViewById(R.id.editChildNotes);
-        btnAddChild = findViewById(R.id.btnAddChild);
-        textDOB = findViewById(R.id.textDOB);
-        btnPickDate = findViewById(R.id.btnPickDate);
+        editChildDOB = findViewById(R.id.editChildDOB);
+        editChildDOB.setOnClickListener(v -> showDatePickerDialog());
 
-        btnPickDate.setOnClickListener(v -> showDatePickerDialog());
-        btnAddChild.setOnClickListener(v -> checkUsernameAndAddChild());
+        findViewById(R.id.btnAddChild).setOnClickListener(v -> checkUsernameAndAddChild());
 
         loadParentName(parent.getUid());
     }
 
     private void loadParentName(String uid) {
         db.collection("users").document(uid).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String name = documentSnapshot.getString("name");
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+
                         if (name != null && !name.isEmpty()) {
                             textGreeting.setText("Hello, " + name);
                         }
                     }
-                })
-                .addOnFailureListener(e -> {});
+                });
     }
 
     private void showDatePickerDialog() {
-        final Calendar c = Calendar.getInstance();
+        Calendar c = Calendar.getInstance();
         int year = c.get(Calendar.YEAR);
         int month = c.get(Calendar.MONTH);
         int day = c.get(Calendar.DAY_OF_MONTH);
@@ -90,10 +83,11 @@ public class AddChildActivity extends AppCompatActivity {
                 (view, yr, mo, dy) -> {
                     String dob = String.format("%02d/%02d/%d", dy, mo + 1, yr);
                     selectedDOB = dob;
-                    textDOB.setText("Date of Birth: " + dob);
+                    editChildDOB.setText(dob);
                 },
                 year, month, day
         );
+
         dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         dialog.show();
     }
@@ -114,14 +108,6 @@ public class AddChildActivity extends AppCompatActivity {
             return;
         }
 
-        String generatedEmail = username + "@child.smartair.com";
-
-        FirebaseUser parent = auth.getCurrentUser();
-        if (parent == null) {
-            Toast.makeText(this, "Session expired.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         DocumentReference usernameRef = db.collection("usernames").document(username);
 
         usernameRef.get().addOnSuccessListener(doc -> {
@@ -129,8 +115,8 @@ public class AddChildActivity extends AppCompatActivity {
                 Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
             } else {
                 saveChildFirestore(
-                        parent.getUid(),
-                        generatedEmail,
+                        auth.getCurrentUser().getUid(),
+                        username + "@child.smartair.com",
                         password,
                         username,
                         name,
@@ -138,8 +124,7 @@ public class AddChildActivity extends AppCompatActivity {
                         notes
                 );
             }
-        }).addOnFailureListener(e ->
-                Toast.makeText(this, "Check failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        });
     }
 
     private void saveChildFirestore(
@@ -151,6 +136,7 @@ public class AddChildActivity extends AppCompatActivity {
             String dob,
             String notes
     ) {
+
         WriteBatch batch = db.batch();
 
         DocumentReference childRef = db.collection("users")
@@ -181,7 +167,7 @@ public class AddChildActivity extends AppCompatActivity {
         batch.set(usernameRef, usernameMap);
 
         batch.commit()
-                .addOnSuccessListener(aVoid -> {
+                .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Child added successfully!", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(this, ViewChildrenActivity.class));
                     finish();

@@ -54,8 +54,12 @@
             android:focusable="false"
             android:clickable="true"
             android:padding="14dp"
+            android:paddingEnd="40dp"
+            android:drawablePadding="12dp"
             android:background="@drawable/edittext_background"
+            android:drawableEnd="@drawable/ic_calendar"
             android:layout_marginTop="10dp" />
+
 
         <EditText
             android:id="@+id/editChildNotes"

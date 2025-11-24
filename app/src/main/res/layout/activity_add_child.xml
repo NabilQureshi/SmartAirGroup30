@@ -67,28 +67,23 @@
             app:layout_constraintEnd_toEndOf="parent"/>
 
         <!-- DOB  -->
-        <TextView
-            android:id="@+id/textDOB"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date of Birth: Not Set"
-            android:textSize="16sp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:layout_marginTop="12dp"
+        <EditText
+            android:id="@+id/editChildDOB"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:hint="Date of Birth"
+            android:focusable="false"
+            android:clickable="true"
+            android:padding="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="40dp"
+            android:drawablePadding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:drawableEnd="@drawable/ic_calendar"
+            android:layout_marginTop="20dp"
             app:layout_constraintTop_toBottomOf="@id/editChildName"
-            app:layout_constraintStart_toStartOf="parent"/>
-
-        <!-- DOB  -->
-        <Button
-            android:id="@+id/btnPickDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select Date"
-            android:layout_marginStart="16dp"
-            app:layout_constraintTop_toTopOf="@id/textDOB"
-            app:layout_constraintBottom_toBottomOf="@id/textDOB"
-            app:layout_constraintStart_toEndOf="@id/textDOB"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <!-- Notes -->
         <EditText
@@ -100,7 +95,7 @@
             android:padding="12dp"
             android:background="@android:drawable/editbox_background"
             android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/btnPickDate"
+            app:layout_constraintTop_toBottomOf="@id/editChildDOB"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
