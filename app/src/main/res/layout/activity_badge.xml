@@ -13,7 +13,7 @@
 
     <TextView
         android:id="@+id/tvMoreComing"
-        android:text="更多徽章即将推出，继续加油哦！"
+        android:text="More badges are coming soon — keep up the great work!"
         android:textSize="16sp"
         android:textAlignment="center"
         android:paddingTop="16dp"

@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartair.R;
 import com.example.smartair.badges_system.BadgeActivity;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -128,22 +129,6 @@ public class PrePostCheckActivity extends AppCompatActivity {
         });
     }
 
-    private void checkAndUnlockBadge(String uid) {
-        db.collection("users")
-                .document(uid)
-                .collection("prepost_checks")
-                .whereGreaterThanOrEqualTo("rating", 4)
-                .get()
-                .addOnSuccessListener(snap -> {
-                    if (snap.size() >= 5) {
-                        unlockBadge(uid);
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "检查徽章失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
-    }
-
     private void unlockBadge(String uid) {
         db.collection("users")
                 .document(uid)
@@ -156,7 +141,9 @@ public class PrePostCheckActivity extends AppCompatActivity {
                     HashMap<String, Object> data = new HashMap<>();
                     data.put("unlocked", true);
                     data.put("timestamp", System.currentTimeMillis());
-                    data.put("description", "有 5 次呼吸评分都达到 4 分以上，说明你越来越懂得照顾自己了！");
+                    data.put("achieved", true);
+                    data.put("firstAchieved", Timestamp.now());
+                    data.put("description", "You have achieved 5 breathing sessions with a rating of 4 or higher — it shows that you’re becoming better at taking care of yourself!");
 
                     db.collection("users")
                             .document(uid)
@@ -168,6 +155,28 @@ public class PrePostCheckActivity extends AppCompatActivity {
                 });
     }
 
+    private void checkAndUnlockBadge(String uid) {
+        int THRESHOLD = 4;   // 评分阈值
+        int REQUIRED = 5;    // 需要多少次评分达标
+
+        db.collection("users")
+                .document(uid)
+                .collection("prepost_checks")
+                .whereGreaterThanOrEqualTo("rating", THRESHOLD)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    int highCount = snap.size();
+
+                    if (highCount >= REQUIRED) {
+                        unlockBadge(uid);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "检查徽章失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
     private void showBadgePopup() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("🎉 恭喜获得徽章！");
@@ -175,7 +184,7 @@ public class PrePostCheckActivity extends AppCompatActivity {
 
         builder.setPositiveButton("查看徽章", (dialog, which) -> {
             Intent intent = new Intent(this, BadgeActivity.class);
-            intent.putExtra("newBadge", "badge_2");
+            intent.putExtra("newBadge", "badge_1");
             startActivity(intent);
         });
 

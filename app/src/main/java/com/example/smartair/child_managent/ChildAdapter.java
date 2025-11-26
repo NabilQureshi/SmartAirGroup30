@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,7 +18,7 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHol
     private OnChildClickListener listener;
 
     public interface OnChildClickListener {
-        void onChildClick(Child child, String childId);
+        void onChildClick(Child child);
     }
 
     public ChildAdapter(List<Child> childList, OnChildClickListener listener) {
@@ -40,10 +41,11 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHol
         holder.txtChildName.setText(child.getName());
         holder.txtChildDOB.setText("DOB: " + child.getDob());
         holder.txtChildNotes.setText("Notes: " + child.getNotes());
+        holder.txtChildUsername.setText("Username: " + child.getUsername());
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onChildClick(child, child.getId());
+                listener.onChildClick(child);  // 直接传整个 Child 对象
             }
         });
     }
@@ -54,13 +56,14 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHol
     }
 
     public static class ChildViewHolder extends RecyclerView.ViewHolder {
-        TextView txtChildName, txtChildDOB, txtChildNotes;
+        TextView txtChildName, txtChildDOB, txtChildNotes, txtChildUsername;
 
         public ChildViewHolder(@NonNull View itemView) {
             super(itemView);
             txtChildName = itemView.findViewById(R.id.txtChildName);
             txtChildDOB = itemView.findViewById(R.id.txtChildDOB);
             txtChildNotes = itemView.findViewById(R.id.txtChildNotes);
+            txtChildUsername = itemView.findViewById(R.id.txtChildUsername); // 新增 TextView 显示账号
         }
     }
 }

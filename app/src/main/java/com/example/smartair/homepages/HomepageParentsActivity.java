@@ -12,6 +12,7 @@ import com.example.smartair.child_managent.AddChildActivity;
 import com.example.smartair.child_managent.ChooseChildForSharingActivity;
 import com.example.smartair.child_managent.ManageChildActivity;
 import com.example.smartair.child_managent.ViewChildrenActivity;
+import com.example.smartair.inventory.InventoryActivity;
 import com.example.smartair.ui.parent.ParentHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -23,6 +24,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
     private Button btnManageChild;
     private Button btnManageSharing;
     private Button btnManagePB;
+    private Button btnInventory;
 
     private TextView textGreeting;
 
@@ -38,6 +40,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
         btnManageChild = findViewById(R.id.btnManageChild);
         btnManageSharing = findViewById(R.id.btnManageSharing);
         btnManagePB = findViewById(R.id.btnManagePB);
+        btnInventory = findViewById(R.id.btnInventory);
 
         // 加载父母名字
         loadParentName();
@@ -63,6 +66,8 @@ public class HomepageParentsActivity extends AppCompatActivity {
 
         btnManagePB.setOnClickListener(v ->
                 startActivity(new Intent(this, ParentHomeActivity.class)));
+        btnInventory.setOnClickListener(v ->
+                startActivity(new Intent(this, InventoryActivity.class)));
     }
 
     private void loadParentName() {

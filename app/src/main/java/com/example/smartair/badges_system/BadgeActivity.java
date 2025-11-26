@@ -53,34 +53,92 @@ public class BadgeActivity extends AppCompatActivity {
 
                     List<BadgeModel> list = new ArrayList<>();
 
-                    for (int i = 1; i <= 5; i++) {
-                        String id = "badge_" + i;
-                        DocumentSnapshot doc = snap.getDocuments()
-                                .stream()
-                                .filter(d -> d.getId().equals(id))
-                                .findFirst()
-                                .orElse(null);
 
-                        boolean achieved = doc != null && doc.getBoolean("achieved") != null
-                                && doc.getBoolean("achieved");
+                    String id = "badge_1";
+                    String finalId1 = id;
+                    DocumentSnapshot doc = snap.getDocuments()
+                            .stream()
+                            .filter(d -> d.getId().equals(finalId1))
+                            .findFirst()
+                            .orElse(null);
 
-                        String time = (doc != null && doc.getTimestamp("firstAchieved") != null)
-                                ? doc.getTimestamp("firstAchieved").toDate().toString()
-                                : "——";
+                    boolean achieved = doc != null && doc.getBoolean("achieved") != null
+                            && doc.getBoolean("achieved");
 
-                        String description = doc != null && doc.getString("description") != null
-                                ? doc.getString("description")
-                                : "继续努力，相信你可以做到的！";
+                    String time = (doc != null && doc.getTimestamp("firstAchieved") != null)
+                            ? doc.getTimestamp("firstAchieved").toDate().toString()
+                            : "——";
 
-                        list.add(new BadgeModel(
-                                id,
-                                "徽章 " + i,
-                                achieved,
-                                time,
-                                description,
-                                id.equals(newBadgeId)   // 是否高亮
-                        ));
-                    }
+                    String description = doc != null && doc.getString("description") != null
+                            ? doc.getString("description")
+                            : "keeps on working hrad, I believe you can make it！";
+
+                    list.add(new BadgeModel(
+                            id,
+                            "first perfect controller week",
+                            achieved,
+                            time,
+                            description,
+                            id.equals(newBadgeId)
+                    ));
+
+                    id = "badge_2";
+                    String finalId2 = id;
+                    doc = snap.getDocuments()
+                            .stream()
+                            .filter(d -> d.getId().equals(finalId2))
+                            .findFirst()
+                            .orElse(null);
+
+                    achieved = doc != null && doc.getBoolean("achieved") != null
+                            && doc.getBoolean("achieved");
+
+                    time = (doc != null && doc.getTimestamp("firstAchieved") != null)
+                            ? doc.getTimestamp("firstAchieved").toDate().toString()
+                            : "——";
+
+                    description = doc != null && doc.getString("description") != null
+                            ? doc.getString("description")
+                            : "keeps on working hrad, I believe you can make it！";
+
+                    list.add(new BadgeModel(
+                            id,
+                            "10 high-quality technique sessions",
+                            achieved,
+                            time,
+                            description,
+                            id.equals(newBadgeId)
+                    ));
+
+                    id = "badge_3";
+                    String finalId3 = id;
+                    doc = snap.getDocuments()
+                            .stream()
+                            .filter(d -> d.getId().equals(finalId3))
+                            .findFirst()
+                            .orElse(null);
+
+                    achieved = doc != null && doc.getBoolean("achieved") != null
+                            && doc.getBoolean("achieved");
+
+                    time = (doc != null && doc.getTimestamp("firstAchieved") != null)
+                            ? doc.getTimestamp("firstAchieved").toDate().toString()
+                            : "——";
+
+                    description = doc != null && doc.getString("description") != null
+                            ? doc.getString("description")
+                            : "keeps on working hrad, I believe you can make it！";
+
+                    list.add(new BadgeModel(
+                            id,
+                            "low rescue month",
+                            achieved,
+                            time,
+                            description,
+                            id.equals(newBadgeId)
+                    ));
+
+
 
                     adapter = new BadgeAdapter(list, this);
                     rvBadges.setAdapter(adapter);

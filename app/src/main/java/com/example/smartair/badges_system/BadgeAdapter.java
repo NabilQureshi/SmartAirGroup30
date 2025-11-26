@@ -46,10 +46,10 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.ViewHolder> 
         h.tvBadgeTitle.setText(b.title);
 
         // 是否获得
-        h.tvAchieved.setText("已获得：" + (b.achieved ? "是" : "否"));
+        h.tvAchieved.setText("Obtained：" + (b.achieved ? "Yes" : "No"));
 
         // 第一次获得时间
-        h.tvFirstTime.setText("第一次获得：" + b.firstTime);
+        h.tvFirstTime.setText("Obtained for the first time：" + b.firstTime);
 
         // 描述
         h.tvDescription.setText(b.description);

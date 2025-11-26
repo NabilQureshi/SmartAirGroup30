@@ -23,10 +23,8 @@ import java.util.Map;
 
 public class AddChildActivity extends AppCompatActivity {
 
-    private EditText editChildUsername, editChildPassword;
-    private EditText editChildName, editChildNotes, editChildDOB;
+    private EditText editChildUsername, editChildPassword, editChildName, editChildNotes, editChildDOB;
     private TextView textGreeting;
-
     private String selectedDOB = "";
 
     private FirebaseAuth auth;
@@ -46,12 +44,14 @@ public class AddChildActivity extends AppCompatActivity {
             finish();
             return;
         }
+
         textGreeting = findViewById(R.id.textGreeting);
         editChildUsername = findViewById(R.id.editChildUsername);
         editChildPassword = findViewById(R.id.editChildPassword);
         editChildName = findViewById(R.id.editChildName);
         editChildNotes = findViewById(R.id.editChildNotes);
         editChildDOB = findViewById(R.id.editChildDOB);
+
         editChildDOB.setOnClickListener(v -> showDatePickerDialog());
 
         findViewById(R.id.btnAddChild).setOnClickListener(v -> checkUsernameAndAddChild());
@@ -64,7 +64,6 @@ public class AddChildActivity extends AppCompatActivity {
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String name = doc.getString("name");
-
                         if (name != null && !name.isEmpty()) {
                             textGreeting.setText("Hello, " + name);
                         }
@@ -81,13 +80,11 @@ public class AddChildActivity extends AppCompatActivity {
         DatePickerDialog dialog = new DatePickerDialog(
                 this,
                 (view, yr, mo, dy) -> {
-                    String dob = String.format("%02d/%02d/%d", dy, mo + 1, yr);
-                    selectedDOB = dob;
-                    editChildDOB.setText(dob);
+                    selectedDOB = String.format("%02d/%02d/%d", dy, mo + 1, yr);
+                    editChildDOB.setText(selectedDOB);
                 },
                 year, month, day
         );
-
         dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         dialog.show();
     }
@@ -99,80 +96,81 @@ public class AddChildActivity extends AppCompatActivity {
         String dob = selectedDOB;
         String notes = editChildNotes.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Username and password required.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (name.isEmpty() || dob.isEmpty()) {
-            Toast.makeText(this, "Name and DOB required.", Toast.LENGTH_SHORT).show();
+        if (username.isEmpty() || password.isEmpty() || name.isEmpty() || dob.isEmpty()) {
+            Toast.makeText(this, "All fields required.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // 检查 username 是否存在
         DocumentReference usernameRef = db.collection("usernames").document(username);
-
         usernameRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
             } else {
-                saveChildFirestore(
-                        auth.getCurrentUser().getUid(),
-                        username + "@child.smartair.com",
-                        password,
-                        username,
-                        name,
-                        dob,
-                        notes
-                );
+                createChildFirebaseAuth(username, password, name, dob, notes);
             }
         });
     }
 
-    private void saveChildFirestore(
-            String parentId,
-            String email,
-            String password,
-            String username,
-            String name,
-            String dob,
-            String notes
-    ) {
+    private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
+        String email = username + "@child.smartair.com";
+
+        // 保存父母 UID
+        String parentId = auth.getCurrentUser().getUid();
+
+        auth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    String childUid = authResult.getUser().getUid();
+                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveChildFirestore(String parentId, String childUid, String username, String email,
+                                    String name, String dob, String notes, String password) {
 
         WriteBatch batch = db.batch();
 
         DocumentReference childRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
-                .document();
+                .document(childUid);
 
-        String childUid = childRef.getId();
+        Map<String, Object> childData = new HashMap<>();
+        childData.put("uid", childUid);
+        childData.put("username", username);
+        childData.put("email", email);
+        childData.put("password", password);
+        childData.put("name", name);
+        childData.put("dob", dob);
+        childData.put("notes", notes);
+        childData.put("role", "child");
+        childData.put("createdAt", FieldValue.serverTimestamp());
 
         DocumentReference usernameRef = db.collection("usernames").document(username);
-
-        Map<String, Object> child = new HashMap<>();
-        child.put("uid", childUid);
-        child.put("email", email);
-        child.put("password", password);
-        child.put("username", username);
-        child.put("name", name);
-        child.put("dob", dob);
-        child.put("notes", notes);
-        child.put("createdAt", FieldValue.serverTimestamp());
-
         Map<String, Object> usernameMap = new HashMap<>();
-        usernameMap.put("email", email);
         usernameMap.put("childUid", childUid);
         usernameMap.put("parentId", parentId);
+        usernameMap.put("email", email);
 
-        batch.set(childRef, child);
+        batch.set(childRef, childData);
         batch.set(usernameRef, usernameMap);
 
         batch.commit()
                 .addOnSuccessListener(unused -> {
-                    Toast.makeText(this, "Child added successfully!", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, ViewChildrenActivity.class));
+                    Toast.makeText(this, "Child account created successfully!", Toast.LENGTH_SHORT).show();
+
+                    // 直接回到 ChooseChildForSharingActivity，传父母 UID
+                    Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);
+                    intent.putExtra("parentId", parentId);
+                    startActivity(intent);
+
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

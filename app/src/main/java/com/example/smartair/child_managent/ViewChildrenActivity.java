@@ -1,12 +1,12 @@
 package com.example.smartair.child_managent;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.os.Bundle;
-import android.widget.Toast;
-import android.content.Intent;
 
 import com.example.smartair.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,7 +24,6 @@ public class ViewChildrenActivity extends AppCompatActivity {
     private List<Child> childList = new ArrayList<>();
 
     private FirebaseFirestore db;
-    private FirebaseAuth auth;
     private FirebaseUser user;
 
     @Override
@@ -35,9 +34,19 @@ public class ViewChildrenActivity extends AppCompatActivity {
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new ChildAdapter(childList, (child, childId) -> {
+        db = FirebaseFirestore.getInstance();
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user == null) {
+            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // 初始化 Adapter
+        adapter = new ChildAdapter(childList, child -> {
             Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
-            intent.putExtra("childId", childId);
+            intent.putExtra("childId", child.getUid());
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());
             intent.putExtra("name", child.getName());
@@ -48,38 +57,26 @@ public class ViewChildrenActivity extends AppCompatActivity {
 
         recyclerChildren.setAdapter(adapter);
 
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
-
-        if (user == null && getIntent().getStringExtra("parentId") == null) {
-            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
         loadChildren();
     }
 
     private void loadChildren() {
+        // 优先用 Intent 传过来的 parentId，否则才用当前登录用户
         String parentId = getIntent().getStringExtra("parentId");
         if (parentId == null) {
-            FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
-            if (current == null) {
-                Toast.makeText(this, "No authenticated user.", Toast.LENGTH_SHORT).show();
-                finish();
-                return;
-            }
-            parentId = current.getUid();
+            parentId = user.getUid();
         }
 
+
+
+
+        // 监听 children collection 的所有文档
         db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .addSnapshotListener((querySnapshot, error) -> {
-
                     if (error != null) {
-                        Toast.makeText(this, "Error loading children.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Error loading children: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -93,7 +90,7 @@ public class ViewChildrenActivity extends AppCompatActivity {
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Child child = doc.toObject(Child.class);
-                        child.setId(doc.getId());
+                        child.setUid(doc.getId()); // 保证 uid 有值
                         childList.add(child);
                     }
 
