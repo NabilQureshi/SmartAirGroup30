@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".dashboard.DashboardActivity">
+
+    <Button
+        android:id="@+id/exportButton"
+        android:layout_width="163dp"
+        android:layout_height="57dp"
+        android:text="Export"
+        tools:layout_editor_absoluteX="33dp"
+        tools:layout_editor_absoluteY="282dp" />
+
+    <Button
+        android:id="@+id/trendTimelineToggle"
+        android:layout_width="163dp"
+        android:layout_height="57dp"
+        android:text="Toggle Timeline"
+        tools:layout_editor_absoluteX="33dp"
+        tools:layout_editor_absoluteY="353dp" />
+
+    <TextView
+        android:id="@+id/greetingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        android:text="Hi Nabil!"
+        android:textColor="@android:color/black"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.114"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar2"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="191dp"
+        android:layout_height="134dp"
+        tools:layout_editor_absoluteX="32dp"
+        tools:layout_editor_absoluteY="117dp" />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/trendChart"
+        android:layout_width="248dp"
+        android:layout_height="184dp"
+        tools:layout_editor_absoluteX="33dp"
+        tools:layout_editor_absoluteY="503dp" />
+
+    <TextView
+        android:id="@+id/todayZoneText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="todayZoneText"
+        tools:layout_editor_absoluteX="223dp"
+        tools:layout_editor_absoluteY="282dp" />
+
+    <TextView
+        android:id="@+id/weeklyRescueText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="weeklyRescueText"
+        tools:layout_editor_absoluteX="222dp"
+        tools:layout_editor_absoluteY="355dp" />
+
+    <TextView
+        android:id="@+id/lastRescueText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="lastRescueText"
+        tools:layout_editor_absoluteX="222dp"
+        tools:layout_editor_absoluteY="319dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
