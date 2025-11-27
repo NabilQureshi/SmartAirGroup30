@@ -1,0 +1,200 @@
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.SmartAir\">\r\n\r\n        <!-- LOGIN (Launcher) -->\r\n        <activity\r\n            android:name=\".auth.LoginActivity\"\r\n            android:exported=\"true\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n        <activity\r\n            android:name=\".ui.child.ChildPEFActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n\r\n        <activity\r\n            android:name=\".ui.child.ChildTriageActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".ui.child.ChildPEFActivity\" />\r\n\r\n        <activity\r\n            android:name=\".ui.parent.ParentHomeActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n\r\n        <!-- REGISTER -->\r\n        <activity\r\n            android:name=\".auth.RegisterActivity\"\r\n            android:exported=\"false\" />\r\n\r\n        <!-- HOMEPAGE -->\r\n        <activity\r\n            android:name=\".homepages.HomepageActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageParentsActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageProvidersActivity\"\r\n            android:exported=\"true\" />\r\n\r\n        <!-- CHILD MANAGEMENT -->\r\n        <activity android:name=\".child_managent.ViewChildrenActivity\" android:exported=\"true\" />\r\n        <activity android:name=\".child_managent.AddChildActivity\" android:exported=\"true\" />\r\n        <activity android:name=\".child_managent.ManageChildActivity\" android:exported=\"true\" />\r\n\r\n        <!-- SHARING MANAGEMENT -->\r\n        <activity android:name=\".sharing.ManageSharingActivity\" android:exported=\"false\" />\r\n        <activity android:name=\".child_managent.ChooseChildForSharingActivity\" android:exported=\"true\" />\r\n\r\n        <!-- OTHER SCREENS -->\r\n        <activity android:name=\".medicine_logs.LogMedicineActivity\" android:exported=\"false\" />\r\n        <activity android:name=\".technique_guidance.TechniqueActivity\" android:exported=\"false\" />\r\n        <activity android:name=\".pre_post_checks.PrePostCheckActivity\" android:exported=\"false\" />\r\n        <activity android:name=\".sharing.InviteProviderActivity\" android:exported=\"false\" />\r\n\r\n        <!-- OPTIONAL: remove if not used anymore -->\r\n        <activity android:name=\".MainActivity\" android:exported=\"false\" />\r\n\r\n        <activity android:name=\".badges_system.BadgeActivity\" />\r\n\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision 525661ef88d2f9dbabf71776af0586a99d93f0f2)
++++ b/app/src/main/AndroidManifest.xml	(date 1764099641330)
+@@ -11,7 +11,9 @@
+         android:roundIcon="@mipmap/ic_launcher_round"
+         android:supportsRtl="true"
+         android:theme="@style/Theme.SmartAir">
+-
++        <activity
++            android:name=".dashboard.DashboardActivity"
++            android:exported="false" />
+         <!-- LOGIN (Launcher) -->
+         <activity
+             android:name=".auth.LoginActivity"
+@@ -26,23 +28,17 @@
+             android:name=".ui.child.ChildPEFActivity"
+             android:exported="false"
+             android:parentActivityName=".MainActivity" />
+-
+         <activity
+             android:name=".ui.child.ChildTriageActivity"
+             android:exported="false"
+             android:parentActivityName=".ui.child.ChildPEFActivity" />
+-
+         <activity
+             android:name=".ui.parent.ParentHomeActivity"
+             android:exported="false"
+-            android:parentActivityName=".MainActivity" />
+-
+-        <!-- REGISTER -->
++            android:parentActivityName=".MainActivity" /> <!-- REGISTER -->
+         <activity
+             android:name=".auth.RegisterActivity"
+-            android:exported="false" />
+-
+-        <!-- HOMEPAGE -->
++            android:exported="false" /> <!-- HOMEPAGE -->
+         <activity
+             android:name=".homepages.HomepageActivity"
+             android:exported="true" />
+@@ -51,28 +47,38 @@
+             android:exported="true" />
+         <activity
+             android:name=".homepages.HomepageProvidersActivity"
++            android:exported="true" /> <!-- CHILD MANAGEMENT -->
++        <activity
++            android:name=".child_managent.ViewChildrenActivity"
++            android:exported="true" />
++        <activity
++            android:name=".child_managent.AddChildActivity"
+             android:exported="true" />
+-
+-        <!-- CHILD MANAGEMENT -->
+-        <activity android:name=".child_managent.ViewChildrenActivity" android:exported="true" />
+-        <activity android:name=".child_managent.AddChildActivity" android:exported="true" />
+-        <activity android:name=".child_managent.ManageChildActivity" android:exported="true" />
+-
+-        <!-- SHARING MANAGEMENT -->
+-        <activity android:name=".sharing.ManageSharingActivity" android:exported="false" />
+-        <activity android:name=".child_managent.ChooseChildForSharingActivity" android:exported="true" />
+-
+-        <!-- OTHER SCREENS -->
+-        <activity android:name=".medicine_logs.LogMedicineActivity" android:exported="false" />
+-        <activity android:name=".technique_guidance.TechniqueActivity" android:exported="false" />
+-        <activity android:name=".pre_post_checks.PrePostCheckActivity" android:exported="false" />
+-        <activity android:name=".sharing.InviteProviderActivity" android:exported="false" />
+-
+-        <!-- OPTIONAL: remove if not used anymore -->
+-        <activity android:name=".MainActivity" android:exported="false" />
+-
++        <activity
++            android:name=".child_managent.ManageChildActivity"
++            android:exported="true" /> <!-- SHARING MANAGEMENT -->
++        <activity
++            android:name=".sharing.ManageSharingActivity"
++            android:exported="false" />
++        <activity
++            android:name=".child_managent.ChooseChildForSharingActivity"
++            android:exported="true" /> <!-- OTHER SCREENS -->
++        <activity
++            android:name=".medicine_logs.LogMedicineActivity"
++            android:exported="false" />
++        <activity
++            android:name=".technique_guidance.TechniqueActivity"
++            android:exported="false" />
++        <activity
++            android:name=".pre_post_checks.PrePostCheckActivity"
++            android:exported="false" />
++        <activity
++            android:name=".sharing.InviteProviderActivity"
++            android:exported="false" /> <!-- OPTIONAL: remove if not used anymore -->
++        <activity
++            android:name=".MainActivity"
++            android:exported="false" />
+         <activity android:name=".badges_system.BadgeActivity" />
+-
+     </application>
+ 
+ </manifest>
+\ No newline at end of file
+Index: app/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>/build\r\ngoogle-services.json\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/.gitignore b/app/.gitignore
+--- a/app/.gitignore	(revision 525661ef88d2f9dbabf71776af0586a99d93f0f2)
++++ b/app/.gitignore	(date 1763924944902)
+@@ -1,2 +1,3 @@
+ /build
+ google-services.json
++google-services.json
+Index: app/src/main/java/com/example/smartair/dashboard/DashboardActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/dashboard/DashboardActivity.java b/app/src/main/java/com/example/smartair/dashboard/DashboardActivity.java
+new file mode 100644
+--- /dev/null	(date 1764099641624)
++++ b/app/src/main/java/com/example/smartair/dashboard/DashboardActivity.java	(date 1764099641624)
+@@ -0,0 +1,26 @@
++package com.example.smartair.dashboard;
++
++import android.os.Bundle;
++
++import androidx.activity.EdgeToEdge;
++import androidx.appcompat.app.AppCompatActivity;
++import androidx.core.graphics.Insets;
++import androidx.core.view.ViewCompat;
++import androidx.core.view.WindowInsetsCompat;
++
++import com.example.smartair.R;
++
++public class DashboardActivity extends AppCompatActivity {
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        EdgeToEdge.enable(this);
++        setContentView(R.layout.activity_dashboard);
++        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
++            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
++            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
++            return insets;
++        });
++    }
++}
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_dashboard.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_dashboard.xml b/app/src/main/res/layout/activity_dashboard.xml
+new file mode 100644
+--- /dev/null	(date 1764099641361)
++++ b/app/src/main/res/layout/activity_dashboard.xml	(date 1764099641361)
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:id="@+id/main"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    tools:context=".dashboard.DashboardActivity">
++
++</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-11-11T21:26:28.380294500Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection>\r\n          <targets>\r\n            <Target type=\"DEFAULT_BOOT\">\r\n              <handle>\r\n                <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\r\n              </handle>\r\n            </Target>\r\n          </targets>\r\n        </DialogSelection>\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"MainActivity\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision 525661ef88d2f9dbabf71776af0586a99d93f0f2)
++++ b/.idea/deploymentTargetSelector.xml	(date 1763925196729)
+@@ -21,9 +21,6 @@
+           </targets>
+         </DialogSelection>
+       </SelectionState>
+-      <SelectionState runConfigName="MainActivity">
+-        <option name="selectionMode" value="DROPDOWN" />
+-      </SelectionState>
+     </selectionStates>
+   </component>
+ </project>
+\ No newline at end of file

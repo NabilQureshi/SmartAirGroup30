@@ -61,4 +61,9 @@ public class DashboardActivity extends AppCompatActivity {
         lastRescueText = findViewById(R.id.lastRescueText);
         weeklyRescueText = findViewById(R.id.weeklyRescueText);
     }
+
+    private void initializeFirebase() {
+        auth = FirebaseAuth.getInstance();
+        database = FirebaseFirestore.getInstance();
+    }
 }
