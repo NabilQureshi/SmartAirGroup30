@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/titleInvite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Invite Provider"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/textStatusLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: No Active Invite"
+            android:textSize="16sp"
+            android:textColor="#212121"
+            android:background="#EEE"
+            android:padding="12dp"
+            android:layout_marginBottom="32dp"/>
+
+        <TextView
+            android:id="@+id/textDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Generate a secure, one-time invite code your provider can use to link to this child's profile. The code expires in 7 days and can be reused only once."
+            android:textSize="16sp"
+            android:textColor="#444444"
+            android:paddingBottom="24dp" />
+
+        <Button
+            android:id="@+id/btnGenerateCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Generate Invite Code"
+            android:textAllCaps="false"
+            android:padding="16dp"
+            android:textSize="18sp" />
+        <Button
+            android:id="@+id/btnRevoke"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Revoke Active Code"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#D32F2F"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="32dp" />
+
+        <TextView
+            android:id="@+id/textInviteCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAlignment="center"
+            android:textColor="#222222"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp" />
+
+        <TextView
+            android:id="@+id/textHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Share this code with your provider. They must enter it in their Provider App."
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:paddingTop="4dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</ScrollView>
