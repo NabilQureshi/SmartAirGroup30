@@ -77,6 +77,14 @@
             android:layout_marginBottom="16dp"
             android:padding="12dp" />
 
+        <Button
+            android:id="@+id/btnSignOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Out"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:textColor="@android:color/white" />
+
         <!-- 其他功能按钮（可选，如果想和父母主页共用）-->
         <!--
         <Button

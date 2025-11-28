@@ -45,13 +45,17 @@ public abstract class BaseActivity extends AppCompatActivity {
                 .show();
     }
 
+    protected void signOut() {
+        showSignOutDialog();
+    }
+
     private void performSignOut() {
         if (mAuth != null) {
             mAuth.signOut();
         }
 
         if (prefsHelper != null) {
-            prefsHelper.clear();
+            prefsHelper.clearUserData();
         }
 
         Intent intent = new Intent(this, LoginActivity.class);

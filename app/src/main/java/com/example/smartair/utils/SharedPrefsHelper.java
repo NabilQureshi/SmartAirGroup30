@@ -7,6 +7,7 @@ public class SharedPrefsHelper {
     private static final String PREFS_NAME = "SmartAirPrefs";
     private static final String KEY_USER_ROLE = "user_role";
     private static final String KEY_USER_UID = "user_uid";
+    private static final String KEY_ONBOARDING_COMPLETE = "onboarding_complete";
 
     private final SharedPreferences preferences;
 
@@ -32,5 +33,21 @@ public class SharedPrefsHelper {
 
     public void clear() {
         preferences.edit().clear().apply();
+    }
+
+    public void clearUserData() {
+        boolean onboardingStatus = isOnboardingComplete();
+        preferences.edit()
+                .remove(KEY_USER_ROLE)
+                .remove(KEY_USER_UID)
+                .apply();
+    }
+
+    public void setOnboardingComplete(boolean complete) {
+        preferences.edit().putBoolean(KEY_ONBOARDING_COMPLETE, complete).apply();
+    }
+
+    public boolean isOnboardingComplete() {
+        return preferences.getBoolean(KEY_ONBOARDING_COMPLETE, false);
     }
 }

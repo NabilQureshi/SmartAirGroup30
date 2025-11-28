@@ -1,26 +1,48 @@
 package com.example.smartair.homepages;
 
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
+import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-public class HomepageProvidersActivity extends AppCompatActivity {
+public class HomepageProvidersActivity extends BaseActivity {
+
+    private TextView textGreeting;
+    private Button btnSignOut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_homepage_providers);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        textGreeting = findViewById(R.id.main);
+        btnSignOut = findViewById(R.id.btnSignOut);
+
+        btnSignOut.setOnClickListener(v -> signOut());
+
+        loadProviderName();
+    }
+
+    private void loadProviderName() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+                        if (name != null && !name.isEmpty()) {
+                            textGreeting.setText("Welcome, " + name);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                });
     }
 }
