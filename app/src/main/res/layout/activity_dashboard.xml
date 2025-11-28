@@ -7,73 +7,82 @@
     android:layout_height="match_parent"
     tools:context=".dashboard.DashboardActivity">
 
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hi Nabil!"
+        android:textColor="@android:color/black"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="52dp" />
+
+    <TextView
+        android:id="@+id/todayZoneText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today's Zone: Loading..."
+        tools:layout_editor_absoluteX="33dp"
+        tools:layout_editor_absoluteY="117dp" />
+
+    <TextView
+        android:id="@+id/lastRescueText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Last Rescue: Loading..."
+        app:layout_constraintStart_toStartOf="@+id/todayZoneText"
+        app:layout_constraintTop_toBottomOf="@+id/todayZoneText"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/weeklyRescueText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Weekly Rescues: Loading..."
+        app:layout_constraintStart_toStartOf="@+id/lastRescueText"
+        app:layout_constraintTop_toBottomOf="@+id/lastRescueText"
+        android:layout_marginTop="16dp" />
+
     <Button
         android:id="@+id/exportButton"
         android:layout_width="163dp"
         android:layout_height="57dp"
+        android:layout_marginStart="32dp"
         android:text="Export"
-        tools:layout_editor_absoluteX="33dp"
-        tools:layout_editor_absoluteY="282dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="233dp" />
 
     <Button
         android:id="@+id/trendTimelineToggle"
         android:layout_width="163dp"
         android:layout_height="57dp"
         android:text="Toggle Timeline"
-        tools:layout_editor_absoluteX="33dp"
-        tools:layout_editor_absoluteY="353dp" />
-
-    <TextView
-        android:id="@+id/greetingText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
-        android:text="Hi Nabil!"
-        android:textColor="@android:color/black"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.114"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ProgressBar
-        android:id="@+id/progressBar2"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="191dp"
-        android:layout_height="134dp"
-        tools:layout_editor_absoluteX="32dp"
-        tools:layout_editor_absoluteY="117dp" />
+        app:layout_constraintStart_toStartOf="@+id/exportButton"
+        app:layout_constraintTop_toBottomOf="@+id/exportButton"
+        android:layout_marginTop="16dp" />
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/trendChart"
-        android:layout_width="248dp"
+        android:layout_width="0dp"
         android:layout_height="184dp"
-        tools:layout_editor_absoluteX="33dp"
-        tools:layout_editor_absoluteY="503dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trendTimelineToggle"
+        android:layout_marginStart="33dp"
+        android:layout_marginEnd="33dp"
+        android:layout_marginTop="32dp" />
 
-    <TextView
-        android:id="@+id/todayZoneText"
+    <Button
+        android:id="@+id/childSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="todayZoneText"
-        tools:layout_editor_absoluteX="223dp"
-        tools:layout_editor_absoluteY="282dp" />
-
-    <TextView
-        android:id="@+id/weeklyRescueText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="weeklyRescueText"
-        tools:layout_editor_absoluteX="222dp"
-        tools:layout_editor_absoluteY="355dp" />
-
-    <TextView
-        android:id="@+id/lastRescueText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="lastRescueText"
-        tools:layout_editor_absoluteX="222dp"
-        tools:layout_editor_absoluteY="319dp" />
+        android:text="Child Settings"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="32dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

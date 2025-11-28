@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.widget.Toast;
 import android.content.Intent;
+import com.example.smartair.dashboard.DashboardActivity;
 
 import com.example.smartair.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -36,7 +37,7 @@ public class ViewChildrenActivity extends AppCompatActivity {
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new ChildAdapter(childList, (child, childId) -> {
-            Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
+            Intent intent = new Intent(ViewChildrenActivity.this, DashboardActivity.class);
             intent.putExtra("childId", childId);
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());
