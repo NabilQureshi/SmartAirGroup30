@@ -30,6 +30,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -327,6 +328,9 @@ public class ChildPEFActivity extends AppCompatActivity {
                 : R.string.zone_based_on_latest_entry);
 
         applyZoneColors(result.getZone());
+        if (!basedOnInput) {
+            persistLatestZone(result);
+        }
     }
 
     private String formatPercent(float percent) {
@@ -361,5 +365,23 @@ public class ChildPEFActivity extends AppCompatActivity {
         zoneCard.setCardBackgroundColor(ContextCompat.getColor(this, backgroundColorRes));
         zoneStateText.setTextColor(ContextCompat.getColor(this, textColorRes));
         zonePercentText.setTextColor(ContextCompat.getColor(this, textColorRes));
+    }
+
+    /**
+     * Saves the latest calculated zone for the child so the parent app can display it.
+     * Only persists when the zone is based on the latest saved entry to avoid noisy writes.
+     */
+    private void persistLatestZone(PEFZoneCalculator.ZoneResult result) {
+        if (result == null || !result.isReady() || user == null) return;
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("latestZoneState", result.getZone().name());
+        update.put("latestZonePercent", result.getPercentOfPersonalBest());
+        update.put("latestZonePefValue", result.getPefValue());
+        update.put("latestZoneUpdatedAt", System.currentTimeMillis());
+
+        db.collection("users")
+                .document(user.getUid())
+                .set(update, SetOptions.merge());
     }
 }
