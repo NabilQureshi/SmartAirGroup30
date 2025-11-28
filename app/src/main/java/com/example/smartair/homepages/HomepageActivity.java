@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
 
+import com.example.smartair.SymptomCheckInActivity;
 import com.example.smartair.badges_system.BadgeActivity;
 import com.example.smartair.medicine_logs.LogMedicineActivity;
 import com.example.smartair.pre_post_checks.PrePostCheckActivity;
@@ -30,7 +31,7 @@ public class HomepageActivity extends AppCompatActivity {
     private Button btnCheckPeakFlow;
     private Button btnCheckSymptom;
     private TextView textGreeting;
-
+    private Button btnSymptomCheckIn; // added
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,7 +45,7 @@ public class HomepageActivity extends AppCompatActivity {
         btnBadge = findViewById(R.id.btnBadges); // ✅ 放到这里初始化
         btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);
         btnCheckSymptom = findViewById(R.id.btnCheckSymptom);
-
+        btnSymptomCheckIn = findViewById(R.id.btnSymptomCheckIn); // added
 
         btnLogMedicine.setOnClickListener(v ->
                 startActivity(new Intent(this, LogMedicineActivity.class)));
@@ -62,6 +63,8 @@ public class HomepageActivity extends AppCompatActivity {
         btnCheckSymptom.setOnClickListener(v ->
                 startActivity(new Intent(this, ChildTriageActivity.class)));
         loadChildUsername();
+        btnSymptomCheckIn.setOnClickListener(v ->  //  Added new button action
+                startActivity(new Intent(this, SymptomCheckInActivity.class)));
     }
     private void loadChildUsername() {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
