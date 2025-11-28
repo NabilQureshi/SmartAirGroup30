@@ -1,0 +1,2888 @@
+Index: app/src/main/java/com/example/smartair/auth/RegisterActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.auth;\n\nimport android.os.Bundle;\nimport android.os.Handler;\nimport android.os.Looper;\nimport android.view.View;\nimport android.widget.Button;\nimport android.widget.EditText;\nimport android.widget.ProgressBar;\nimport android.widget.RadioGroup;\nimport android.widget.TextView;\nimport android.widget.Toast;\n\nimport androidx.appcompat.app.AppCompatActivity;\n\nimport com.example.smartair.R;\nimport com.example.smartair.models.UserRole;\n\npublic class RegisterActivity extends AppCompatActivity {\n\n    private EditText nameEditText;\n    private EditText emailEditText;\n    private EditText passwordEditText;\n    private EditText confirmPasswordEditText;\n    private RadioGroup roleRadioGroup;\n    private Button registerButton;\n    private ProgressBar progressBar;\n    private TextView backToLoginTextView;\n\n    private AuthModel authModel;\n    private final Handler timeoutHandler = new Handler(Looper.getMainLooper());\n    private Runnable timeoutRunnable;\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_register);\n\n        nameEditText = findViewById(R.id.nameEditText);\n        emailEditText = findViewById(R.id.emailEditText);\n        passwordEditText = findViewById(R.id.passwordEditText);\n        confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);\n        roleRadioGroup = findViewById(R.id.roleRadioGroup);\n        registerButton = findViewById(R.id.registerButton);\n        progressBar = findViewById(R.id.progressBar);\n        backToLoginTextView = findViewById(R.id.backToLoginTextView);\n\n        authModel = new AuthModel();\n\n        registerButton.setOnClickListener(v -> register());\n        backToLoginTextView.setOnClickListener(v -> finish());\n    }\n\n    private void register() {\n        String name = nameEditText.getText().toString().trim();\n        String email = emailEditText.getText().toString().trim();\n        String password = passwordEditText.getText().toString().trim();\n        String confirmPassword = confirmPasswordEditText.getText().toString().trim();\n\n        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {\n            Toast.makeText(this, \"All fields are required.\", Toast.LENGTH_LONG).show();\n            return;\n        }\n\n        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {\n            Toast.makeText(this, \"Please enter a valid email address.\", Toast.LENGTH_LONG).show();\n            return;\n        }\n\n        if (password.length() < 6) {\n            Toast.makeText(this, \"Password must be at least 6 characters.\", Toast.LENGTH_LONG).show();\n            return;\n        }\n\n        if (!password.equals(confirmPassword)) {\n            Toast.makeText(this, \"Passwords do not match.\", Toast.LENGTH_LONG).show();\n            return;\n        }\n\n        int checkedId = roleRadioGroup.getCheckedRadioButtonId();\n        if (checkedId == -1) {\n            Toast.makeText(this, \"Please select a role.\", Toast.LENGTH_LONG).show();\n            return;\n        }\n\n        UserRole role;\n        if (checkedId == R.id.radioParent) {\n            role = UserRole.PARENT;\n        } else if (checkedId == R.id.radioProvider) {\n            role = UserRole.PROVIDER;\n        } else {\n            role = UserRole.CHILD;\n        }\n\n        progressBar.setVisibility(View.VISIBLE);\n        registerButton.setEnabled(false);\n\n        timeoutRunnable = () -> {\n            progressBar.setVisibility(View.GONE);\n            registerButton.setEnabled(true);\n            Toast.makeText(RegisterActivity.this, \"Request timed out. Check your connection or Firebase config.\", Toast.LENGTH_LONG).show();\n        };\n        timeoutHandler.postDelayed(timeoutRunnable, 15000);\n\n        authModel.register(email, password, role, new AuthModel.AuthCallback() {\n            @Override\n            public void onSuccess(UserRole r) {\n                timeoutHandler.removeCallbacks(timeoutRunnable);\n                progressBar.setVisibility(View.GONE);\n                registerButton.setEnabled(true);\n                Toast.makeText(RegisterActivity.this, \"Sign up successful.\", Toast.LENGTH_LONG).show();\n                finish();\n            }\n\n            @Override\n            public void onError(String message) {\n                timeoutHandler.removeCallbacks(timeoutRunnable);\n                progressBar.setVisibility(View.GONE);\n                registerButton.setEnabled(true);\n                Toast.makeText(RegisterActivity.this, \"Sign up failed: \" + message, Toast.LENGTH_LONG).show();\n            }\n        });\n    }\n\n    @Override\n    protected void onDestroy() {\n        super.onDestroy();\n        timeoutHandler.removeCallbacksAndMessages(null);\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/auth/RegisterActivity.java b/app/src/main/java/com/example/smartair/auth/RegisterActivity.java
+--- a/app/src/main/java/com/example/smartair/auth/RegisterActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/app/src/main/java/com/example/smartair/auth/RegisterActivity.java	(date 1763837644194)
+@@ -15,20 +15,22 @@
+ 
+ import com.example.smartair.R;
+ import com.example.smartair.models.UserRole;
++import com.google.firebase.firestore.FirebaseFirestore;
++
++import java.util.HashMap;
++import java.util.Map;
+ 
+ public class RegisterActivity extends AppCompatActivity {
+ 
+-    private EditText nameEditText;
+-    private EditText emailEditText;
+-    private EditText passwordEditText;
+-    private EditText confirmPasswordEditText;
++    private EditText nameEditText, emailEditText, passwordEditText, confirmPasswordEditText;
+     private RadioGroup roleRadioGroup;
+     private Button registerButton;
+     private ProgressBar progressBar;
+     private TextView backToLoginTextView;
+ 
+     private AuthModel authModel;
+-    private final Handler timeoutHandler = new Handler(Looper.getMainLooper());
++    private FirebaseFirestore db;
++    private Handler timeoutHandler = new Handler(Looper.getMainLooper());
+     private Runnable timeoutRunnable;
+ 
+     @Override
+@@ -46,6 +48,7 @@
+         backToLoginTextView = findViewById(R.id.backToLoginTextView);
+ 
+         authModel = new AuthModel();
++        db = FirebaseFirestore.getInstance();
+ 
+         registerButton.setOnClickListener(v -> register());
+         backToLoginTextView.setOnClickListener(v -> finish());
+@@ -63,12 +66,7 @@
+         }
+ 
+         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+-            Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_LONG).show();
+-            return;
+-        }
+-
+-        if (password.length() < 6) {
+-            Toast.makeText(this, "Password must be at least 6 characters.", Toast.LENGTH_LONG).show();
++            Toast.makeText(this, "Invalid email address.", Toast.LENGTH_LONG).show();
+             return;
+         }
+ 
+@@ -77,28 +75,20 @@
+             return;
+         }
+ 
++        // 固定写死 role，也可以按界面选择
++        UserRole role = UserRole.CHILD;
+         int checkedId = roleRadioGroup.getCheckedRadioButtonId();
+-        if (checkedId == -1) {
+-            Toast.makeText(this, "Please select a role.", Toast.LENGTH_LONG).show();
+-            return;
+-        }
++        if (checkedId == R.id.radioParent) role = UserRole.PARENT;
++        else if (checkedId == R.id.radioProvider) role = UserRole.PROVIDER;
+ 
+-        UserRole role;
+-        if (checkedId == R.id.radioParent) {
+-            role = UserRole.PARENT;
+-        } else if (checkedId == R.id.radioProvider) {
+-            role = UserRole.PROVIDER;
+-        } else {
+-            role = UserRole.CHILD;
+-        }
+-
+-        progressBar.setVisibility(View.VISIBLE);
++        progressBar.setVisibility(android.view.View.VISIBLE);
+         registerButton.setEnabled(false);
+ 
++        // 超时处理
+         timeoutRunnable = () -> {
+-            progressBar.setVisibility(View.GONE);
++            progressBar.setVisibility(android.view.View.GONE);
+             registerButton.setEnabled(true);
+-            Toast.makeText(RegisterActivity.this, "Request timed out. Check your connection or Firebase config.", Toast.LENGTH_LONG).show();
++            Toast.makeText(RegisterActivity.this, "Request timed out.", Toast.LENGTH_LONG).show();
+         };
+         timeoutHandler.postDelayed(timeoutRunnable, 15000);
+ 
+@@ -106,18 +96,35 @@
+             @Override
+             public void onSuccess(UserRole r) {
+                 timeoutHandler.removeCallbacks(timeoutRunnable);
+-                progressBar.setVisibility(View.GONE);
+-                registerButton.setEnabled(true);
+-                Toast.makeText(RegisterActivity.this, "Sign up successful.", Toast.LENGTH_LONG).show();
+-                finish();
++
++                // 注册成功后把用户信息写入 Firestore
++                String uid = authModel.mAuth.getCurrentUser().getUid();
++                Map<String, Object> userMap = new HashMap<>();
++                userMap.put("name", name);
++                userMap.put("email", email);
++                userMap.put("role", r.getValue()); // ✅ 用枚举 getValue 写入 Firestore
++
++                db.collection("users").document(uid)
++                        .set(userMap)
++                        .addOnSuccessListener(aVoid -> {
++                            progressBar.setVisibility(android.view.View.GONE);
++                            registerButton.setEnabled(true);
++                            Toast.makeText(RegisterActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
++                            finish(); // 返回登录页
++                        })
++                        .addOnFailureListener(e -> {
++                            progressBar.setVisibility(android.view.View.GONE);
++                            registerButton.setEnabled(true);
++                            Toast.makeText(RegisterActivity.this, "Failed to save user: " + e.getMessage(), Toast.LENGTH_LONG).show();
++                        });
+             }
+ 
+             @Override
+             public void onError(String message) {
+                 timeoutHandler.removeCallbacks(timeoutRunnable);
+-                progressBar.setVisibility(View.GONE);
++                progressBar.setVisibility(android.view.View.GONE);
+                 registerButton.setEnabled(true);
+-                Toast.makeText(RegisterActivity.this, "Sign up failed: " + message, Toast.LENGTH_LONG).show();
++                Toast.makeText(RegisterActivity.this, "Registration failed: " + message, Toast.LENGTH_LONG).show();
+             }
+         });
+     }
+@@ -127,4 +134,4 @@
+         super.onDestroy();
+         timeoutHandler.removeCallbacksAndMessages(null);
+     }
+-}
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/HomepageActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/HomepageActivity.java b/app/src/main/java/com/example/smartair/HomepageActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/HomepageActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,61 +0,0 @@
+-package com.example.smartair;
+-
+-import android.content.Intent;
+-import android.os.Bundle;
+-import android.view.View;
+-import android.widget.Button;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-public class HomepageActivity extends AppCompatActivity {
+-
+-    private Button btnLogMedicine;
+-    private Button btnTechnique;
+-    private Button btnPrePostCheck;
+-    private Button btnAddChild;
+-    private Button btnViewChildren;
+-    private Button btnManageChild;
+-    private Button btnManageSharing;
+-    private Button btnBadge; // 只声明，不初始化
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_homepage); // 确保布局文件存在
+-
+-        // 初始化按钮
+-        btnLogMedicine = findViewById(R.id.btnLogMedicine);
+-        btnTechnique = findViewById(R.id.btnTechnique);
+-        btnPrePostCheck = findViewById(R.id.btnPrePostCheck);
+-        btnAddChild = findViewById(R.id.btnAddChild);
+-        btnViewChildren = findViewById(R.id.btnViewChildren);
+-        btnManageChild = findViewById(R.id.btnManageChild);
+-        btnManageSharing = findViewById(R.id.btnManageSharing);
+-        btnBadge = findViewById(R.id.btnBadges); // ✅ 放到这里初始化
+-
+-        // 设置点击事件
+-        btnAddChild.setOnClickListener(v ->
+-                startActivity(new Intent(this, AddChildActivity.class)));
+-
+-        btnViewChildren.setOnClickListener(v ->
+-                startActivity(new Intent(this, ViewChildrenActivity.class)));
+-
+-        btnManageChild.setOnClickListener(v ->
+-                startActivity(new Intent(this, ManageChildActivity.class)));
+-
+-        btnManageSharing.setOnClickListener(v ->
+-                startActivity(new Intent(this, ChooseChildForSharingActivity.class)));
+-
+-        btnLogMedicine.setOnClickListener(v ->
+-                startActivity(new Intent(this, LogMedicineActivity.class)));
+-
+-        btnTechnique.setOnClickListener(v ->
+-                startActivity(new Intent(this, TechniqueActivity.class)));
+-
+-        btnPrePostCheck.setOnClickListener(v ->
+-                startActivity(new Intent(this, PrePostCheckActivity.class)));
+-
+-        btnBadge.setOnClickListener(v ->
+-                startActivity(new Intent(this, BadgeActivity.class)));
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/ChildAdapter.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/ChildAdapter.java b/app/src/main/java/com/example/smartair/ChildAdapter.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/ChildAdapter.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,66 +0,0 @@
+-package com.example.smartair;
+-
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup;
+-import android.widget.TextView;
+-import androidx.annotation.NonNull;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import java.util.List;
+-
+-public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ChildViewHolder> {
+-
+-    private List<Child> childList;
+-    private OnChildClickListener listener;
+-
+-    // Interface for click handling
+-    public interface OnChildClickListener {
+-        void onChildClick(Child child, String childId);
+-    }
+-
+-    public ChildAdapter(List<Child> childList, OnChildClickListener listener) {
+-        this.childList = childList;
+-        this.listener = listener;
+-    }
+-
+-    @NonNull
+-    @Override
+-    public ChildViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+-        View view = LayoutInflater.from(parent.getContext())
+-                .inflate(R.layout.item_child, parent, false);
+-        return new ChildViewHolder(view);
+-    }
+-
+-    @Override
+-    public void onBindViewHolder(@NonNull ChildViewHolder holder, int position) {
+-        Child child = childList.get(position);
+-
+-        holder.txtChildName.setText(child.getName());
+-        holder.txtChildDOB.setText("DOB: " + child.getDob());
+-        holder.txtChildNotes.setText("Notes: " + child.getNotes());
+-
+-        // Add the click listener(runs when clicked)
+-        holder.itemView.setOnClickListener(v -> {
+-            if (listener != null) {
+-                listener.onChildClick(child, child.getId());
+-            }
+-        });
+-    }
+-
+-    @Override
+-    public int getItemCount() {
+-        return childList.size();
+-    }
+-
+-    public static class ChildViewHolder extends RecyclerView.ViewHolder {
+-        TextView txtChildName, txtChildDOB, txtChildNotes;
+-
+-        public ChildViewHolder(@NonNull View itemView) {
+-            super(itemView);
+-            txtChildName = itemView.findViewById(R.id.txtChildName);
+-            txtChildDOB = itemView.findViewById(R.id.txtChildDOB);
+-            txtChildNotes = itemView.findViewById(R.id.txtChildNotes);
+-        }
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/YoutubePageFragment.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/YoutubePageFragment.java b/app/src/main/java/com/example/smartair/YoutubePageFragment.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/YoutubePageFragment.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,58 +0,0 @@
+-package com.example.smartair;
+-
+-import android.annotation.SuppressLint;
+-import android.os.Bundle;
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup;
+-import android.webkit.WebSettings;
+-import android.webkit.WebView;
+-import android.webkit.WebViewClient;
+-
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import androidx.fragment.app.Fragment;
+-
+-public class YoutubePageFragment extends Fragment {
+-
+-    private static final String ARG_VIDEO = "arg_video";
+-    private String videoId;
+-
+-    public static YoutubePageFragment newInstance(String videoId) {
+-        YoutubePageFragment f = new YoutubePageFragment();
+-        Bundle b = new Bundle();
+-        b.putString(ARG_VIDEO, videoId);
+-        f.setArguments(b);
+-        return f;
+-    }
+-
+-    @Override
+-    public void onCreate(@Nullable Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        if (getArguments() != null) videoId = getArguments().getString(ARG_VIDEO);
+-    }
+-
+-    @SuppressLint("SetJavaScriptEnabled")
+-    @Nullable
+-    @Override
+-    public View onCreateView(@NonNull LayoutInflater inflater,
+-                             @Nullable ViewGroup container,
+-                             @Nullable Bundle savedInstanceState) {
+-        View v = inflater.inflate(R.layout.fragment_youtube, container, false);
+-        WebView webView = v.findViewById(R.id.youtubeWebView);
+-
+-        WebSettings ws = webView.getSettings();
+-        ws.setJavaScriptEnabled(true);
+-        ws.setDomStorageEnabled(true);
+-        webView.setWebViewClient(new WebViewClient());
+-
+-        // Use YouTube embed (responsive)
+-        String html = "<html><body style='margin:0;padding:0;'><iframe width='100%' height='100%' " +
+-                "src='https://www.youtube.com/embed/" + videoId + "?rel=0&autoplay=0' " +
+-                "frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe></body></html>";
+-
+-        webView.loadData(html, "text/html", "utf-8");
+-        return v;
+-    }
+-}
+-
+Index: app/src/main/java/com/example/smartair/TechniqueActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/TechniqueActivity.java b/app/src/main/java/com/example/smartair/TechniqueActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/TechniqueActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,46 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-
+-import androidx.annotation.Nullable;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.viewpager2.widget.ViewPager2;
+-
+-import com.example.smartair.PageItem;
+-import com.example.smartair.R;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-public class TechniqueActivity extends AppCompatActivity {
+-
+-    private ViewPager2 viewPager;
+-    private StepsAdapter adapter;
+-
+-    @Override
+-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_technique);
+-
+-        viewPager = findViewById(R.id.viewPager);
+-
+-        // prepare pages: 5 steps + 1 youtube page
+-        List<PageItem> pages = new ArrayList<>();
+-
+-        // step images should be in res/drawable/step1.jpg ... step5.jpg
+-        pages.add(new PageItem(R.drawable.step1, "Step 1 — Get ready: Seal the mouthpiece\n\nImagine your little rocket would leak if air slips out. Put your lips tightly around the mouthpiece—no gaps."));
+-        pages.add(new PageItem(R.drawable.step2, "Step 2 — Empty your lungs: Blow out slowly\n\nBefore pressing your rocket, breathe out all the air like blowing out a birthday candle."));
+-        pages.add(new PageItem(R.drawable.step3, "Step 3 — Fire! Inhale deeply while pressing\n\nPress the inhaler quickly and deeply breathe in for 3–5 seconds so the medicine reaches the lungs."));
+-        pages.add(new PageItem(R.drawable.step4, "Step 4 — Hold the breath\n\nHold your breath for about 10 seconds if you can — this helps the medicine work. If not, hold as long as comfortable (at least 4–5s)."));
+-        pages.add(new PageItem(R.drawable.step5, "Step 5 — Wait before the next puff\n\nIf another puff is needed, wait 30–60 seconds (sing a short song!) then repeat the steps."));
+-
+-        // youtube page special: imageResId = 0 means youtube page (adapter will detect)
+-        pages.add(new PageItem(0, "youtube:Br9irulpbsc"));
+-
+-        adapter = new StepsAdapter(this, pages);
+-        viewPager.setAdapter(adapter);
+-
+-        // Optional: set orientation and offscreen limit
+-        viewPager.setOffscreenPageLimit(1);
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/HomepageParentsActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/HomepageParentsActivity.java b/app/src/main/java/com/example/smartair/HomepageParentsActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/HomepageParentsActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,24 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-
+-import androidx.activity.EdgeToEdge;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.core.graphics.Insets;
+-import androidx.core.view.ViewCompat;
+-import androidx.core.view.WindowInsetsCompat;
+-
+-public class HomepageParentsActivity extends AppCompatActivity {
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        EdgeToEdge.enable(this);
+-        setContentView(R.layout.activity_homepage_parents);
+-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+-            return insets;
+-        });
+-    }
+-}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/EnterInviteCodeActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/EnterInviteCodeActivity.java b/app/src/main/java/com/example/smartair/EnterInviteCodeActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/EnterInviteCodeActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,118 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-import android.widget.Button;
+-import android.widget.EditText;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-import com.google.firebase.Timestamp;
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.Date;
+-import java.util.HashMap;
+-import java.util.Map;
+-
+-public class EnterInviteCodeActivity extends AppCompatActivity {
+-
+-    private EditText editInviteCode;
+-    private Button btnRedeem;
+-
+-    private FirebaseFirestore db;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_enter_invite_code);
+-
+-        db = FirebaseFirestore.getInstance();
+-
+-        editInviteCode = findViewById(R.id.editInviteCode);
+-        btnRedeem = findViewById(R.id.btnRedeem);
+-
+-        btnRedeem.setOnClickListener(v -> {
+-            String code = editInviteCode.getText().toString().trim();
+-            if (code.isEmpty()) {
+-                Toast.makeText(this, "Enter the 6-digit code", Toast.LENGTH_SHORT).show();
+-                return;
+-            }
+-            redeemCode(code);
+-        });
+-    }
+-
+-    private void redeemCode(String code) {
+-        String providerId = FirebaseAuth.getInstance().getUid();
+-        if (providerId == null) {
+-            Toast.makeText(this, "You must be signed in", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        db.collection("inviteCodes").document(code)
+-                .get()
+-                .addOnSuccessListener(doc -> {
+-
+-                    if (!doc.exists()) {
+-                        Toast.makeText(this, "Invalid invite code", Toast.LENGTH_SHORT).show();
+-                        return;
+-                    }
+-
+-                    Boolean used = doc.getBoolean("used");
+-                    Date expires = doc.getDate("expires");
+-
+-                    if (used != null && used) {
+-                        Toast.makeText(this, "Code already used", Toast.LENGTH_SHORT).show();
+-                        return;
+-                    }
+-
+-                    if (expires != null && expires.before(new Date())) {
+-                        Toast.makeText(this, "Invite code expired", Toast.LENGTH_SHORT).show();
+-                        return;
+-                    }
+-
+-                    String parentId = doc.getString("parentId");
+-                    String childId = doc.getString("childId");
+-
+-                    if (parentId == null || childId == null) {
+-                        Toast.makeText(this, "Invalid invite data", Toast.LENGTH_SHORT).show();
+-                        return;
+-                    }
+-
+-                    linkProvider(providerId, parentId, childId);
+-
+-                    db.collection("inviteCodes").document(code).update("used", true);
+-                })
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, "Error validating invite code", Toast.LENGTH_SHORT).show()
+-                );
+-    }
+-
+-    private void linkProvider(String providerId, String parentId, String childId) {
+-
+-        Map<String, Object> linkData = new HashMap<>();
+-        linkData.put("parentId", parentId);
+-        linkData.put("childId", childId);
+-        linkData.put("linkedAt", new Date());
+-
+-        // Provider → child link (permanent)
+-        db.collection("providers")
+-                .document(providerId)
+-                .collection("linkedChildren")
+-                .document(childId)
+-                .set(linkData);
+-
+-        // Parent → provider link (for revoke later)
+-        db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .document(childId)
+-                .collection("linkedProviders")
+-                .document(providerId)
+-                .set(linkData)
+-                .addOnSuccessListener(a ->
+-                        Toast.makeText(this, "Child linked successfully!", Toast.LENGTH_LONG).show())
+-                .addOnFailureListener(a ->
+-                        Toast.makeText(this, "Failed to link child", Toast.LENGTH_LONG).show());
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/ManageSharingActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/ManageSharingActivity.java b/app/src/main/java/com/example/smartair/ManageSharingActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/ManageSharingActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,188 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-import android.os.Handler;
+-import android.os.Looper;
+-import android.view.View;
+-import android.widget.CompoundButton;
+-import android.widget.ProgressBar;
+-import android.widget.TextView;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.appcompat.widget.SwitchCompat;
+-import com.google.firebase.firestore.SetOptions;
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.DocumentReference;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.HashMap;
+-import java.util.Map;
+-
+-public class ManageSharingActivity extends AppCompatActivity {
+-
+-    private SwitchCompat switchRescue, switchController, switchSymptoms, switchTriggers;
+-    private SwitchCompat switchPEF, switchTriage, switchCharts;
+-
+-    private TextView tagRescue, tagController, tagSymptoms, tagTriggers;
+-    private TextView tagPEF, tagTriage, tagCharts;
+-
+-    private ProgressBar loadingIndicator;
+-    private TextView textSaving;
+-
+-    private String parentId, childId;
+-    private DocumentReference docRef;
+-    private FirebaseFirestore db;
+-
+-    private boolean isLoading = true;
+-
+-    private Handler debounceHandler = new Handler(Looper.getMainLooper());
+-    private Runnable saveRunnable;
+-    private static final long DEBOUNCE_DELAY = 800;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_manage_sharing);
+-
+-        db = FirebaseFirestore.getInstance();
+-        parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+-        childId = getIntent().getStringExtra("childId");
+-
+-        if (childId == null) {
+-            Toast.makeText(this, "Error: No child selected.", Toast.LENGTH_LONG).show();
+-            finish();
+-            return;
+-        }
+-
+-        docRef = db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .document(childId)
+-                .collection("settings")
+-                .document("sharing");
+-
+-        switchRescue = findViewById(R.id.switchRescueLogs);
+-        switchController = findViewById(R.id.switchController);
+-        switchSymptoms = findViewById(R.id.switchSymptoms);
+-        switchTriggers = findViewById(R.id.switchTriggers);
+-        switchPEF = findViewById(R.id.switchPEF);
+-        switchTriage = findViewById(R.id.switchTriage);
+-        switchCharts = findViewById(R.id.switchCharts);
+-
+-        tagRescue = findViewById(R.id.tagRescue);
+-        tagController = findViewById(R.id.tagController);
+-        tagSymptoms = findViewById(R.id.tagSymptoms);
+-        tagTriggers = findViewById(R.id.tagTriggers);
+-        tagPEF = findViewById(R.id.tagPEF);
+-        tagTriage = findViewById(R.id.tagTriage);
+-        tagCharts = findViewById(R.id.tagCharts);
+-
+-        loadingIndicator = findViewById(R.id.loadingIndicator);
+-        textSaving = findViewById(R.id.textSaving);
+-
+-        saveRunnable = this::saveAllSettings;
+-
+-        loadExistingSettings();
+-    }
+-
+-    private void loadExistingSettings() {
+-        loadingIndicator.setVisibility(View.VISIBLE);
+-        textSaving.setVisibility(View.GONE);
+-        isLoading = true;
+-
+-        docRef.get().addOnSuccessListener(doc -> {
+-            if (doc.exists()) {
+-
+-                setToggleState(switchRescue, tagRescue, doc.getBoolean("rescueLogs"));
+-                setToggleState(switchController, tagController, doc.getBoolean("controller"));
+-                setToggleState(switchSymptoms, tagSymptoms, doc.getBoolean("symptoms"));
+-                setToggleState(switchTriggers, tagTriggers, doc.getBoolean("triggers"));
+-                setToggleState(switchPEF, tagPEF, doc.getBoolean("pef"));
+-                setToggleState(switchTriage, tagTriage, doc.getBoolean("triage"));
+-                setToggleState(switchCharts, tagCharts, doc.getBoolean("charts"));
+-            }
+-
+-            isLoading = false;
+-            loadingIndicator.setVisibility(View.GONE);
+-            setupToggleListeners();
+-
+-        }).addOnFailureListener(e -> {
+-            isLoading = false;
+-            loadingIndicator.setVisibility(View.GONE);
+-            setupToggleListeners();
+-            Toast.makeText(this, "Failed to load settings.", Toast.LENGTH_LONG).show();
+-        });
+-    }
+-
+-    private void setToggleState(SwitchCompat sw, TextView tag, Boolean value) {
+-        boolean checked = Boolean.TRUE.equals(value);
+-        sw.setChecked(checked);
+-        tag.setVisibility(checked ? View.VISIBLE : View.GONE);
+-    }
+-
+-    private void setupToggleListeners() {
+-
+-        CompoundButton.OnCheckedChangeListener listener = (buttonView, isChecked) -> {
+-
+-            int id = buttonView.getId();
+-
+-            if (id == R.id.switchRescueLogs) tagRescue.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-            else if (id == R.id.switchController) tagController.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-            else if (id == R.id.switchSymptoms) tagSymptoms.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-            else if (id == R.id.switchTriggers) tagTriggers.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-            else if (id == R.id.switchPEF) tagPEF.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-            else if (id == R.id.switchTriage) tagTriage.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-            else if (id == R.id.switchCharts) tagCharts.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+-
+-            if (!isLoading) {
+-                textSaving.setVisibility(View.VISIBLE);
+-                textSaving.setText("Saving...");
+-
+-                debounceHandler.removeCallbacks(saveRunnable);
+-                debounceHandler.postDelayed(saveRunnable, DEBOUNCE_DELAY);
+-            }
+-        };
+-
+-        switchRescue.setOnCheckedChangeListener(listener);
+-        switchController.setOnCheckedChangeListener(listener);
+-        switchSymptoms.setOnCheckedChangeListener(listener);
+-        switchTriggers.setOnCheckedChangeListener(listener);
+-        switchPEF.setOnCheckedChangeListener(listener);
+-        switchTriage.setOnCheckedChangeListener(listener);
+-        switchCharts.setOnCheckedChangeListener(listener);
+-    }
+-
+-    private void saveAllSettings() {
+-
+-        Map<String, Object> data = new HashMap<>();
+-        data.put("rescueLogs", switchRescue.isChecked());
+-        data.put("controller", switchController.isChecked());
+-        data.put("symptoms", switchSymptoms.isChecked());
+-        data.put("triggers", switchTriggers.isChecked());
+-        data.put("pef", switchPEF.isChecked());
+-        data.put("triage", switchTriage.isChecked());
+-        data.put("charts", switchCharts.isChecked());
+-
+-        docRef.set(data, SetOptions.merge())
+-                .addOnSuccessListener(a -> {
+-                    textSaving.setText("All changes saved!");
+-
+-                    textSaving.postDelayed(() -> {
+-                        textSaving.setVisibility(View.GONE);
+-                        textSaving.setText("Saving...");
+-                    }, 1500);
+-                })
+-                .addOnFailureListener(e -> {
+-                    textSaving.setVisibility(View.GONE);
+-                    Toast.makeText(this, "Error saving settings", Toast.LENGTH_SHORT).show();
+-                });
+-    }
+-
+-
+-    @Override
+-    protected void onDestroy() {
+-        super.onDestroy();
+-        debounceHandler.removeCallbacks(saveRunnable);
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/Child.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/Child.java b/app/src/main/java/com/example/smartair/Child.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/Child.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,31 +0,0 @@
+-package com.example.smartair;
+-
+-public class Child {
+-
+-    private String id;
+-    private String username;
+-    private String password;
+-    private String name;
+-    private String dob;
+-    private String notes;
+-
+-    public Child() {}
+-
+-    public Child(String id, String username, String password, String name, String dob, String notes) {
+-        this.id = id;
+-        this.username = username;
+-        this.password = password;
+-        this.name = name;
+-        this.dob = dob;
+-        this.notes = notes;
+-    }
+-
+-    public String getId() { return id; }
+-    public void setId(String id) { this.id = id; }
+-
+-    public String getUsername() { return username; }
+-    public String getPassword() { return password; }
+-    public String getName() { return name; }
+-    public String getDob() { return dob; }
+-    public String getNotes() { return notes; }
+-}
+Index: app/src/main/java/com/example/smartair/StepFragment.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/StepFragment.java b/app/src/main/java/com/example/smartair/StepFragment.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/StepFragment.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,58 +0,0 @@
+-package com.example.smartair;
+-
+-
+-import android.os.Bundle;
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup;
+-import android.widget.ImageView;
+-import android.widget.TextView;
+-
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import androidx.fragment.app.Fragment;
+-
+-public class StepFragment extends Fragment {
+-
+-    private static final String ARG_IMG = "arg_img";
+-    private static final String ARG_TEXT = "arg_text";
+-
+-    public static StepFragment newInstance(int imgRes, String text) {
+-        StepFragment f = new StepFragment();
+-        Bundle b = new Bundle();
+-        b.putInt(ARG_IMG, imgRes);
+-        b.putString(ARG_TEXT, text);
+-        f.setArguments(b);
+-        return f;
+-    }
+-
+-    private int imgRes;
+-    private String text;
+-
+-    @Override
+-    public void onCreate(@Nullable Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        if (getArguments() != null) {
+-            imgRes = getArguments().getInt(ARG_IMG);
+-            text = getArguments().getString(ARG_TEXT);
+-        }
+-    }
+-
+-    @Nullable
+-    @Override
+-    public View onCreateView(@NonNull LayoutInflater inflater,
+-                             @Nullable ViewGroup container,
+-                             @Nullable Bundle savedInstanceState) {
+-        View v = inflater.inflate(R.layout.fragment_step, container, false);
+-        ImageView img = v.findViewById(R.id.stepImage);
+-        TextView txt = v.findViewById(R.id.stepText);
+-
+-        if (imgRes != 0) {
+-            img.setImageResource(imgRes);
+-        }
+-        txt.setText(text);
+-
+-        return v;
+-    }
+-}
+-
+Index: app/src/main/java/com/example/smartair/StepsAdapter.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/StepsAdapter.java b/app/src/main/java/com/example/smartair/StepsAdapter.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/StepsAdapter.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,38 +0,0 @@
+-package com.example.smartair;
+-
+-import android.content.Context;
+-
+-import androidx.annotation.NonNull;
+-import androidx.fragment.app.Fragment;
+-import androidx.fragment.app.FragmentActivity;
+-import androidx.viewpager2.adapter.FragmentStateAdapter;
+-
+-import java.util.List;
+-
+-public class StepsAdapter extends FragmentStateAdapter {
+-
+-    private List<PageItem> pages;
+-
+-    public StepsAdapter(@NonNull FragmentActivity fragmentActivity, List<PageItem> pages) {
+-        super(fragmentActivity);
+-        this.pages = pages;
+-    }
+-
+-    @NonNull
+-    @Override
+-    public Fragment createFragment(int position) {
+-        PageItem item = pages.get(position);
+-        if (item.imageRes == 0 && item.text != null && item.text.startsWith("youtube:")) {
+-            String videoId = item.text.substring("youtube:".length());
+-            return YoutubePageFragment.newInstance(videoId);
+-        } else {
+-            return StepFragment.newInstance(item.imageRes, item.text);
+-        }
+-    }
+-
+-    @Override
+-    public int getItemCount() {
+-        return pages.size();
+-    }
+-}
+-
+Index: app/src/main/java/com/example/smartair/BadgeActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/BadgeActivity.java b/app/src/main/java/com/example/smartair/BadgeActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/BadgeActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,93 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.example.smartair.BadgeAdapter;
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.DocumentSnapshot;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-import androidx.recyclerview.widget.LinearLayoutManager;
+-
+-
+-public class BadgeActivity extends AppCompatActivity {
+-
+-    private RecyclerView rvBadges;
+-    private BadgeAdapter adapter;
+-    private String uid;
+-    private String newBadgeId; // 刚解锁的徽章，用于高亮
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        String newBadge = getIntent().getStringExtra("newBadge");
+-        // newBadge 可能是 "badge_2"，也可能是 null（如果不是从解锁来的）
+-
+-        setContentView(R.layout.activity_badge);
+-
+-        rvBadges = findViewById(R.id.rvBadges);
+-        rvBadges.setLayoutManager(new LinearLayoutManager(this));
+-
+-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+-
+-        // 接收从 medicinelog 传来的新徽章 ID
+-        newBadgeId = getIntent().getStringExtra("newBadge");
+-
+-        loadBadges();
+-    }
+-
+-    private void loadBadges() {
+-        FirebaseFirestore.getInstance()
+-                .collection("users").document(uid)
+-                .collection("badges")
+-                .get()
+-                .addOnSuccessListener(snap -> {
+-
+-                    List<BadgeModel> list = new ArrayList<>();
+-
+-                    for (int i = 1; i <= 5; i++) {
+-                        String id = "badge_" + i;
+-                        DocumentSnapshot doc = snap.getDocuments()
+-                                .stream()
+-                                .filter(d -> d.getId().equals(id))
+-                                .findFirst()
+-                                .orElse(null);
+-
+-                        boolean achieved = doc != null && doc.getBoolean("achieved") != null
+-                                && doc.getBoolean("achieved");
+-
+-                        String time = (doc != null && doc.getTimestamp("firstAchieved") != null)
+-                                ? doc.getTimestamp("firstAchieved").toDate().toString()
+-                                : "——";
+-
+-                        String description = doc != null && doc.getString("description") != null
+-                                ? doc.getString("description")
+-                                : "继续努力，相信你可以做到的！";
+-
+-                        list.add(new BadgeModel(
+-                                id,
+-                                "徽章 " + i,
+-                                achieved,
+-                                time,
+-                                description,
+-                                id.equals(newBadgeId)   // 是否高亮
+-                        ));
+-                    }
+-
+-                    adapter = new BadgeAdapter(list, this);
+-                    rvBadges.setAdapter(adapter);
+-
+-                })
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, "加载徽章失败：" + e.getMessage(),
+-                                Toast.LENGTH_SHORT).show()
+-                );
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/ManageChildActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/ManageChildActivity.java b/app/src/main/java/com/example/smartair/ManageChildActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/ManageChildActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,134 +0,0 @@
+-package com.example.smartair;
+-
+-import androidx.appcompat.app.AlertDialog;
+-
+-import android.content.Intent;
+-import android.os.Bundle;
+-import android.widget.Button;
+-import android.widget.EditText;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.HashMap;
+-import java.util.Map;
+-
+-public class ManageChildActivity extends AppCompatActivity {
+-
+-    private EditText editChildUsername, editChildPassword;
+-    private EditText editChildName, editChildDOB, editChildNotes;
+-    private Button btnSave, btnDelete, btnInviteProvider;
+-    private Button btnManageSharing;
+-    private String childId, parentId;
+-    private FirebaseFirestore db;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_manage_child);
+-
+-        db = FirebaseFirestore.getInstance();
+-        parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+-
+-        childId = getIntent().getStringExtra("childId");
+-        String username = getIntent().getStringExtra("username");
+-        String password = getIntent().getStringExtra("password");
+-        String name = getIntent().getStringExtra("name");
+-        String dob = getIntent().getStringExtra("dob");
+-        String notes = getIntent().getStringExtra("notes");
+-
+-        editChildUsername = findViewById(R.id.editChildUsername);
+-        editChildPassword = findViewById(R.id.editChildPassword);
+-        editChildName = findViewById(R.id.editChildName);
+-        editChildDOB = findViewById(R.id.editChildDOB);
+-        editChildNotes = findViewById(R.id.editChildNotes);
+-        btnSave = findViewById(R.id.btnSave);
+-        btnDelete = findViewById(R.id.btnDelete);
+-
+-        btnManageSharing = findViewById(R.id.btnManageSharing);
+-        btnInviteProvider = findViewById(R.id.btnInviteProvider);
+-
+-        btnManageSharing.setOnClickListener(v -> {
+-            Intent intent = new Intent(ManageChildActivity.this, ManageSharingActivity.class);
+-            intent.putExtra("childId", childId);
+-            startActivity(intent);
+-        });
+-        btnInviteProvider.setOnClickListener(v -> {
+-            Intent intent = new Intent(ManageChildActivity.this, InviteProviderActivity.class);
+-            intent.putExtra("CHILD_ID", childId);
+-            startActivity(intent);
+-        });
+-
+-        editChildUsername.setText(username);
+-        editChildPassword.setText(password);
+-        editChildName.setText(name);
+-        editChildDOB.setText(dob);
+-        editChildNotes.setText(notes);
+-
+-        btnSave.setOnClickListener(v -> updateChild());
+-
+-        btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
+-    }
+-
+-    private void updateChild() {
+-        String name = editChildName.getText().toString().trim();
+-        String username = editChildUsername.getText().toString().trim();
+-        String password = editChildPassword.getText().toString().trim();
+-
+-        if (name.isEmpty()) {
+-            Toast.makeText(this, "Child name cannot be empty.", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-        if (username.isEmpty() || password.isEmpty()) {
+-            Toast.makeText(this, "Username and password cannot be empty.", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        Map<String, Object> updates = new HashMap<>();
+-        updates.put("username", username);
+-        updates.put("password", password);
+-        updates.put("name", name);
+-        updates.put("dob", editChildDOB.getText().toString().trim());
+-        updates.put("notes", editChildNotes.getText().toString().trim());
+-
+-        db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .document(childId)
+-                .update(updates)
+-                .addOnSuccessListener(a ->
+-                        Toast.makeText(this, "Child updated!", Toast.LENGTH_SHORT).show())
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+-    }
+-
+-    private void showDeleteConfirmationDialog() {
+-        new AlertDialog.Builder(this)
+-                .setTitle("Delete Child")
+-                .setMessage("Are you sure you want to permanently delete this child's profile?")
+-                .setIcon(android.R.drawable.ic_dialog_alert)
+-                .setPositiveButton("Delete", (dialog, which) -> {
+-                    deleteChild();
+-                })
+-                .setNegativeButton("Cancel", null)
+-                .show();
+-    }
+-
+-
+-    private void deleteChild() {
+-        db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .document(childId)
+-                .delete()
+-                .addOnSuccessListener(a -> {
+-                    Toast.makeText(this, "Child deleted.", Toast.LENGTH_SHORT).show();
+-                    finish();
+-                })
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+-    }
+-}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/ViewChildrenActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/ViewChildrenActivity.java b/app/src/main/java/com/example/smartair/ViewChildrenActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/ViewChildrenActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,98 +0,0 @@
+-package com.example.smartair;
+-
+-import androidx.annotation.Nullable;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.recyclerview.widget.LinearLayoutManager;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import android.os.Bundle;
+-import android.widget.Toast;
+-import android.content.Intent;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.auth.FirebaseUser;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-import com.google.firebase.firestore.QueryDocumentSnapshot;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-public class ViewChildrenActivity extends AppCompatActivity {
+-
+-    private RecyclerView recyclerChildren;
+-    private ChildAdapter adapter;
+-    private List<Child> childList = new ArrayList<>();
+-
+-    private FirebaseFirestore db;
+-    private FirebaseAuth auth;
+-    private FirebaseUser user;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.view_children_activity);
+-
+-        recyclerChildren = findViewById(R.id.recyclerChildren);
+-        recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
+-
+-        adapter = new ChildAdapter(childList, (child, childId) -> {
+-            Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
+-            intent.putExtra("childId", childId);
+-            intent.putExtra("username", child.getUsername());
+-            intent.putExtra("password", child.getPassword());
+-            intent.putExtra("name", child.getName());
+-            intent.putExtra("dob", child.getDob());
+-            intent.putExtra("notes", child.getNotes());
+-            startActivity(intent);
+-        });
+-
+-
+-
+-
+-        recyclerChildren.setAdapter(adapter);
+-
+-        db = FirebaseFirestore.getInstance();
+-        auth = FirebaseAuth.getInstance();
+-        user = auth.getCurrentUser();
+-
+-        // IMPORTANT: check login
+-        if (user == null) {
+-            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+-            finish();
+-            return;
+-        }
+-
+-        loadChildren();
+-    }
+-
+-    private void loadChildren() {
+-        String parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+-
+-        db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .addSnapshotListener((querySnapshot, error) -> {
+-
+-                    if (error != null) {
+-                        Toast.makeText(this, "Error loading children.", Toast.LENGTH_SHORT).show();
+-                        return;
+-                    }
+-
+-                    childList.clear();
+-
+-                    if (querySnapshot == null || querySnapshot.isEmpty()) {
+-                        Toast.makeText(this, "No children found.", Toast.LENGTH_SHORT).show();
+-                        adapter.notifyDataSetChanged();
+-                        return;
+-                    }
+-
+-                    for (QueryDocumentSnapshot doc : querySnapshot) {
+-                        Child child = doc.toObject(Child.class);
+-                        child.setId(doc.getId());
+-                        childList.add(child);
+-                    }
+-
+-                    adapter.notifyDataSetChanged();
+-                });
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/BadgeAdapter.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/BadgeAdapter.java b/app/src/main/java/com/example/smartair/BadgeAdapter.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/BadgeAdapter.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,82 +0,0 @@
+-package com.example.smartair;
+-
+-import android.content.Context;
+-import android.graphics.Color;
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup;
+-import android.widget.ImageView;
+-import android.widget.TextView;
+-
+-import androidx.annotation.NonNull;
+-import androidx.cardview.widget.CardView;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import java.util.List;
+-
+-public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.ViewHolder> {
+-
+-    private List<BadgeModel> list;
+-    private Context ctx;
+-
+-    public BadgeAdapter(List<BadgeModel> list, Context ctx) {
+-        this.list = list;
+-        this.ctx = ctx;
+-    }
+-
+-    @NonNull
+-    @Override
+-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+-        View view = LayoutInflater.from(ctx).inflate(R.layout.badge_item, parent, false);
+-        return new ViewHolder(view);
+-    }
+-
+-    @Override
+-    public void onBindViewHolder(@NonNull ViewHolder h, int pos) {
+-        BadgeModel b = list.get(pos);
+-
+-        // 设置图片
+-        int imgRes = ctx.getResources().getIdentifier(b.id, "drawable", ctx.getPackageName());
+-        h.ivBadge.setImageResource(imgRes);
+-
+-        // 标题
+-        h.tvBadgeTitle.setText(b.title);
+-
+-        // 是否获得
+-        h.tvAchieved.setText("已获得：" + (b.achieved ? "是" : "否"));
+-
+-        // 第一次获得时间
+-        h.tvFirstTime.setText("第一次获得：" + b.firstTime);
+-
+-        // 描述
+-        h.tvDescription.setText(b.description);
+-
+-        // 是否高亮（新徽章）
+-        if (b.highlight) {
+-            h.card.setCardBackgroundColor(Color.parseColor("#FFF59D")); // 黄色高亮
+-        } else {
+-            h.card.setCardBackgroundColor(Color.WHITE);
+-        }
+-    }
+-
+-    @Override
+-    public int getItemCount() {
+-        return list.size();
+-    }
+-
+-    static class ViewHolder extends RecyclerView.ViewHolder {
+-        ImageView ivBadge;
+-        TextView tvBadgeTitle, tvAchieved, tvFirstTime, tvDescription;
+-        CardView card;
+-
+-        public ViewHolder(@NonNull View itemView) {
+-            super(itemView);
+-            ivBadge = itemView.findViewById(R.id.ivBadge);
+-            tvBadgeTitle = itemView.findViewById(R.id.tvBadgeTitle);
+-            tvAchieved = itemView.findViewById(R.id.tvAchieved);
+-            tvFirstTime = itemView.findViewById(R.id.tvFirstTime);
+-            tvDescription = itemView.findViewById(R.id.tvDescription);
+-            card = itemView.findViewById(R.id.cardBadge);
+-        }
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/BadgeModel.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/BadgeModel.java b/app/src/main/java/com/example/smartair/BadgeModel.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/BadgeModel.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,20 +0,0 @@
+-package com.example.smartair;
+-
+-public class BadgeModel {
+-    public String id;
+-    public String title;
+-    public boolean achieved;
+-    public String firstTime;
+-    public String description;
+-    public boolean highlight;
+-
+-    public BadgeModel(String id, String title, boolean achieved, String firstTime,
+-                      String description, boolean highlight) {
+-        this.id = id;
+-        this.title = title;
+-        this.achieved = achieved;
+-        this.firstTime = firstTime;
+-        this.description = description;
+-        this.highlight = highlight;
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/HomepageProvidersActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/HomepageProvidersActivity.java b/app/src/main/java/com/example/smartair/HomepageProvidersActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/HomepageProvidersActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,24 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-
+-import androidx.activity.EdgeToEdge;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.core.graphics.Insets;
+-import androidx.core.view.ViewCompat;
+-import androidx.core.view.WindowInsetsCompat;
+-
+-public class HomepageProvidersActivity extends AppCompatActivity {
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        EdgeToEdge.enable(this);
+-        setContentView(R.layout.activity_homepage_providers);
+-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+-            return insets;
+-        });
+-    }
+-}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/ChooseChildForSharingActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/ChooseChildForSharingActivity.java b/app/src/main/java/com/example/smartair/ChooseChildForSharingActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/ChooseChildForSharingActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,79 +0,0 @@
+-package com.example.smartair;
+-
+-import android.content.Intent;
+-import android.os.Bundle;
+-import android.view.View;
+-import android.widget.ProgressBar;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.recyclerview.widget.LinearLayoutManager;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-import com.google.firebase.firestore.QueryDocumentSnapshot;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-public class ChooseChildForSharingActivity extends AppCompatActivity {
+-
+-    private RecyclerView recyclerChildren;
+-    private ChildAdapter adapter;
+-    private List<Child> childList = new ArrayList<>();
+-    private ProgressBar loadingIndicator;
+-
+-    private FirebaseFirestore db;
+-    private String parentId;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_choose_child_for_sharing);
+-
+-        db = FirebaseFirestore.getInstance();
+-        parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+-        loadingIndicator = findViewById(R.id.loadingIndicator);
+-        recyclerChildren = findViewById(R.id.recyclerChildren);
+-        recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
+-        adapter = new ChildAdapter(childList, (child, childId) -> {
+-            Intent intent = new Intent(this, ManageSharingActivity.class);
+-            intent.putExtra("childId", childId);
+-            startActivity(intent);
+-        });
+-        recyclerChildren.setAdapter(adapter);
+-        loadChildren();
+-    }
+-
+-    private void loadChildren() {
+-        loadingIndicator.setVisibility(View.VISIBLE);
+-        recyclerChildren.setVisibility(View.GONE);
+-
+-        db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .get()
+-                .addOnSuccessListener(snapshot -> {
+-                    loadingIndicator.setVisibility(View.GONE);
+-                    recyclerChildren.setVisibility(View.VISIBLE);
+-                    if (snapshot.isEmpty()) {
+-                        Toast.makeText(this, "No children added yet!", Toast.LENGTH_LONG).show();
+-                        finish();
+-                        return;
+-                    }
+-
+-                    childList.clear();
+-                    for (QueryDocumentSnapshot doc : snapshot) {
+-                        Child child = doc.toObject(Child.class);
+-                        child.setId(doc.getId());
+-                        childList.add(child);
+-                    }
+-                    adapter.notifyDataSetChanged();
+-                })
+-                .addOnFailureListener(e -> {
+-                    loadingIndicator.setVisibility(View.GONE);
+-                    Toast.makeText(this, "Error loading children: " + e.getMessage(), Toast.LENGTH_LONG).show();
+-                });
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/InviteProviderActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/InviteProviderActivity.java b/app/src/main/java/com/example/smartair/InviteProviderActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/InviteProviderActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,194 +0,0 @@
+-package com.example.smartair;
+-
+-import android.graphics.Color;
+-import android.os.Bundle;
+-import android.view.View;
+-import android.widget.Button;
+-import android.widget.TextView;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.Calendar;
+-import java.util.Date;
+-import java.util.HashMap;
+-import java.util.Map;
+-import java.util.Random;
+-
+-public class InviteProviderActivity extends AppCompatActivity {
+-
+-    private Button btnGenerateCode, btnRevoke;
+-    private TextView textInviteCode, textHint, textStatus;
+-
+-    private FirebaseFirestore db;
+-    private String parentId;
+-    private String childId;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_invite_provider);
+-
+-        db = FirebaseFirestore.getInstance();
+-
+-
+-        btnGenerateCode = findViewById(R.id.btnGenerateCode);
+-        btnRevoke = findViewById(R.id.btnRevoke);
+-        textInviteCode = findViewById(R.id.textInviteCode);
+-        textHint = findViewById(R.id.textHint);
+-        textStatus = findViewById(R.id.textStatusLabel);
+-
+-        parentId = FirebaseAuth.getInstance().getUid();
+-        childId = getIntent().getStringExtra("CHILD_ID");
+-
+-        if (parentId == null || childId == null) {
+-            Toast.makeText(this, "Error: Missing IDs", Toast.LENGTH_SHORT).show();
+-            finish();
+-            return;
+-        }
+-
+-        btnGenerateCode.setOnClickListener(v -> generateInviteCode());
+-        btnRevoke.setOnClickListener(v -> revokeInviteCode());
+-
+-        checkForExistingCode();
+-    }
+-
+-
+-    private void checkForExistingCode() {
+-        // Check the CHILD'S profile (Local)
+-        db.collection("parents").document(parentId)
+-                .collection("children").document(childId)
+-                .collection("invite").document("current")
+-                .get()
+-                .addOnSuccessListener(doc -> {
+-                    if (doc.exists()) {
+-                        String code = doc.getString("code");
+-                        validateGlobalCode(code);
+-                    } else {
+-                        updateUI(false, null);
+-                    }
+-                });
+-    }
+-
+-    private void validateGlobalCode(String code) {
+-        if (code == null) return;
+-
+-        db.collection("inviteCodes").document(code).get()
+-                .addOnSuccessListener(globalDoc -> {
+-                    if (globalDoc.exists()) {
+-                        Date expires = globalDoc.getDate("expires");
+-
+-                        // "Valid 7 Days" Requirement check
+-                        if (expires != null && expires.after(new Date())) {
+-                            showInviteCode(code);
+-                        } else {
+-                            deleteLocalInvite();
+-                        }
+-                    } else {
+-                        deleteLocalInvite();
+-                    }
+-                });
+-    }
+-
+-    private void deleteLocalInvite() {
+-        db.collection("parents").document(parentId)
+-                .collection("children").document(childId)
+-                .collection("invite").document("current")
+-                .delete();
+-
+-        updateUI(false, null);
+-    }
+-
+-    private void generateInviteCode() {
+-        revokeInviteCodeInternal(() -> {
+-
+-            String code = String.valueOf(100000 + new Random().nextInt(900000));
+-
+-            Calendar c = Calendar.getInstance();
+-            c.add(Calendar.DAY_OF_YEAR, 7);
+-            Date expiryDate = c.getTime();
+-
+-            Map<String, Object> data = new HashMap<>();
+-            data.put("parentId", parentId);
+-            data.put("childId", childId);
+-            data.put("used", false);
+-            data.put("expires", expiryDate);
+-
+-            db.collection("inviteCodes").document(code)
+-                    .set(data)
+-                    .addOnSuccessListener(a -> {
+-
+-                        Map<String, Object> local = new HashMap<>();
+-                        local.put("code", code);
+-
+-                        db.collection("parents").document(parentId)
+-                                .collection("children").document(childId)
+-                                .collection("invite").document("current")
+-                                .set(local)
+-                                .addOnSuccessListener(v -> showInviteCode(code));
+-                    })
+-                    .addOnFailureListener(e ->
+-                            Toast.makeText(this, "Failed to generate code", Toast.LENGTH_SHORT).show()
+-                    );
+-        });
+-    }
+-
+-    private void revokeInviteCode() {
+-        revokeInviteCodeInternal(null);
+-        Toast.makeText(this, "Access revoked.", Toast.LENGTH_SHORT).show();
+-    }
+-
+-    private void revokeInviteCodeInternal(Runnable onFinished) {
+-        db.collection("parents").document(parentId)
+-                .collection("children").document(childId)
+-                .collection("invite").document("current")
+-                .get()
+-                .addOnSuccessListener(doc -> {
+-                    if (doc.exists()) {
+-                        String code = doc.getString("code");
+-
+-                        if (code != null) {
+-                            db.collection("inviteCodes").document(code).delete();
+-                        }
+-                        doc.getReference().delete();
+-
+-                        updateUI(false, null);
+-                    }
+-
+-                    if (onFinished != null) onFinished.run();
+-                });
+-    }
+-
+-    private void showInviteCode(String code) {
+-        updateUI(true, code);
+-    }
+-
+-    private void updateUI(boolean isActive, String code) {
+-        if (isActive) {
+-            textInviteCode.setText(code);
+-            textInviteCode.setVisibility(View.VISIBLE);
+-            textHint.setVisibility(View.VISIBLE);
+-
+-            if (btnRevoke != null) btnRevoke.setVisibility(View.VISIBLE);
+-            btnGenerateCode.setText("Regenerate Code");
+-            if (textStatus != null) {
+-                textStatus.setText("Status: Active (Shared)");
+-                textStatus.setTextColor(Color.parseColor("#4CAF50")); // Green
+-            }
+-        } else {
+-            textInviteCode.setVisibility(View.GONE);
+-            textHint.setVisibility(View.GONE);
+-
+-            if (btnRevoke != null) btnRevoke.setVisibility(View.GONE);
+-            btnGenerateCode.setText("Generate Invite Code");
+-
+-            if (textStatus != null) {
+-                textStatus.setText("Status: Not Shared");
+-                textStatus.setTextColor(Color.GRAY);
+-            }
+-        }
+-    }
+-}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/PageItem.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/PageItem.java b/app/src/main/java/com/example/smartair/PageItem.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/PageItem.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,14 +0,0 @@
+-package com.example.smartair;
+-
+-
+-
+-public class PageItem {
+-    public int imageRes; // 0 => special (youtube)
+-    public String text;  // for youtube page we store "youtube:VIDEO_ID"
+-
+-    public PageItem(int imageRes, String text) {
+-        this.imageRes = imageRes;
+-        this.text = text;
+-    }
+-}
+-
+Index: app/src/main/java/com/example/smartair/PrePostCheckActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/PrePostCheckActivity.java b/app/src/main/java/com/example/smartair/PrePostCheckActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/PrePostCheckActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,183 +0,0 @@
+-package com.example.smartair;
+-
+-import android.content.Intent;
+-import android.os.Bundle;
+-import android.text.TextUtils;
+-import android.view.View;
+-import android.widget.Button;
+-import android.widget.EditText;
+-import android.widget.RatingBar;
+-import android.widget.RadioButton;
+-import android.widget.RadioGroup;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AlertDialog;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.recyclerview.widget.LinearLayoutManager;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.auth.FirebaseUser;
+-import com.google.firebase.firestore.CollectionReference;
+-import com.google.firebase.firestore.DocumentSnapshot;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.text.SimpleDateFormat;
+-import java.util.Date;
+-import java.util.HashMap;
+-import java.util.Locale;
+-
+-public class PrePostCheckActivity extends AppCompatActivity {
+-
+-    private RadioGroup rgWhen;
+-    private RadioGroup rgResult;
+-    private RatingBar ratingBar;
+-    private EditText etNote;
+-    private Button btnSubmit;
+-    private RecyclerView rvCheckHistory;
+-    private PrePostCheckAdapter adapter;
+-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+-
+-    private FirebaseAuth auth;
+-    private FirebaseFirestore db;
+-    private CollectionReference checkRef;
+-    private FirebaseUser user;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_pre_post_check);
+-
+-        rgWhen = findViewById(R.id.rgWhen);
+-        rgResult = findViewById(R.id.rgResult);
+-        ratingBar = findViewById(R.id.ratingBar);
+-        etNote = findViewById(R.id.etNote);
+-        btnSubmit = findViewById(R.id.btnSubmitCheck);
+-        rvCheckHistory = findViewById(R.id.rvCheckHistory);
+-
+-        auth = FirebaseAuth.getInstance();
+-        db = FirebaseFirestore.getInstance();
+-        user = auth.getCurrentUser();
+-        if (user == null) {
+-            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+-            finish();
+-            return;
+-        }
+-
+-        checkRef = db.collection("users")
+-                .document(user.getUid())
+-                .collection("prepost_checks");
+-
+-        // 初始化 RecyclerView
+-        adapter = new PrePostCheckAdapter();
+-        rvCheckHistory.setAdapter(adapter);
+-        rvCheckHistory.setLayoutManager(new LinearLayoutManager(this));
+-
+-        // 读取历史记录
+-        checkRef.orderBy("timestamp").limit(50).get()
+-                .addOnSuccessListener(queryDocumentSnapshots -> adapter.setChecks(queryDocumentSnapshots.getDocuments()))
+-                .addOnFailureListener(e -> Toast.makeText(this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+-
+-        btnSubmit.setOnClickListener(view -> submitCheck());
+-    }
+-
+-    private void submitCheck() {
+-        int whenId = rgWhen.getCheckedRadioButtonId();
+-        int resId = rgResult.getCheckedRadioButtonId();
+-        if (whenId == -1 || resId == -1) {
+-            Toast.makeText(this, "请选择 Before/After 和 Better/Same/Worse", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        String when = ((RadioButton) findViewById(whenId)).getText().toString();
+-        String result = ((RadioButton) findViewById(resId)).getText().toString();
+-        float rating = ratingBar.getRating();
+-        String note = etNote.getText().toString();
+-
+-        String uid = user.getUid();
+-        String email = user.getEmail();
+-        long now = System.currentTimeMillis();
+-
+-        HashMap<String, Object> data = new HashMap<>();
+-        data.put("uid", uid);
+-        data.put("email", email);
+-        data.put("when", when);
+-        data.put("result", result);
+-        data.put("rating", rating);
+-        data.put("note", note);
+-        data.put("timestamp", now);
+-
+-        btnSubmit.setEnabled(false);
+-        checkRef.add(data).addOnSuccessListener(documentReference -> {
+-            btnSubmit.setEnabled(true);
+-            Toast.makeText(this, "评估已保存", Toast.LENGTH_SHORT).show();
+-
+-            // 自动检查徽章
+-            checkAndUnlockBadge(uid);
+-
+-            // 将刚提交的数据直接插入 RecyclerView
+-            documentReference.get().addOnSuccessListener(doc -> adapter.addCheck(doc));
+-
+-            ratingBar.setRating(0);
+-            etNote.setText("");
+-        }).addOnFailureListener(e -> {
+-            btnSubmit.setEnabled(true);
+-            Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+-        });
+-    }
+-
+-    private void checkAndUnlockBadge(String uid) {
+-        db.collection("users")
+-                .document(uid)
+-                .collection("prepost_checks")
+-                .whereGreaterThanOrEqualTo("rating", 4)
+-                .get()
+-                .addOnSuccessListener(snap -> {
+-                    if (snap.size() >= 5) {
+-                        unlockBadge(uid);
+-                    }
+-                })
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, "检查徽章失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+-                );
+-    }
+-
+-    private void unlockBadge(String uid) {
+-        db.collection("users")
+-                .document(uid)
+-                .collection("badges")
+-                .document("badge_1")
+-                .get()
+-                .addOnSuccessListener(doc -> {
+-                    if (doc.exists()) return; // 已经解锁过，不重复弹窗
+-
+-                    HashMap<String, Object> data = new HashMap<>();
+-                    data.put("unlocked", true);
+-                    data.put("timestamp", System.currentTimeMillis());
+-                    data.put("description", "有 5 次呼吸评分都达到 4 分以上，说明你越来越懂得照顾自己了！");
+-
+-                    db.collection("users")
+-                            .document(uid)
+-                            .collection("badges")
+-                            .document("badge_1")
+-                            .set(data);
+-
+-                    showBadgePopup();
+-                });
+-    }
+-
+-    private void showBadgePopup() {
+-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+-        builder.setTitle("🎉 恭喜获得徽章！");
+-        builder.setMessage("你已经连续获得 5 次高评分呼吸记录！");
+-
+-        builder.setPositiveButton("查看徽章", (dialog, which) -> {
+-            Intent intent = new Intent(this, BadgeActivity.class);
+-            intent.putExtra("newBadge", "badge_2");
+-            startActivity(intent);
+-        });
+-
+-        builder.setNegativeButton("关闭", null);
+-        builder.show();
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/AddChildActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/AddChildActivity.java b/app/src/main/java/com/example/smartair/AddChildActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/AddChildActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,162 +0,0 @@
+-package com.example.smartair;
+-
+-import android.app.DatePickerDialog;
+-import android.content.Intent;
+-import android.os.Bundle;
+-import android.widget.Button;
+-import android.widget.EditText;
+-import android.widget.TextView;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.auth.FirebaseUser;
+-import com.google.firebase.firestore.DocumentReference;
+-import com.google.firebase.firestore.FieldValue;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-import com.google.firebase.firestore.WriteBatch;
+-
+-import java.util.Calendar;
+-import java.util.HashMap;
+-import java.util.Map;
+-
+-public class AddChildActivity extends AppCompatActivity {
+-
+-    private EditText editChildUsername, editChildPassword;
+-    private EditText editChildName, editChildNotes;
+-    private Button btnAddChild;
+-
+-    // Date Picker UI
+-    private TextView textDOB;
+-    private Button btnPickDate;
+-    private String selectedDOB = "";
+-
+-    private FirebaseFirestore db;
+-    private FirebaseAuth auth;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_add_child);
+-
+-        db = FirebaseFirestore.getInstance();
+-        auth = FirebaseAuth.getInstance();
+-
+-        if (auth.getCurrentUser() == null) {
+-            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+-            finish();
+-            return;
+-        }
+-
+-        editChildUsername = findViewById(R.id.editChildUsername);
+-        editChildPassword = findViewById(R.id.editChildPassword);
+-        editChildName = findViewById(R.id.editChildName);
+-        editChildNotes = findViewById(R.id.editChildNotes);
+-        btnAddChild = findViewById(R.id.btnAddChild);
+-
+-        textDOB = findViewById(R.id.textDOB);
+-        btnPickDate = findViewById(R.id.btnPickDate);
+-
+-        btnPickDate.setOnClickListener(v -> showDatePickerDialog());
+-        btnAddChild.setOnClickListener(v -> checkUsernameAndAddChild());
+-    }
+-
+-    private void showDatePickerDialog() {
+-        final Calendar c = Calendar.getInstance();
+-        int year = c.get(Calendar.YEAR);
+-        int month = c.get(Calendar.MONTH);
+-        int day = c.get(Calendar.DAY_OF_MONTH);
+-
+-        DatePickerDialog.OnDateSetListener dateSetListener = (view, yearPicked, monthPicked, dayPicked) -> {
+-            int monthActual = monthPicked + 1;
+-            selectedDOB = String.format("%02d/%02d/%d", dayPicked, monthActual, yearPicked);
+-            textDOB.setText("Date of Birth: " + selectedDOB);
+-        };
+-
+-        DatePickerDialog datePickerDialog = new DatePickerDialog(this, dateSetListener, year, month, day);
+-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+-        datePickerDialog.show();
+-    }
+-
+-    private void checkUsernameAndAddChild() {
+-        String username = editChildUsername.getText().toString().trim();
+-        String password = editChildPassword.getText().toString().trim();
+-        String name = editChildName.getText().toString().trim();
+-        String dob = selectedDOB;
+-        String notes = editChildNotes.getText().toString().trim();
+-
+-        if (username.isEmpty() || password.isEmpty()) {
+-            Toast.makeText(this, "Please enter username and password.", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        if (name.isEmpty() || dob.isEmpty()) {
+-            Toast.makeText(this, "Please enter name and select DOB.", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        FirebaseUser user = auth.getCurrentUser();
+-        if (user == null) {
+-            Toast.makeText(this, "Session expired. Please log in.", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        DocumentReference usernameRef = db.collection("usernames").document(username);
+-
+-        usernameRef.get().addOnSuccessListener(doc -> {
+-            if (doc.exists()) {
+-                Toast.makeText(this, "Username '" + username + "' is already taken.", Toast.LENGTH_LONG).show();
+-            } else {
+-                saveChildWithBatch(user.getUid(), username, password, name, dob, notes);
+-            }
+-        }).addOnFailureListener(e ->
+-                Toast.makeText(this, "Error checking username: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+-        );
+-    }
+-
+-    private void saveChildWithBatch(String parentId, String username, String password, String name, String dob, String notes) {
+-
+-        Map<String, Object> childData = new HashMap<>();
+-        childData.put("username", username);
+-        childData.put("password", password);
+-        childData.put("name", name);
+-        childData.put("dob", dob);
+-        childData.put("notes", notes);
+-        childData.put("createdAt", FieldValue.serverTimestamp());
+-
+-        WriteBatch batch = db.batch();
+-        DocumentReference newChildRef = db.collection("parents")
+-                .document(parentId)
+-                .collection("children")
+-                .document();
+-
+-        DocumentReference usernameRef = db.collection("usernames").document(username);
+-        Map<String, Object> usernameData = new HashMap<>();
+-        usernameData.put("isTaken", true);
+-        usernameData.put("parentId", parentId);
+-        usernameData.put("childId", newChildRef.getId());
+-
+-        batch.set(newChildRef, childData);
+-        batch.set(usernameRef, usernameData);
+-
+-        batch.commit()
+-                .addOnSuccessListener(aVoid -> {
+-                    Toast.makeText(this, "Child added successfully!", Toast.LENGTH_SHORT).show();
+-
+-                    editChildUsername.setText("");
+-                    editChildPassword.setText("");
+-                    editChildName.setText("");
+-                    editChildNotes.setText("");
+-                    textDOB.setText("Date of Birth: Not Set");
+-                    selectedDOB = "";
+-
+-                    Intent intent = new Intent(AddChildActivity.this, ViewChildrenActivity.class);
+-                    startActivity(intent);
+-                    finish();
+-                })
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, "Error saving child: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+-                );
+-    }
+-}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/SignUpActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/SignUpActivity.java b/app/src/main/java/com/example/smartair/SignUpActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/SignUpActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,77 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-import android.widget.Button;
+-import android.widget.EditText;
+-import android.widget.RadioButton;
+-import android.widget.RadioGroup;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.HashMap;
+-import java.util.Map;
+-
+-public class SignUpActivity extends AppCompatActivity {
+-    private EditText etEmail, etPassword;
+-    private Button btnRegister;
+-    private RadioGroup rgRole;
+-    private FirebaseAuth mAuth;
+-    private FirebaseFirestore db;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_sign_up);
+-
+-        etEmail = findViewById(R.id.etEmail);
+-        etPassword = findViewById(R.id.etPassword);
+-        btnRegister = findViewById(R.id.btnRegister);
+-        rgRole = findViewById(R.id.rgRole);
+-
+-        mAuth = FirebaseAuth.getInstance();
+-        db = FirebaseFirestore.getInstance();
+-
+-        btnRegister.setOnClickListener(v -> registerUser());
+-    }
+-
+-    private void registerUser() {
+-        String email = etEmail.getText().toString().trim();
+-        String password = etPassword.getText().toString().trim();
+-
+-        int selectedId = rgRole.getCheckedRadioButtonId();
+-        if(selectedId == -1) {
+-            Toast.makeText(this, "Please select a role", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-        RadioButton rb = findViewById(selectedId);
+-        String role = rb.getText().toString().toLowerCase(); // child/parent/provider
+-
+-        if(email.isEmpty() || password.isEmpty()) {
+-            Toast.makeText(this, "Email and password cannot be empty", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        mAuth.createUserWithEmailAndPassword(email, password)
+-                .addOnCompleteListener(this, task -> {
+-                    if(task.isSuccessful()) {
+-                        String uid = mAuth.getCurrentUser().getUid();
+-                        Map<String, Object> user = new HashMap<>();
+-                        user.put("email", email);
+-                        user.put("role", role);
+-
+-                        db.collection("users").document(uid)
+-                                .set(user)
+-                                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show())
+-                                .addOnFailureListener(e -> Toast.makeText(this, "Failed to save user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+-
+-                        finish(); // 返回登录页面
+-                    } else {
+-                        Toast.makeText(this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+-                    }
+-                });
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/PrePostCheckAdapter.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/PrePostCheckAdapter.java b/app/src/main/java/com/example/smartair/PrePostCheckAdapter.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/PrePostCheckAdapter.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,88 +0,0 @@
+-package com.example.smartair;
+-
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup;
+-import android.widget.TextView;
+-
+-import androidx.annotation.NonNull;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.google.firebase.firestore.DocumentSnapshot;
+-
+-import java.text.SimpleDateFormat;
+-import java.util.ArrayList;
+-import java.util.Date;
+-import java.util.List;
+-import java.util.Locale;
+-
+-public class PrePostCheckAdapter extends RecyclerView.Adapter<PrePostCheckAdapter.CheckViewHolder> {
+-
+-    private List<DocumentSnapshot> checkList = new ArrayList<>();
+-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+-
+-    public void setChecks(List<DocumentSnapshot> checks) {
+-        this.checkList = checks != null ? checks : new ArrayList<>();
+-        notifyDataSetChanged();
+-    }
+-
+-    public void addCheck(DocumentSnapshot check) {
+-        checkList.add(0, check); // 新记录插入顶部
+-        notifyItemInserted(0);
+-    }
+-
+-    @NonNull
+-    @Override
+-    public CheckViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+-        View view = LayoutInflater.from(parent.getContext())
+-                .inflate(R.layout.item_pre_post_check, parent, false);
+-        return new CheckViewHolder(view);
+-    }
+-
+-    @Override
+-    public void onBindViewHolder(@NonNull CheckViewHolder holder, int position) {
+-        holder.bind(checkList.get(position));
+-    }
+-
+-    @Override
+-    public int getItemCount() {
+-        return checkList.size();
+-    }
+-
+-    static class CheckViewHolder extends RecyclerView.ViewHolder {
+-
+-        TextView tvWhenResult, tvRating, tvNote, tvTimestamp;
+-
+-        public CheckViewHolder(@NonNull View itemView) {
+-            super(itemView);
+-            tvWhenResult = itemView.findViewById(R.id.tvWhenResult);
+-            tvRating = itemView.findViewById(R.id.tvRating);
+-            tvNote = itemView.findViewById(R.id.tvNote);
+-            tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
+-        }
+-
+-        public void bind(DocumentSnapshot doc) {
+-            String when = doc.getString("when");
+-            String result = doc.getString("result");
+-            Double rating = doc.getDouble("rating");
+-            String note = doc.getString("note");
+-            Long ts = doc.getLong("timestamp");
+-
+-            tvWhenResult.setText((when != null ? when : "-") + " | " + (result != null ? result : "-"));
+-            tvRating.setText("Rating: " + (rating != null ? rating : "-"));
+-
+-            if (note != null && !note.isEmpty()) {
+-                tvNote.setText("Note: " + note);
+-                tvNote.setVisibility(View.VISIBLE);
+-            } else {
+-                tvNote.setVisibility(View.GONE);
+-            }
+-
+-            if (ts != null) {
+-                tvTimestamp.setText(sdf.format(new Date(ts)));
+-            } else {
+-                tvTimestamp.setText("-");
+-            }
+-        }
+-    }
+-}
+Index: app/src/main/java/com/example/smartair/MedicineLogAdapter.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/MedicineLogAdapter.java b/app/src/main/java/com/example/smartair/MedicineLogAdapter.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/MedicineLogAdapter.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,84 +0,0 @@
+-package com.example.smartair;
+-
+-
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup;
+-import android.widget.TextView;
+-
+-import androidx.annotation.NonNull;
+-import androidx.core.content.ContextCompat;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.google.firebase.firestore.DocumentSnapshot;
+-
+-import java.text.SimpleDateFormat;
+-import java.util.ArrayList;
+-import java.util.Date;
+-import java.util.List;
+-import java.util.Locale;
+-
+-public class MedicineLogAdapter extends RecyclerView.Adapter<MedicineLogAdapter.LogViewHolder> {
+-
+-    private List<DocumentSnapshot> logList = new ArrayList<>();
+-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+-
+-    public void setLogs(List<DocumentSnapshot> logs) {
+-        this.logList = logs != null ? logs : new ArrayList<>();
+-        notifyDataSetChanged();
+-    }
+-
+-    @NonNull
+-    @Override
+-    public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+-        View view = LayoutInflater.from(parent.getContext())
+-                .inflate(R.layout.item_medicine_log, parent, false);
+-        return new LogViewHolder(view);
+-    }
+-
+-    @Override
+-    public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
+-        holder.bind(logList.get(position));
+-    }
+-
+-    @Override
+-    public int getItemCount() {
+-        return logList.size();
+-    }
+-
+-    static class LogViewHolder extends RecyclerView.ViewHolder {
+-
+-        TextView typeText, doseText, timestampText;
+-
+-        public LogViewHolder(@NonNull View itemView) {
+-            super(itemView);
+-            typeText = itemView.findViewById(R.id.type_text);
+-            doseText = itemView.findViewById(R.id.dose_text);
+-            timestampText = itemView.findViewById(R.id.timestamp_text);
+-        }
+-
+-        public void bind(DocumentSnapshot doc) {
+-            String type = doc.getString("type");
+-            Long dose = doc.getLong("dose");
+-            Long ts = doc.getLong("timestamp");
+-
+-            typeText.setText(type != null ? type : "-");
+-            doseText.setText("Dose: " + (dose != null ? dose : "-") + " puffs");
+-
+-            if (type != null) {
+-                if (type.equalsIgnoreCase("Rescue")) {
+-                    typeText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_orange_dark));
+-                } else if (type.equalsIgnoreCase("Controller")) {
+-                    typeText.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.holo_green_dark));
+-                }
+-            }
+-
+-            if (ts != null) {
+-                timestampText.setText(sdf.format(new Date(ts)));
+-            } else {
+-                timestampText.setText("-");
+-            }
+-        }
+-    }
+-}
+-
+Index: app/src/main/java/com/example/smartair/LogMedicineActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/LogMedicineActivity.java b/app/src/main/java/com/example/smartair/LogMedicineActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/example/smartair/LogMedicineActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ /dev/null	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
+@@ -1,130 +0,0 @@
+-package com.example.smartair;
+-
+-import android.os.Bundle;
+-import android.text.TextUtils;
+-import android.view.View;
+-import android.widget.RadioButton;
+-import android.widget.RadioGroup;
+-import android.widget.Toast;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.recyclerview.widget.LinearLayoutManager;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.google.android.material.button.MaterialButton;
+-import com.google.android.material.textfield.TextInputEditText;
+-import com.google.firebase.auth.FirebaseAuth;
+-import com.google.firebase.auth.FirebaseUser;
+-import com.google.firebase.firestore.CollectionReference;
+-import com.google.firebase.firestore.DocumentSnapshot;
+-import com.google.firebase.firestore.FirebaseFirestore;
+-
+-import java.util.ArrayList;
+-import java.util.HashMap;
+-import java.util.List;
+-
+-public class LogMedicineActivity extends AppCompatActivity {
+-
+-    private RadioGroup rgType;
+-    private TextInputEditText etDose;
+-    private MaterialButton btnSubmit;
+-    private RecyclerView rvHistory;
+-    private MedicineLogAdapter adapter;
+-    private View emptyStateText;
+-
+-    private FirebaseFirestore db;
+-    private FirebaseAuth auth;
+-    private CollectionReference logRef;
+-    private FirebaseUser user;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_log_medicine);
+-
+-        rgType = findViewById(R.id.rgType);
+-        etDose = findViewById(R.id.etDose);
+-        btnSubmit = findViewById(R.id.btnSubmitLog);
+-        rvHistory = findViewById(R.id.rvLogHistory);
+-        emptyStateText = findViewById(R.id.empty_state_text);
+-
+-        auth = FirebaseAuth.getInstance();
+-        db = FirebaseFirestore.getInstance();
+-        user = auth.getCurrentUser();
+-
+-        if (user == null) {
+-            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+-            finish();
+-            return;
+-        }
+-
+-        logRef = db.collection("users").document(user.getUid()).collection("medicine_logs");
+-
+-        rvHistory.setLayoutManager(new LinearLayoutManager(this));
+-        adapter = new MedicineLogAdapter();
+-        rvHistory.setAdapter(adapter);
+-
+-        btnSubmit.setOnClickListener(v -> submitLog());
+-
+-        fetchLogs();
+-    }
+-
+-    private void submitLog() {
+-        int checkedId = rgType.getCheckedRadioButtonId();
+-        if (checkedId == -1) {
+-            Toast.makeText(this, "请选择 Rescue 或 Controller", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-        RadioButton rb = findViewById(checkedId);
+-        String type = rb.getText().toString();
+-
+-        String doseStr = etDose.getText().toString();
+-        if (TextUtils.isEmpty(doseStr)) {
+-            Toast.makeText(this, "请输入剂量（puffs）", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        long dose;
+-        try {
+-            dose = Long.parseLong(doseStr);
+-        } catch (NumberFormatException ex) {
+-            Toast.makeText(this, "剂量必须为数字", Toast.LENGTH_SHORT).show();
+-            return;
+-        }
+-
+-        long now = System.currentTimeMillis();
+-        HashMap<String, Object> data = new HashMap<>();
+-        data.put("uid", user.getUid());
+-        data.put("email", user.getEmail());
+-        data.put("type", type);
+-        data.put("dose", dose);
+-        data.put("timestamp", now);
+-
+-        btnSubmit.setEnabled(false);
+-        logRef.add(data).addOnSuccessListener(documentReference -> {
+-            btnSubmit.setEnabled(true);
+-            Toast.makeText(this, "记录已保存", Toast.LENGTH_SHORT).show();
+-            etDose.setText("");
+-            fetchLogs(); // 更新列表
+-        }).addOnFailureListener(e -> {
+-            btnSubmit.setEnabled(true);
+-            Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+-        });
+-    }
+-
+-    private void fetchLogs() {
+-        logRef.orderBy("timestamp").limit(50).get().addOnSuccessListener(queryDocumentSnapshots -> {
+-            List<DocumentSnapshot> logs = queryDocumentSnapshots.getDocuments();
+-            if (logs.isEmpty()) {
+-                emptyStateText.setVisibility(View.VISIBLE);
+-                rvHistory.setVisibility(View.GONE);
+-            } else {
+-                emptyStateText.setVisibility(View.GONE);
+-                rvHistory.setVisibility(View.VISIBLE);
+-                adapter.setLogs(logs);
+-            }
+-        }).addOnFailureListener(e -> {
+-            Toast.makeText(this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+-        });
+-    }
+-}
+Index: app/src/main/res/layout/activity_homepage.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    android:padding=\"24dp\"\n    android:background=\"#FFFFFF\">\n\n    <LinearLayout\n        android:orientation=\"vertical\"\n        android:gravity=\"center\"\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"wrap_content\">\n\n        <Button\n            android:id=\"@+id/btnAddChild\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Add Child\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnViewChildren\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"View Children\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnManageChild\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Manage Child Activity\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnManageSharing\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Manage Sharing\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"32dp\"\n            android:padding=\"12dp\" />\n\n        <!-- Existing Features -->\n        <Button\n            android:id=\"@+id/btnLogMedicine\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Log Medicine\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnTechnique\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Technique Helper\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnPrePostCheck\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Pre/Post Check\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n\n        <Button\n            android:id=\"@+id/btnBadges\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Badges\"\n            android:textSize=\"18sp\"\n            android:padding=\"12dp\" />\n\n    </LinearLayout>\n\n</ScrollView>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage.xml b/app/src/main/res/layout/activity_homepage.xml
+--- a/app/src/main/res/layout/activity_homepage.xml	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/app/src/main/res/layout/activity_homepage.xml	(date 1763835574322)
+@@ -11,41 +11,7 @@
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content">
+ 
+-        <Button
+-            android:id="@+id/btnAddChild"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:text="Add Child"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
+-
+-        <Button
+-            android:id="@+id/btnViewChildren"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:text="View Children"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
+ 
+-        <Button
+-            android:id="@+id/btnManageChild"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:text="Manage Child Activity"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
+-
+-        <Button
+-            android:id="@+id/btnManageSharing"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:text="Manage Sharing"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="32dp"
+-            android:padding="12dp" />
+ 
+         <!-- Existing Features -->
+         <Button
+Index: app/src/main/java/com/example/smartair/auth/AuthModel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.auth;\n\nimport androidx.annotation.NonNull;\n\nimport com.example.smartair.models.UserRole;\nimport com.google.android.gms.tasks.OnCompleteListener;\nimport com.google.android.gms.tasks.Task;\nimport com.google.firebase.auth.AuthResult;\nimport com.google.firebase.auth.FirebaseAuth;\n\npublic class AuthModel {\n\n    public interface AuthCallback {\n        void onSuccess(UserRole role);\n        void onError(String message);\n    }\n\n    private final FirebaseAuth mAuth;\n\n    public AuthModel() {\n        mAuth = FirebaseAuth.getInstance();\n    }\n\n    public void login(String email, String password, AuthCallback callback) {\n        mAuth.signInWithEmailAndPassword(email, password)\n                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {\n                    @Override\n                    public void onComplete(@NonNull Task<AuthResult> task) {\n                        if (task.isSuccessful()) {\n                            UserRole role = UserRole.CHILD;\n                            callback.onSuccess(role);\n                        } else {\n                            String msg = task.getException() != null\n                                    ? task.getException().getMessage()\n                                    : \"Login failed.\";\n                            callback.onError(msg);\n                        }\n                    }\n                });\n    }\n\n    public void register(String email, String password, UserRole role, AuthCallback callback) {\n        mAuth.createUserWithEmailAndPassword(email, password)\n                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {\n                    @Override\n                    public void onComplete(@NonNull Task<AuthResult> task) {\n                        if (task.isSuccessful()) {\n                            callback.onSuccess(role);\n                        } else {\n                            Exception e = task.getException();\n                            if(e != null) {\n                                e.printStackTrace();   // 在 Logcat 打印完整错误\n                                callback.onError(e.toString());  // 返回完整信息\n                            } else {\n                                callback.onError(\"Unknown error during login\");\n                            }\n                            String msg = task.getException() != null\n                                    ? task.getException().getMessage()\n                                    : \"Sign up failed.\";\n                            callback.onError(msg);\n                        }\n                    }\n                });\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/auth/AuthModel.java b/app/src/main/java/com/example/smartair/auth/AuthModel.java
+--- a/app/src/main/java/com/example/smartair/auth/AuthModel.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/app/src/main/java/com/example/smartair/auth/AuthModel.java	(date 1763837817183)
+@@ -15,7 +15,9 @@
+         void onError(String message);
+     }
+ 
+-    private final FirebaseAuth mAuth;
++    // 破坏了封装性，但是不得不改
++    public static FirebaseAuth mAuth = FirebaseAuth.getInstance();
++
+ 
+     public AuthModel() {
+         mAuth = FirebaseAuth.getInstance();
+Index: app/src/main/java/com/example/smartair/auth/LoginActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.auth;\n\nimport android.content.Intent;\nimport android.os.Bundle;\nimport android.util.Log;\nimport android.view.View;\nimport android.widget.Button;\nimport android.widget.EditText;\nimport android.widget.ProgressBar;\nimport android.widget.TextView;\nimport android.widget.Toast;\n\nimport androidx.appcompat.app.AppCompatActivity;\n\nimport com.example.smartair.HomepageActivity;\nimport com.example.smartair.R;\nimport com.example.smartair.models.UserRole;\nimport com.example.smartair.utils.SharedPrefsHelper;\nimport com.google.firebase.FirebaseApp;\n\npublic class LoginActivity extends AppCompatActivity implements LoginContract.View {\n\n    private static final String TAG = \"LoginActivity\";\n\n    private EditText emailEditText;\n    private EditText passwordEditText;\n    private Button loginButton;\n    private TextView registerTextView;\n    private ProgressBar progressBar;\n\n    private LoginContract.Presenter presenter;\n    private SharedPrefsHelper prefsHelper;\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n\n        try {\n            FirebaseApp.initializeApp(this); // 确保 Firebase 初始化\n        } catch (Exception e) {\n            Log.e(TAG, \"Firebase 初始化失败\", e);\n            Toast.makeText(this, \"Firebase 初始化失败\", Toast.LENGTH_LONG).show();\n        }\n\n        setContentView(R.layout.activity_login);\n\n        emailEditText = findViewById(R.id.emailEditText);\n        passwordEditText = findViewById(R.id.passwordEditText);\n        loginButton = findViewById(R.id.loginButton);\n        registerTextView = findViewById(R.id.registerTextView);\n        progressBar = findViewById(R.id.progressBar);\n\n        try {\n            AuthModel model = new AuthModel();\n            presenter = new LoginPresenter(this, model);\n        } catch (Exception e) {\n            Log.e(TAG, \"Presenter 初始化失败\", e);\n            Toast.makeText(this, \"登录模块初始化失败\", Toast.LENGTH_LONG).show();\n        }\n\n        prefsHelper = new SharedPrefsHelper(this);\n\n        loginButton.setOnClickListener(v -> {\n            try {\n                if (presenter != null) {\n                    presenter.onLoginClicked();\n                } else {\n                    Log.e(TAG, \"Presenter 未初始化\");\n                    Toast.makeText(this, \"登录模块未准备好\", Toast.LENGTH_SHORT).show();\n                }\n            } catch (Exception e) {\n                Log.e(TAG, \"登录点击异常\", e);\n                Toast.makeText(this, \"登录异常: \" + e.getMessage(), Toast.LENGTH_LONG).show();\n            }\n        });\n\n        registerTextView.setOnClickListener(v -> {\n            try {\n                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);\n                startActivity(intent);\n            } catch (Exception e) {\n                Log.e(TAG, \"跳转注册异常\", e);\n                Toast.makeText(this, \"无法跳转注册页面\", Toast.LENGTH_SHORT).show();\n            }\n        });\n    }\n\n    @Override\n    public void showLoading() {\n        progressBar.setVisibility(View.VISIBLE);\n        loginButton.setEnabled(false);\n    }\n\n    @Override\n    public void hideLoading() {\n        progressBar.setVisibility(View.GONE);\n        loginButton.setEnabled(true);\n    }\n\n    @Override\n    public void showError(String message) {\n        Toast.makeText(this, message, Toast.LENGTH_LONG).show();\n    }\n\n    @Override\n    public void navigateToHome(UserRole role) {\n        prefsHelper.saveUserRole(role.getValue());\n        Intent intent = new Intent(this, HomepageActivity.class);\n        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);\n        startActivity(intent);\n        finish();\n    }\n\n    @Override\n    public String getEmail() {\n        return emailEditText.getText().toString().trim();\n    }\n\n    @Override\n    public String getPassword() {\n        return passwordEditText.getText().toString();\n    }\n\n    @Override\n    protected void onDestroy() {\n        super.onDestroy();\n        try {\n            if (presenter != null) {\n                presenter.onDestroy();\n            }\n        } catch (Exception e) {\n            Log.e(TAG, \"Presenter 销毁异常\", e);\n        }\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/auth/LoginActivity.java b/app/src/main/java/com/example/smartair/auth/LoginActivity.java
+--- a/app/src/main/java/com/example/smartair/auth/LoginActivity.java	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/app/src/main/java/com/example/smartair/auth/LoginActivity.java	(date 1763838062310)
+@@ -13,33 +13,39 @@
+ import androidx.appcompat.app.AppCompatActivity;
+ 
+ import com.example.smartair.HomepageActivity;
++import com.example.smartair.HomepageParentsActivity;
++import com.example.smartair.HomepageProvidersActivity;
+ import com.example.smartair.R;
+ import com.example.smartair.models.UserRole;
+ import com.example.smartair.utils.SharedPrefsHelper;
+ import com.google.firebase.FirebaseApp;
++import com.google.firebase.auth.FirebaseUser;
++
++import com.google.firebase.firestore.FirebaseFirestore;
++
+ 
+ public class LoginActivity extends AppCompatActivity implements LoginContract.View {
+ 
+     private static final String TAG = "LoginActivity";
+ 
+-    private EditText emailEditText;
+-    private EditText passwordEditText;
++    private EditText emailEditText, passwordEditText;
+     private Button loginButton;
+     private TextView registerTextView;
+     private ProgressBar progressBar;
+ 
+     private LoginContract.Presenter presenter;
+     private SharedPrefsHelper prefsHelper;
++    private FirebaseFirestore db;
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+ 
+         try {
+-            FirebaseApp.initializeApp(this); // 确保 Firebase 初始化
++            FirebaseApp.initializeApp(this);
+         } catch (Exception e) {
+-            Log.e(TAG, "Firebase 初始化失败", e);
+-            Toast.makeText(this, "Firebase 初始化失败", Toast.LENGTH_LONG).show();
++            Log.e(TAG, "Firebase init failed", e);
++            Toast.makeText(this, "Firebase initialization failed", Toast.LENGTH_LONG).show();
+         }
+ 
+         setContentView(R.layout.activity_login);
+@@ -50,50 +56,30 @@
+         registerTextView = findViewById(R.id.registerTextView);
+         progressBar = findViewById(R.id.progressBar);
+ 
+-        try {
+-            AuthModel model = new AuthModel();
+-            presenter = new LoginPresenter(this, model);
+-        } catch (Exception e) {
+-            Log.e(TAG, "Presenter 初始化失败", e);
+-            Toast.makeText(this, "登录模块初始化失败", Toast.LENGTH_LONG).show();
+-        }
+-
+-        prefsHelper = new SharedPrefsHelper(this);
++        db = FirebaseFirestore.getInstance();
++        prefsHelper = new SharedPrefsHelper(this);
++
++        AuthModel model = new AuthModel();
++        presenter = new LoginPresenter(this, model);
+ 
+         loginButton.setOnClickListener(v -> {
+-            try {
+-                if (presenter != null) {
+-                    presenter.onLoginClicked();
+-                } else {
+-                    Log.e(TAG, "Presenter 未初始化");
+-                    Toast.makeText(this, "登录模块未准备好", Toast.LENGTH_SHORT).show();
+-                }
+-            } catch (Exception e) {
+-                Log.e(TAG, "登录点击异常", e);
+-                Toast.makeText(this, "登录异常: " + e.getMessage(), Toast.LENGTH_LONG).show();
+-            }
++            presenter.onLoginClicked();
+         });
+ 
+         registerTextView.setOnClickListener(v -> {
+-            try {
+-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+-                startActivity(intent);
+-            } catch (Exception e) {
+-                Log.e(TAG, "跳转注册异常", e);
+-                Toast.makeText(this, "无法跳转注册页面", Toast.LENGTH_SHORT).show();
+-            }
++            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+         });
+     }
+ 
+     @Override
+     public void showLoading() {
+-        progressBar.setVisibility(View.VISIBLE);
++        progressBar.setVisibility(ProgressBar.VISIBLE);
+         loginButton.setEnabled(false);
+     }
+ 
+     @Override
+     public void hideLoading() {
+-        progressBar.setVisibility(View.GONE);
++        progressBar.setVisibility(ProgressBar.GONE);
+         loginButton.setEnabled(true);
+     }
+ 
+@@ -104,11 +90,36 @@
+ 
+     @Override
+     public void navigateToHome(UserRole role) {
+-        prefsHelper.saveUserRole(role.getValue());
+-        Intent intent = new Intent(this, HomepageActivity.class);
+-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+-        startActivity(intent);
+-        finish();
++        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
++        if (user == null) return;
++
++        db.collection("users").document(user.getUid())
++                .get()
++                .addOnSuccessListener(doc -> {
++                    if (doc.exists()) {
++                        String roleStr = doc.getString("role");
++                        if (roleStr == null) roleStr = "child";
++
++                        UserRole userRole = UserRole.fromString(roleStr);
++                        prefsHelper.saveUserRole(userRole.getValue());
++
++                        switch (userRole) {
++                            case CHILD:
++                                startActivity(new Intent(this, HomepageActivity.class));
++                                break;
++                            case PARENT:
++                                startActivity(new Intent(this, HomepageParentsActivity.class));
++                                break;
++                            case PROVIDER:
++                                startActivity(new Intent(this, HomepageProvidersActivity.class));
++                                break;
++                        }
++                        finish();
++                    } else {
++                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
++                    }
++                })
++                .addOnFailureListener(e -> Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+     }
+ 
+     @Override
+@@ -124,12 +135,6 @@
+     @Override
+     protected void onDestroy() {
+         super.onDestroy();
+-        try {
+-            if (presenter != null) {
+-                presenter.onDestroy();
+-            }
+-        } catch (Exception e) {
+-            Log.e(TAG, "Presenter 销毁异常", e);
+-        }
++        presenter.onDestroy();
+     }
+-}
++}
+\ No newline at end of file
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"deploymentTargetSelector\">\n    <selectionStates>\n      <SelectionState runConfigName=\"app\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n        <DropdownSelection timestamp=\"2025-11-11T21:26:28.380294500Z\">\n          <Target type=\"DEFAULT_BOOT\">\n            <handle>\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\n            </handle>\n          </Target>\n        </DropdownSelection>\n        <DialogSelection>\n          <targets>\n            <Target type=\"DEFAULT_BOOT\">\n              <handle>\n                <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\n              </handle>\n            </Target>\n          </targets>\n        </DialogSelection>\n      </SelectionState>\n      <SelectionState runConfigName=\"ManageChildActivity\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n      </SelectionState>\n      <SelectionState runConfigName=\"ViewChildrenActivity (3)\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n      </SelectionState>\n      <SelectionState runConfigName=\"AddChildActivity\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n      </SelectionState>\n      <SelectionState runConfigName=\"ViewChildrenActivity (1)\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n      </SelectionState>\n      <SelectionState runConfigName=\"MainActivity\">\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\n      </SelectionState>\n    </selectionStates>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/.idea/deploymentTargetSelector.xml	(date 1763834204915)
+@@ -21,18 +21,6 @@
+           </targets>
+         </DialogSelection>
+       </SelectionState>
+-      <SelectionState runConfigName="ManageChildActivity">
+-        <option name="selectionMode" value="DROPDOWN" />
+-      </SelectionState>
+-      <SelectionState runConfigName="ViewChildrenActivity (3)">
+-        <option name="selectionMode" value="DROPDOWN" />
+-      </SelectionState>
+-      <SelectionState runConfigName="AddChildActivity">
+-        <option name="selectionMode" value="DROPDOWN" />
+-      </SelectionState>
+-      <SelectionState runConfigName="ViewChildrenActivity (1)">
+-        <option name="selectionMode" value="DROPDOWN" />
+-      </SelectionState>
+       <SelectionState runConfigName="MainActivity">
+         <option name="selectionMode" value="DROPDOWN" />
+       </SelectionState>
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    package=\"com.example.smartair\">\n\n    <uses-permission android:name=\"android.permission.INTERNET\" />\n\n    <application\n        android:allowBackup=\"true\"\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\n        android:fullBackupContent=\"@xml/backup_rules\"\n        android:icon=\"@mipmap/ic_launcher\"\n        android:label=\"@string/app_name\"\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\n        android:supportsRtl=\"true\"\n        android:theme=\"@style/Theme.SmartAir\">\n\n        <!-- LOGIN (Launcher) -->\n        <activity\n            android:name=\".auth.LoginActivity\"\n            android:exported=\"true\">\n            <intent-filter>\n                <action android:name=\"android.intent.action.MAIN\" />\n                <category android:name=\"android.intent.category.LAUNCHER\" />\n            </intent-filter>\n        </activity>\n\n        <!-- REGISTER -->\n        <activity\n            android:name=\".auth.RegisterActivity\"\n            android:exported=\"false\" />\n\n        <!-- HOMEPAGE -->\n        <activity\n            android:name=\".HomepageActivity\"\n            android:exported=\"true\" />\n\n        <!-- CHILD MANAGEMENT -->\n        <activity android:name=\".ViewChildrenActivity\" android:exported=\"true\" />\n        <activity android:name=\".AddChildActivity\" android:exported=\"true\" />\n        <activity android:name=\".ManageChildActivity\" android:exported=\"true\" />\n\n        <!-- SHARING MANAGEMENT -->\n        <activity android:name=\".ManageSharingActivity\" android:exported=\"false\" />\n        <activity android:name=\".ChooseChildForSharingActivity\" android:exported=\"true\" />\n\n        <!-- OTHER SCREENS -->\n        <activity android:name=\".LogMedicineActivity\" android:exported=\"false\" />\n        <activity android:name=\".TechniqueActivity\" android:exported=\"false\" />\n        <activity android:name=\".PrePostCheckActivity\" android:exported=\"false\" />\n\n        <!-- OPTIONAL: remove if not used anymore -->\n        <activity android:name=\".MainActivity\" android:exported=\"false\" />\n\n        <activity android:name=\".BadgeActivity\" />\n\n    </application>\n\n</manifest>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/app/src/main/AndroidManifest.xml	(date 1763838006796)
+@@ -34,6 +34,12 @@
+         <activity
+             android:name=".HomepageActivity"
+             android:exported="true" />
++        <activity
++            android:name=".HomepageParentsActivity"
++            android:exported="true" />
++        <activity
++            android:name=".HomepageProvidersActivity"
++            android:exported="true" />
+ 
+         <!-- CHILD MANAGEMENT -->
+         <activity android:name=".ViewChildrenActivity" android:exported="true" />
+Index: app/src/main/res/layout/activity_homepage_parents.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    android:id=\"@+id/main\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    tools:context=\".HomepageParentsActivity\">\n\n    <TextView\n        android:layout_width=\"wrap_content\"\n        android:layout_height=\"wrap_content\"\n        android:text=\"Homepage for parents\"\n        android:textSize=\"25sp\"\n        android:layout_gravity=\"center\" />\n\n</LinearLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage_parents.xml b/app/src/main/res/layout/activity_homepage_parents.xml
+--- a/app/src/main/res/layout/activity_homepage_parents.xml	(revision 3eee483dd815c17177e06cfb78c3be67424030de)
++++ b/app/src/main/res/layout/activity_homepage_parents.xml	(date 1763835574340)
+@@ -1,17 +1,90 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+-    xmlns:app="http://schemas.android.com/apk/res-auto"
+-    xmlns:tools="http://schemas.android.com/tools"
+-    android:id="@+id/main"
++<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+-    tools:context=".HomepageParentsActivity">
++    android:padding="24dp"
++    android:background="#FFFFFF">
++
++    <LinearLayout
++        android:orientation="vertical"
++        android:gravity="center"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content">
++
++        <!-- 父母相关按钮 -->
++        <Button
++            android:id="@+id/btnAddChild"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Add Child"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++
++        <Button
++            android:id="@+id/btnViewChildren"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="View Children"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++
++        <Button
++            android:id="@+id/btnManageChild"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Manage Child Activity"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++
++        <Button
++            android:id="@+id/btnManageSharing"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Manage Sharing"
++            android:textSize="18sp"
++            android:layout_marginBottom="32dp"
++            android:padding="12dp" />
++
++        <!-- 其他功能按钮（可选，如果想和父母主页共用）-->
++        <!--
++        <Button
++            android:id="@+id/btnLogMedicine"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Log Medicine"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++
++        <Button
++            android:id="@+id/btnTechnique"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Technique Helper"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
+ 
+-    <TextView
+-        android:layout_width="wrap_content"
+-        android:layout_height="wrap_content"
+-        android:text="Homepage for parents"
+-        android:textSize="25sp"
+-        android:layout_gravity="center" />
++        <Button
++            android:id="@+id/btnPrePostCheck"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Pre/Post Check"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++
++        <Button
++            android:id="@+id/btnBadges"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Badges"
++            android:textSize="18sp"
++            android:padding="12dp" />
++        -->
+ 
+-</LinearLayout>
+\ No newline at end of file
++    </LinearLayout>
++</ScrollView>

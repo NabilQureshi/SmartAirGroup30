@@ -2,6 +2,7 @@ package com.example.smartair.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,25 +12,45 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.smartair.HomepageActivity;
 import com.example.smartair.R;
+import com.example.smartair.homepages.HomepageActivity;
+import com.example.smartair.homepages.HomepageParentsActivity;
+import com.example.smartair.homepages.HomepageProvidersActivity;
 import com.example.smartair.models.UserRole;
 import com.example.smartair.utils.SharedPrefsHelper;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
 
-    private EditText emailEditText;
-    private EditText passwordEditText;
+    private static final String TAG = "LoginActivity";
+
+    private EditText emailEditText, passwordEditText;
     private Button loginButton;
     private TextView registerTextView;
     private ProgressBar progressBar;
 
     private LoginContract.Presenter presenter;
     private SharedPrefsHelper prefsHelper;
+    private FirebaseFirestore db;
+    private boolean isChildLogin = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            FirebaseApp.initializeApp(this);
+        } catch (Exception e) {
+            Log.e(TAG, "Firebase init failed", e);
+            Toast.makeText(this, "Firebase initialization failed", Toast.LENGTH_LONG).show();
+        }
+
         setContentView(R.layout.activity_login);
 
         emailEditText = findViewById(R.id.emailEditText);
@@ -38,27 +59,99 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
 
-        AuthModel model = new AuthModel();
-        presenter = new LoginPresenter(this, model);
+        db = FirebaseFirestore.getInstance();
         prefsHelper = new SharedPrefsHelper(this);
 
-        loginButton.setOnClickListener(v -> presenter.onLoginClicked());
+        AuthModel model = new AuthModel();
+        presenter = new LoginPresenter(this, model);
+
+        loginButton.setOnClickListener(v -> handleLogin());
 
         registerTextView.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
+    }
+    private void handleLogin() {
+        String input = getEmail();
+        String password = getPassword();
+
+        if (input.isEmpty() || password.isEmpty()) {
+            showError("Please enter login credentials");
+            return;
+        }
+        if (!input.contains("@")) {
+            loginChild(input, password);
+            return;
+        }
+
+        presenter.onLoginClicked();
+    }
+    private void loginChild(String username, String password) {
+        showLoading();
+
+        db.collection("usernames")
+                .document(username)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        hideLoading();
+                        showError("Invalid username");
+                        return;
+                    }
+
+                    String parentId = doc.getString("parentId");
+                    String childId = doc.getString("childUid");
+
+                    if (parentId == null || childId == null) {
+                        hideLoading();
+                        showError("Account is not configured correctly");
+                        return;
+                    }
+
+                    db.collection("users")
+                            .document(parentId)
+                            .collection("children")
+                            .document(childId)
+                            .get()
+                            .addOnSuccessListener(childDoc -> {
+                                hideLoading();
+
+                                if (!childDoc.exists()) {
+                                    showError("Child profile missing");
+                                    return;
+                                }
+
+                                String savedPw = childDoc.getString("password");
+
+                                if (!password.equals(savedPw)) {
+                                    showError("Incorrect password");
+                                    return;
+                                }
+                                prefsHelper.saveUserRole("child");
+                                startActivity(new Intent(this, HomepageActivity.class));
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                hideLoading();
+                                showError("Failed to load child account");
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    hideLoading();
+                    showError("Login failed: " + e.getMessage());
+                });
     }
 
     @Override
     public void showLoading() {
-        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(ProgressBar.VISIBLE);
         loginButton.setEnabled(false);
     }
 
     @Override
     public void hideLoading() {
-        progressBar.setVisibility(View.GONE);
+        progressBar.setVisibility(ProgressBar.GONE);
         loginButton.setEnabled(true);
     }
 
@@ -69,11 +162,42 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void navigateToHome(UserRole role) {
-        prefsHelper.saveUserRole(role.getValue());
-        Intent intent = new Intent(this, HomepageActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+        if (user == null) return;
+        if (isChildLogin) {
+            prefsHelper.saveUserRole("child");
+            startActivity(new Intent(this, HomepageActivity.class));
+            finish();
+            return;
+        }
+
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String roleStr = doc.getString("role");
+                        if (roleStr == null) roleStr = "child";
+
+                        UserRole userRole = UserRole.fromString(roleStr);
+                        prefsHelper.saveUserRole(userRole.getValue());
+
+                        switch (userRole) {
+                            case CHILD:
+                                startActivity(new Intent(this, HomepageActivity.class));
+                                break;
+                            case PARENT:
+                                startActivity(new Intent(this, HomepageParentsActivity.class));
+                                break;
+                            case PROVIDER:
+                                startActivity(new Intent(this, HomepageProvidersActivity.class));
+                                break;
+                        }
+                        finish();
+                    } else {
+                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -89,8 +213,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (presenter != null) {
-            presenter.onDestroy();
-        }
+        presenter.onDestroy();
     }
 }

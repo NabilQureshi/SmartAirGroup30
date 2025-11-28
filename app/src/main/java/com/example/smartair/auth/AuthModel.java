@@ -15,7 +15,9 @@ public class AuthModel {
         void onError(String message);
     }
 
-    private final FirebaseAuth mAuth;
+    // 破坏了封装性，但是不得不改
+    public static FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
 
     public AuthModel() {
         mAuth = FirebaseAuth.getInstance();
@@ -47,6 +49,13 @@ public class AuthModel {
                         if (task.isSuccessful()) {
                             callback.onSuccess(role);
                         } else {
+                            Exception e = task.getException();
+                            if(e != null) {
+                                e.printStackTrace();   // 在 Logcat 打印完整错误
+                                callback.onError(e.toString());  // 返回完整信息
+                            } else {
+                                callback.onError("Unknown error during login");
+                            }
                             String msg = task.getException() != null
                                     ? task.getException().getMessage()
                                     : "Sign up failed.";

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textGreeting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hello!"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="left"
+            android:layout_marginBottom="24dp"
+            android:textColor="#333333" />
+
+        <!-- 父母相关按钮 -->
+        <Button
+            android:id="@+id/btnAddChild"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Child"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnViewChildren"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Children"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnManageChild"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Child Activity"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnManageSharing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Sharing"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnManagePB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage PB"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnInventory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Inventory"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <!-- 其他功能按钮（可选，如果想和父母主页共用）-->
+        <!--
+        <Button
+            android:id="@+id/btnLogMedicine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Log Medicine"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnTechnique"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Technique Helper"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnPrePostCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pre/Post Check"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnBadges"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Badges"
+            android:textSize="18sp"
+            android:padding="12dp" />
+        -->
+
+    </LinearLayout>
+</ScrollView>
