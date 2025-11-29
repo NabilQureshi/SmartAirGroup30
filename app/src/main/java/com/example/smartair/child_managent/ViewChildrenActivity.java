@@ -64,18 +64,18 @@ public class ViewChildrenActivity extends AppCompatActivity {
 
     private void resolveParentIdAndLoad() {
 
-        // Case 1: parentId passed from Intent
+        // parentId passed from Intent
         String parentId = getIntent().getStringExtra("parentId");
         if (parentId != null) {
             loadChildren(parentId);
             return;
         }
 
-        // Case 2: user is parent → use parent UID
+        // user is parent then use parent UID
         FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
         if (current == null) return;
 
-        // First check if this user is a child or a parent
+        //  check if  user is  child or parent
         db.collection("users")
                 .document(current.getUid())
                 .get()
@@ -89,7 +89,7 @@ public class ViewChildrenActivity extends AppCompatActivity {
                     String role = doc.getString("role");
 
                     if ("child".equals(role)) {
-                        // CHILD LOGIN → must load parentId from child's document
+                        // child then load parentId from child's document
                         String parentIdValue = doc.getString("parentId");
 
                         if (parentIdValue == null) {
@@ -100,7 +100,7 @@ public class ViewChildrenActivity extends AppCompatActivity {
                         loadChildren(parentIdValue);
 
                     } else {
-                        // PARENT LOGIN → load using parent's UID
+                        // parent then load using parent's UID
                         loadChildren(current.getUid());
                     }
                 });

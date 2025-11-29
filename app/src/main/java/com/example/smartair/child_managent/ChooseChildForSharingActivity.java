@@ -44,16 +44,10 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
 
-        // 🔥 Fix 1 — Do NOT assume the logged-in user is the parent
         resolveParentIdAndLoad();
     }
 
-    /** ---------------------------------------------------------------
-     *   FIX: resolve correct parentId for both Parent & Child login
-     * --------------------------------------------------------------- */
     private void resolveParentIdAndLoad() {
-
-        // If Activity was opened with parentId explicitly
         String passedId = getIntent().getStringExtra("parentId");
         if (passedId != null) {
             parentId = passedId;
@@ -61,7 +55,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
             return;
         }
 
-        // Otherwise use the actual logged in Firebase user
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
@@ -69,7 +63,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
             return;
         }
 
-        // Check this Firestore user doc: is it CHILD or PARENT?
+        // Check child or parent
         db.collection("users").document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -81,7 +75,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                     String role = doc.getString("role");
 
                     if ("child".equals(role)) {
-                        // CHILD LOGIN → MUST load parentId from child's doc
+                        // child →  load parentId from child's doc
                         parentId = doc.getString("parentId");
 
                         if (parentId == null) {
@@ -90,7 +84,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                         }
 
                     } else {
-                        // PARENT LOGIN → use own UID
+                        // parent  → use own UID
                         parentId = user.getUid();
                     }
 
@@ -113,7 +107,6 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                 intent = new Intent(this, ManageSharingActivity.class);
             }
 
-            // Pass full child info
             intent.putExtra("childId", child.getUid());
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());
@@ -126,7 +119,6 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
 
         recyclerChildren.setAdapter(adapter);
 
-        // Now actually load children
         listenChildrenRealtime();
     }
 
