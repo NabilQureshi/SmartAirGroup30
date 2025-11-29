@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartair.R;
 import com.example.smartair.sharing.ManageSharingActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -42,36 +44,95 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
 
-        // 获取传入的 parentId，如果没有就用当前登录用户
-        parentId = getIntent().getStringExtra("parentId");
-        if (parentId == null) {
-            parentId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // 🔥 Fix 1 — Do NOT assume the logged-in user is the parent
+        resolveParentIdAndLoad();
+    }
+
+    /** ---------------------------------------------------------------
+     *   FIX: resolve correct parentId for both Parent & Child login
+     * --------------------------------------------------------------- */
+    private void resolveParentIdAndLoad() {
+
+        // If Activity was opened with parentId explicitly
+        String passedId = getIntent().getStringExtra("parentId");
+        if (passedId != null) {
+            parentId = passedId;
+            setupAdapterAndLoad();
+            return;
         }
+
+        // Otherwise use the actual logged in Firebase user
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Check this Firestore user doc: is it CHILD or PARENT?
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "User profile not found!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String role = doc.getString("role");
+
+                    if ("child".equals(role)) {
+                        // CHILD LOGIN → MUST load parentId from child's doc
+                        parentId = doc.getString("parentId");
+
+                        if (parentId == null) {
+                            Toast.makeText(this, "Child is not linked to any parent!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                    } else {
+                        // PARENT LOGIN → use own UID
+                        parentId = user.getUid();
+                    }
+
+                    setupAdapterAndLoad();
+                });
+    }
+
+    /** Initializes adapter + click handling AFTER parentId is known */
+    private void setupAdapterAndLoad() {
 
         String m = getIntent().getStringExtra("mode");
         if (m != null) mode = m;
 
         adapter = new ChildAdapter(childList, child -> {
             Intent intent;
+
             if ("manageChild".equals(mode)) {
                 intent = new Intent(this, ManageChildActivity.class);
             } else {
                 intent = new Intent(this, ManageSharingActivity.class);
             }
+
+            // Pass full child info
             intent.putExtra("childId", child.getUid());
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());
             intent.putExtra("name", child.getName());
             intent.putExtra("dob", child.getDob());
             intent.putExtra("notes", child.getNotes());
+
             startActivity(intent);
         });
+
         recyclerChildren.setAdapter(adapter);
 
-        // 实时监听父母名下的 children
+        // Now actually load children
         listenChildrenRealtime();
     }
 
+    /** ---------------------------------------------------------------
+     * Real-time listener for children under the resolved parentId
+     * --------------------------------------------------------------- */
     private void listenChildrenRealtime() {
         loadingIndicator.setVisibility(ProgressBar.VISIBLE);
         recyclerChildren.setVisibility(RecyclerView.GONE);
@@ -81,7 +142,9 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                 .collection("children")
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
-                    public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
+                    public void onEvent(@Nullable QuerySnapshot snapshots,
+                                        @Nullable FirebaseFirestoreException e) {
+
                         loadingIndicator.setVisibility(ProgressBar.GONE);
                         recyclerChildren.setVisibility(RecyclerView.VISIBLE);
 
@@ -95,8 +158,6 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                         childList.clear();
 
                         if (snapshots == null || snapshots.isEmpty()) {
-                            Toast.makeText(ChooseChildForSharingActivity.this,
-                                    "No children added yet! (ParentId=" + parentId + ")", Toast.LENGTH_LONG).show();
                             adapter.notifyDataSetChanged();
                             return;
                         }
@@ -106,6 +167,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
                             child.setUid(doc.getId());
                             childList.add(child);
                         }
+
                         adapter.notifyDataSetChanged();
                     }
                 });
