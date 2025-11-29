@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -69,7 +70,11 @@ public class ChildPEFActivity extends AppCompatActivity {
     // Firebase
     private FirebaseFirestore db;
     private CollectionReference pefCollection;
+    private CollectionReference zoneHistoryCollection;
     private FirebaseUser user;
+    private String lastUpdatedZoneState;
+
+    private static final String TAG = "ChildPEFActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +88,9 @@ public class ChildPEFActivity extends AppCompatActivity {
             pefCollection = db.collection("users")
                     .document(user.getUid())
                     .collection("pef_entries");
+            zoneHistoryCollection = db.collection("users")
+                    .document(user.getUid())
+                    .collection("zone_history");
         }
 
         // Views
@@ -133,14 +141,14 @@ public class ChildPEFActivity extends AppCompatActivity {
             );
         }
 
-        updatePersonalBestCard();
+        loadChildProfile();
         fetchPEFEntries();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        updatePersonalBestCard();
+        loadChildProfile();
         fetchPEFEntries();
     }
 
@@ -242,6 +250,31 @@ public class ChildPEFActivity extends AppCompatActivity {
                 });
     }
 
+    private void loadChildProfile() {
+        if (user == null) return;
+
+        db.collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Number pbValue = doc.get("personalBest", Number.class);
+                        currentPersonalBest = pbValue != null ? pbValue.intValue() : null;
+                        lastUpdatedZoneState = doc.getString("latestZoneState");
+                    } else {
+                        currentPersonalBest = null;
+                        lastUpdatedZoneState = null;
+                    }
+                    updatePersonalBestCard();
+                    updateZoneCardUsingCurrentState();
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed to load child profile", e);
+                    updatePersonalBestCard();
+                    updateZoneCardUsingCurrentState();
+                });
+    }
+
     private void updatePersonalBestCard() {
         // 这里仍可使用 SharedPreferences 或 Firebase PB，暂不改动
         if (personalBestValueText == null || personalBestStatusText == null) return;
@@ -329,7 +362,7 @@ public class ChildPEFActivity extends AppCompatActivity {
 
         applyZoneColors(result.getZone());
         if (!basedOnInput) {
-            persistLatestZone(result);
+            updateLatestZone(result);
         }
     }
 
@@ -368,20 +401,41 @@ public class ChildPEFActivity extends AppCompatActivity {
     }
 
     /**
-     * Saves the latest calculated zone for the child so the parent app can display it.
-     * Only persists when the zone is based on the latest saved entry to avoid noisy writes.
+     * Save the latest zone so the parent app can show it.
+     * Only updates when the zone comes from the newest saved PEF entry.
      */
-    private void persistLatestZone(PEFZoneCalculator.ZoneResult result) {
+    private void updateLatestZone(PEFZoneCalculator.ZoneResult result) {
         if (result == null || !result.isReady() || user == null) return;
 
+        String newState = result.getZone().name();
+        boolean zoneChanged = lastUpdatedZoneState == null
+                || !lastUpdatedZoneState.equals(newState);
+        long now = System.currentTimeMillis();
+
         Map<String, Object> update = new HashMap<>();
-        update.put("latestZoneState", result.getZone().name());
+        update.put("latestZoneState", newState);
         update.put("latestZonePercent", result.getPercentOfPersonalBest());
         update.put("latestZonePefValue", result.getPefValue());
-        update.put("latestZoneUpdatedAt", System.currentTimeMillis());
+        update.put("latestZoneUpdatedAt", now);
 
         db.collection("users")
                 .document(user.getUid())
                 .set(update, SetOptions.merge());
+
+        if (zoneChanged && zoneHistoryCollection != null) {
+            Map<String, Object> history = new HashMap<>();
+            history.put("zoneState", newState);
+            history.put("percentOfPersonalBest", result.getPercentOfPersonalBest());
+            history.put("pefValue", result.getPefValue());
+            history.put("timestamp", now);
+            if (lastUpdatedZoneState != null) {
+                history.put("previousZoneState", lastUpdatedZoneState);
+            }
+
+            zoneHistoryCollection.add(history)
+                    .addOnFailureListener(e -> Log.w(TAG, "Failed to write zone history", e));
+        }
+
+        lastUpdatedZoneState = newState;
     }
 }
