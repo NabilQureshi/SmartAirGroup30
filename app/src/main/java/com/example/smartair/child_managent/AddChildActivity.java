@@ -20,6 +20,7 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class AddChildActivity extends AppCompatActivity {
 
@@ -53,7 +54,6 @@ public class AddChildActivity extends AppCompatActivity {
         editChildDOB = findViewById(R.id.editChildDOB);
 
         editChildDOB.setOnClickListener(v -> showDatePickerDialog());
-
         findViewById(R.id.btnAddChild).setOnClickListener(v -> checkUsernameAndAddChild());
 
         loadParentName(parent.getUid());
@@ -107,28 +107,21 @@ public class AddChildActivity extends AppCompatActivity {
             if (doc.exists()) {
                 Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
             } else {
-                createChildFirebaseAuth(username, password, name, dob, notes);
+                // Create child WITHOUT FirebaseAuth account
+                createChildRecord(username, password, name, dob, notes);
             }
         });
     }
 
     /**
-     * Create a real FirebaseAuth user for the child.
-     * Email = username + "@child.smartair.com"
+     * Create a child entry WITHOUT FirebaseAuth account.
+     * Child is identified by UUID and logs in through Firestore username lookup.
      */
-    private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
-        String email = username + "@child.smartair.com";
-
-        // cache parent id
+    private void createChildRecord(String username, String password, String name, String dob, String notes) {
         String parentId = auth.getCurrentUser().getUid();
+        String childUid = UUID.randomUUID().toString();
 
-        auth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener(authResult -> {
-                    String childUid = authResult.getUser().getUid();
-                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        saveChildFirestore(parentId, childUid, username, username + "@child.smartair.com", name, dob, notes, password);
     }
 
     /**
@@ -152,7 +145,7 @@ public class AddChildActivity extends AppCompatActivity {
         childData.put("uid", childUid);
         childData.put("username", username);
         childData.put("email", email);
-        childData.put("password", password); // not needed?
+        childData.put("password", password);
         childData.put("name", name);
         childData.put("dob", dob);
         childData.put("notes", notes);
@@ -161,23 +154,16 @@ public class AddChildActivity extends AppCompatActivity {
 
         // users/{childUid}
         DocumentReference childUserRef = db.collection("users").document(childUid);
-        Map<String, Object> childUserData = new HashMap<>();
-        childUserData.put("uid", childUid);
-        childUserData.put("username", username);
-        childUserData.put("email", email);
-        childUserData.put("name", name);
-        childUserData.put("dob", dob);
-        childUserData.put("notes", notes);
-        childUserData.put("role", "child");
+        Map<String, Object> childUserData = new HashMap<>(childData);
         childUserData.put("parentId", parentId);
-        childUserData.put("createdAt", FieldValue.serverTimestamp());
 
-        // usernames/{username} mapping
+        // usernames/{username}
         DocumentReference usernameRef = db.collection("usernames").document(username);
         Map<String, Object> usernameMap = new HashMap<>();
         usernameMap.put("childUid", childUid);
         usernameMap.put("parentId", parentId);
         usernameMap.put("email", email);
+        usernameMap.put("password", password);
 
         batch.set(childRef, childData);
         batch.set(childUserRef, childUserData);
