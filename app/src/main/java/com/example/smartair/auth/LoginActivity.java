@@ -163,6 +163,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void navigateToHome(UserRole role) {
         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+
         if (user == null) return;
         if (isChildLogin) {
             prefsHelper.saveUserRole("child");
@@ -170,6 +171,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             finish();
             return;
         }
+        // Store parent email + password for child creation login fix
+        SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_EMAIL", getEmail());
+        SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_PASSWORD", getPassword());
 
         db.collection("users").document(user.getUid())
                 .get()

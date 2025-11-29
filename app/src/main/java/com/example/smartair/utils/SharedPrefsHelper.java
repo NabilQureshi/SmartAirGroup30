@@ -3,6 +3,8 @@ package com.example.smartair.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.smartair.child_managent.AddChildActivity;
+
 public class SharedPrefsHelper {
     private static final String PREFS_NAME = "SmartAirPrefs";
     private static final String KEY_USER_ROLE = "user_role";
@@ -10,9 +12,20 @@ public class SharedPrefsHelper {
     private static final String KEY_ONBOARDING_COMPLETE = "onboarding_complete";
 
     private final SharedPreferences preferences;
-
+    private static final String PREF_NAME = "SMARTAIR_PREFS";
     public SharedPrefsHelper(Context context) {
         this.preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    public static void saveString(Context context, String key, String value) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(key, value).apply();
+    }
+
+    // Get a stored string value
+    public static String getString(Context context, String key) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(key, null);
     }
 
     public void saveUserRole(String role) {

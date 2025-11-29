@@ -7,6 +7,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
 import com.example.smartair.child_managent.AddChildActivity;
 import com.example.smartair.child_managent.ChooseChildForSharingActivity;
@@ -17,7 +18,7 @@ import com.example.smartair.ui.parent.ParentHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class HomepageParentsActivity extends AppCompatActivity {
+public class HomepageParentsActivity extends BaseActivity {
 
     private Button btnAddChild;
     private Button btnViewChildren;
@@ -25,7 +26,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
     private Button btnManageSharing;
     private Button btnManagePB;
     private Button btnInventory;
-
+    private Button btnSignOut;
     private TextView textGreeting;
     private String parentId;
 
@@ -42,6 +43,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
         btnManageSharing = findViewById(R.id.btnManageSharing);
         btnManagePB = findViewById(R.id.btnManagePB);
         btnInventory = findViewById(R.id.btnInventory);
+        btnSignOut = findViewById(R.id.btnSignOut);
 
         // 加载父母名字
         loadParentName();
@@ -80,6 +82,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
                 startActivity(new Intent(this, ParentHomeActivity.class)));
         btnInventory.setOnClickListener(v ->
                 startActivity(new Intent(this, InventoryActivity.class)));
+        btnSignOut.setOnClickListener(v -> signOut());
     }
 
     private void loadParentName() {
