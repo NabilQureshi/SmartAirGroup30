@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -117,21 +118,42 @@ public class AddChildActivity extends AppCompatActivity {
     private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
         String email = username + "@child.smartair.com";
 
-        // 保存父母 UID
+        // Save parent UID BEFORE Firebase logs them out
         if (cnt == 0) {
             parentId = auth.getCurrentUser().getUid();
             cnt++;
         }
 
+        String parentEmail = SharedPrefsHelper.getString(this, "PARENT_EMAIL");
+        String parentPassword = SharedPrefsHelper.getString(this, "PARENT_PASSWORD");
+
+        if (parentEmail == null || parentPassword == null) {
+            Toast.makeText(this, "Parent login info missing. Please log in again.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
+
                     String childUid = authResult.getUser().getUid();
-                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+
+                    auth.signInWithEmailAndPassword(parentEmail, parentPassword)
+                            .addOnSuccessListener(parentLoginResult -> {
+
+                                saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Failed to log parent back in: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            });
+
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 
     private void saveChildFirestore(String parentId, String childUid, String username, String email,
                                     String name, String dob, String notes, String password) {
