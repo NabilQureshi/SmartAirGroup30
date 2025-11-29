@@ -20,6 +20,7 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class AddChildActivity extends AppCompatActivity {
 
@@ -53,7 +54,6 @@ public class AddChildActivity extends AppCompatActivity {
         editChildDOB = findViewById(R.id.editChildDOB);
 
         editChildDOB.setOnClickListener(v -> showDatePickerDialog());
-
         findViewById(R.id.btnAddChild).setOnClickListener(v -> checkUsernameAndAddChild());
 
         loadParentName(parent.getUid());
@@ -101,38 +101,41 @@ public class AddChildActivity extends AppCompatActivity {
             return;
         }
 
-        // 检查 username 是否存在
+        // Check username uniqueness
         DocumentReference usernameRef = db.collection("usernames").document(username);
         usernameRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
             } else {
-                createChildFirebaseAuth(username, password, name, dob, notes);
+                // Create child WITHOUT FirebaseAuth account
+                createChildRecord(username, password, name, dob, notes);
             }
         });
     }
 
-    private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
-        String email = username + "@child.smartair.com";
-
-        // 保存父母 UID
+    /**
+     * Create a child entry WITHOUT FirebaseAuth account.
+     * Child is identified by UUID and logs in through Firestore username lookup.
+     */
+    private void createChildRecord(String username, String password, String name, String dob, String notes) {
         String parentId = auth.getCurrentUser().getUid();
+        String childUid = UUID.randomUUID().toString();
 
-        auth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener(authResult -> {
-                    String childUid = authResult.getUser().getUid();
-                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        saveChildFirestore(parentId, childUid, username, username + "@child.smartair.com", name, dob, notes, password);
     }
 
+    /**
+     * Store child in:
+     *  - users/{parentId}/children/{childUid}
+     *  - users/{childUid}
+     *  - usernames/{username}
+     */
     private void saveChildFirestore(String parentId, String childUid, String username, String email,
                                     String name, String dob, String notes, String password) {
 
         WriteBatch batch = db.batch();
 
+        // users/{parentId}/children/{childUid}
         DocumentReference childRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
@@ -149,28 +152,34 @@ public class AddChildActivity extends AppCompatActivity {
         childData.put("role", "child");
         childData.put("createdAt", FieldValue.serverTimestamp());
 
+        // users/{childUid}
+        DocumentReference childUserRef = db.collection("users").document(childUid);
+        Map<String, Object> childUserData = new HashMap<>(childData);
+        childUserData.put("parentId", parentId);
+
+        // usernames/{username}
         DocumentReference usernameRef = db.collection("usernames").document(username);
         Map<String, Object> usernameMap = new HashMap<>();
         usernameMap.put("childUid", childUid);
         usernameMap.put("parentId", parentId);
         usernameMap.put("email", email);
+        usernameMap.put("password", password);
 
         batch.set(childRef, childData);
+        batch.set(childUserRef, childUserData);
         batch.set(usernameRef, usernameMap);
 
         batch.commit()
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Child account created successfully!", Toast.LENGTH_SHORT).show();
 
-                    // 直接回到 ChooseChildForSharingActivity，传父母 UID
                     Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);
                     intent.putExtra("parentId", parentId);
                     startActivity(intent);
 
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

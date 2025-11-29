@@ -4,6 +4,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.Toast;
+
 import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -25,11 +26,10 @@ public class SymptomCheckInActivity extends AppCompatActivity {
     // Firebase
     private FirebaseFirestore db;
 
-    // User / Parent Mode
-    private String userRole = "Guest";
-    private String userId = "anonymous";      // logged-in user (child if self)
-    private String targetUserId = "anonymous"; // who we are saving the check-in under
-    private boolean parentMode = false;
+    // Roles & user flow
+    private String submittedBy = "Guest";   // who is performing check-in
+    private String targetUID = "anonymous"; // who the check-in belongs to (child)
+    private boolean openedByParent = false;
 
     private String todayId;
 
@@ -41,26 +41,26 @@ public class SymptomCheckInActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         todayId = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-        // Detect if parent opened this for a child
-        parentMode = getIntent().getBooleanExtra("openedByParent", false);
+        // Determine if parent opened a child check-in
+        openedByParent = getIntent().getBooleanExtra("openedByParent", false);
+        String childId = getIntent().getStringExtra("childId");
 
-        // If parent editing a child
-        if (parentMode) {
-            targetUserId = getIntent().getStringExtra("childId");
-            userRole = "parent"; // display and store who performed the check-in
-            Toast.makeText(this, "Editing symptom check-in for Child", Toast.LENGTH_SHORT).show();
+        if (openedByParent && childId != null) {
+            targetUID = childId;
+            submittedBy = "parent";   // parent is recording FOR child
+            Toast.makeText(this, "Parent editing child's check-in", Toast.LENGTH_SHORT).show();
         }
-
-        // If child is logged in normally
         else if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            targetUserId = userId; // child can only edit themselves
-            fetchUserRole();       // load role but still save to own uid
-        } else {
-            Toast.makeText(this, "Not logged in — saving as Guest", Toast.LENGTH_SHORT).show();
+            targetUID = FirebaseAuth.getInstance().getCurrentUser().getUid(); // save under child self account
+            submittedBy = "child";  // child doing their own check-in
+        }
+        else {
+            targetUID = "anonymous";
+            submittedBy = "Guest"; // emergency use only
+            Toast.makeText(this, "No login detected — Guest mode", Toast.LENGTH_SHORT).show();
         }
 
-        // UI Bindings
+        // UI binding
         rgNightWaking = findViewById(R.id.rg_night_waking);
         rgActivityLimits = findViewById(R.id.rg_activity_limits);
         rgCough = findViewById(R.id.rg_cough);
@@ -80,21 +80,12 @@ public class SymptomCheckInActivity extends AppCompatActivity {
         btnSubmit.setOnClickListener(v -> saveOrUpdateCheckIn());
     }
 
-    // Get role from users/{uid}/role  (only used for children self check-ins)
-    private void fetchUserRole() {
-        db.collection("users").document(userId).get().addOnSuccessListener(doc -> {
-            if (doc.exists() && doc.getString("role") != null) {
-                userRole = doc.getString("role");
-            }
-        });
-    }
-
     private void setupRadioGroupListeners() {
-        RadioGroup.OnCheckedChangeListener listener = (group, checkedId) -> checkAllSelected();
-        rgNightWaking.setOnCheckedChangeListener(listener);
-        rgActivityLimits.setOnCheckedChangeListener(listener);
-        rgCough.setOnCheckedChangeListener(listener);
-        rgChestPain.setOnCheckedChangeListener(listener);
+        RadioGroup.OnCheckedChangeListener listen = (group, checkedId) -> checkAllSelected();
+        rgNightWaking.setOnCheckedChangeListener(listen);
+        rgActivityLimits.setOnCheckedChangeListener(listen);
+        rgCough.setOnCheckedChangeListener(listen);
+        rgChestPain.setOnCheckedChangeListener(listen);
     }
 
     private void checkAllSelected() {
@@ -122,25 +113,27 @@ public class SymptomCheckInActivity extends AppCompatActivity {
         if (chipIllness.isChecked()) triggers.add("Illness");
         if (chipPerfume.isChecked()) triggers.add("Perfume/Odors");
 
-        Map<String, Object> data = new HashMap<>();
+        Map<String,Object> data = new HashMap<>();
         data.put("nightWaking", getSelected(rgNightWaking));
         data.put("activityLimits", getSelected(rgActivityLimits));
         data.put("cough", getSelected(rgCough));
         data.put("chestPain", getSelected(rgChestPain));
         data.put("triggers", triggers);
-        data.put("submittedBy", userRole);        // <-- CHILD or PARENT
+        data.put("submittedBy", submittedBy);  // <-- FIXED always correct
         data.put("lastUpdated", System.currentTimeMillis());
 
         DocumentReference doc = db.collection("symptomCheckIns")
-                .document(targetUserId)          // <-- CHILD UID or SELF UID
+                .document(targetUID)
                 .collection("daily")
-                .document(todayId);              // one per day
+                .document(todayId); // only 1 per day per user
 
-        doc.set(data).addOnSuccessListener(x -> {
-            Toast.makeText(this, "Saved for: " + todayId, Toast.LENGTH_SHORT).show();
-            finish();
-        }).addOnFailureListener(e ->
-                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-        );
+        doc.set(data)
+                .addOnSuccessListener(x -> {
+                    Toast.makeText(this, "Saved for " + todayId + " (" + submittedBy + ")", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
     }
 }

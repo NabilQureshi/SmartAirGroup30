@@ -77,6 +77,15 @@
             android:layout_marginBottom="16dp"
             android:padding="12dp" />
 
+        <Button
+            android:id="@+id/btnChildCheckIn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Daily Symptom Check-In for Children"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
         <!-- 其他功能按钮（可选，如果想和父母主页共用）-->
         <!--
         <Button

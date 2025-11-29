@@ -16,6 +16,7 @@ import com.example.smartair.inventory.InventoryActivity;
 import com.example.smartair.ui.parent.ParentHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.smartair.ParentChildSelectActivity; // Added
 
 public class HomepageParentsActivity extends AppCompatActivity {
 
@@ -25,6 +26,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
     private Button btnManageSharing;
     private Button btnManagePB;
     private Button btnInventory;
+    private Button btnChildCheckIn;
 
     private TextView textGreeting;
 
@@ -41,6 +43,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
         btnManageSharing = findViewById(R.id.btnManageSharing);
         btnManagePB = findViewById(R.id.btnManagePB);
         btnInventory = findViewById(R.id.btnInventory);
+        btnChildCheckIn = findViewById(R.id.btnChildCheckIn);
 
         // 加载父母名字
         loadParentName();
@@ -68,6 +71,8 @@ public class HomepageParentsActivity extends AppCompatActivity {
                 startActivity(new Intent(this, ParentHomeActivity.class)));
         btnInventory.setOnClickListener(v ->
                 startActivity(new Intent(this, InventoryActivity.class)));
+        btnChildCheckIn.setOnClickListener(v ->
+                startActivity(new Intent(this, ParentChildSelectActivity.class)));
     }
 
     private void loadParentName() {
