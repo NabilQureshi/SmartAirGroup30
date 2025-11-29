@@ -20,7 +20,6 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class AddChildActivity extends AppCompatActivity {
 
@@ -60,7 +59,8 @@ public class AddChildActivity extends AppCompatActivity {
     }
 
     private void loadParentName(String uid) {
-        db.collection("users").document(uid).get()
+        db.collection("users").document(uid)
+                .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String name = doc.getString("name");
@@ -85,6 +85,7 @@ public class AddChildActivity extends AppCompatActivity {
                 },
                 year, month, day
         );
+
         dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         dialog.show();
     }
@@ -103,39 +104,44 @@ public class AddChildActivity extends AppCompatActivity {
 
         // Check username uniqueness
         DocumentReference usernameRef = db.collection("usernames").document(username);
-        usernameRef.get().addOnSuccessListener(doc -> {
-            if (doc.exists()) {
-                Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
-            } else {
-                // Create child WITHOUT FirebaseAuth account
-                createChildRecord(username, password, name, dob, notes);
-            }
-        });
+        usernameRef.get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
+                    } else {
+                        createChildFirebaseAuth(username, password, name, dob, notes);
+                    }
+                });
     }
 
-    /**
-     * Create a child entry WITHOUT FirebaseAuth account.
-     * Child is identified by UUID and logs in through Firestore username lookup.
-     */
-    private void createChildRecord(String username, String password, String name, String dob, String notes) {
+    /**  Creates a real Firebase Auth account for the child */
+    private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
+
+        String email = username + "@child.smartair.com";  // child fake email
         String parentId = auth.getCurrentUser().getUid();
-        String childUid = UUID.randomUUID().toString();
 
-        saveChildFirestore(parentId, childUid, username, username + "@child.smartair.com", name, dob, notes, password);
+        FirebaseAuth.getInstance()
+                .createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+
+                    String childUid = authResult.getUser().getUid();
+
+                    // Store child in Firestore
+                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
-    /**
-     * Store child in:
-     *  - users/{parentId}/children/{childUid}
-     *  - users/{childUid}
-     *  - usernames/{username}
-     */
+    /** Saves child in Firestore under parent + main users collection */
     private void saveChildFirestore(String parentId, String childUid, String username, String email,
                                     String name, String dob, String notes, String password) {
 
         WriteBatch batch = db.batch();
 
-        // users/{parentId}/children/{childUid}
+        //Save under parent → children → childUid
         DocumentReference childRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
@@ -151,19 +157,28 @@ public class AddChildActivity extends AppCompatActivity {
         childData.put("notes", notes);
         childData.put("role", "child");
         childData.put("createdAt", FieldValue.serverTimestamp());
+        childData.put("parentId", parentId);
 
-        // users/{childUid}
+        //Save child document under /users/{childUid}
         DocumentReference childUserRef = db.collection("users").document(childUid);
-        Map<String, Object> childUserData = new HashMap<>(childData);
-        childUserData.put("parentId", parentId);
 
-        // usernames/{username}
+        Map<String, Object> childUserData = new HashMap<>();
+        childUserData.put("uid", childUid);
+        childUserData.put("username", username);
+        childUserData.put("email", email);
+        childUserData.put("name", name);
+        childUserData.put("dob", dob);
+        childUserData.put("notes", notes);
+        childUserData.put("role", "child");
+        childUserData.put("parentId", parentId);
+        childUserData.put("createdAt", FieldValue.serverTimestamp());
+
+        //username → uid lookup
         DocumentReference usernameRef = db.collection("usernames").document(username);
         Map<String, Object> usernameMap = new HashMap<>();
         usernameMap.put("childUid", childUid);
         usernameMap.put("parentId", parentId);
         usernameMap.put("email", email);
-        usernameMap.put("password", password);
 
         batch.set(childRef, childData);
         batch.set(childUserRef, childUserData);
@@ -173,7 +188,7 @@ public class AddChildActivity extends AppCompatActivity {
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Child account created successfully!", Toast.LENGTH_SHORT).show();
 
-                    Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);
+                    Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
                     intent.putExtra("parentId", parentId);
                     startActivity(intent);
 
@@ -182,4 +197,5 @@ public class AddChildActivity extends AppCompatActivity {
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
+
 }

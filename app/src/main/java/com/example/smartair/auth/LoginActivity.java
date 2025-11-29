@@ -104,11 +104,40 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         AuthModel.mAuth
                 .signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    hideLoading();
-                    //  current Firebase user becomes the child
-                    prefsHelper.saveUserRole("child");
-                    startActivity(new Intent(this, HomepageActivity.class));
-                    finish();
+
+                    FirebaseUser user = authResult.getUser();
+                    if (user == null) {
+                        hideLoading();
+                        showError("Login error: no user returned");
+                        return;
+                    }
+
+                    String childUid = user.getUid();
+
+
+                    db.collection("users")
+                            .document(childUid)
+                            .get()
+                            .addOnSuccessListener(doc -> {
+                                hideLoading();
+
+                                if (!doc.exists()) {
+                                    showError("Child account exists but Firestore document is missing.");
+                                    return;
+                                }
+
+                                // Save role
+                                prefsHelper.saveUserRole("child");
+
+                                // Go to homepage
+                                startActivity(new Intent(this, HomepageActivity.class));
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                hideLoading();
+                                showError("Failed to load child data: " + e.getMessage());
+                            });
+
                 })
                 .addOnFailureListener(e -> {
                     hideLoading();
