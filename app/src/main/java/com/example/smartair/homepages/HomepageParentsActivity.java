@@ -5,7 +5,8 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.smartair.BaseActivity;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.smartair.R;
 import com.example.smartair.child_managent.AddChildActivity;
 import com.example.smartair.child_managent.ChooseChildForSharingActivity;
@@ -16,7 +17,7 @@ import com.example.smartair.ui.parent.ParentHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class HomepageParentsActivity extends BaseActivity {
+public class HomepageParentsActivity extends AppCompatActivity {
 
     private Button btnAddChild;
     private Button btnViewChildren;
@@ -25,52 +26,60 @@ public class HomepageParentsActivity extends BaseActivity {
     private Button btnManagePB;
     private Button btnInventory;
 
-
-    private Button btnSignOut;
     private TextView textGreeting;
+    private String parentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_homepage_parents);
+        setContentView(R.layout.activity_homepage_parents); // 你的新布局文件
 
         textGreeting = findViewById(R.id.textGreeting);
+        // 初始化按钮
         btnAddChild = findViewById(R.id.btnAddChild);
         btnViewChildren = findViewById(R.id.btnViewChildren);
         btnManageChild = findViewById(R.id.btnManageChild);
         btnManageSharing = findViewById(R.id.btnManageSharing);
         btnManagePB = findViewById(R.id.btnManagePB);
         btnInventory = findViewById(R.id.btnInventory);
-        btnSignOut = findViewById(R.id.btnSignOut);
 
+        // 加载父母名字
         loadParentName();
+
+        if (parentId == null) parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         // 设置点击事件
         btnAddChild.setOnClickListener(v ->
                 startActivity(new Intent(this, AddChildActivity.class)));
 
-        btnViewChildren.setOnClickListener(v ->
-                startActivity(new Intent(this, com.example.smartair.child_managent.ViewChildrenActivity.class)));
+        //btnViewChildren.setOnClickListener(v ->
+        //        startActivity(new Intent(this, ViewChildrenActivity.class)));
+        btnViewChildren.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ViewChildrenActivity.class);
+            intent.putExtra("mode", "viewchild");
+            intent.putExtra("parentId", parentId);
+            startActivity(intent);
+        });
+
 
         btnManageChild.setOnClickListener(v -> {
             Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
             intent.putExtra("mode", "manageChild");
+            intent.putExtra("parentId", parentId);
             startActivity(intent);
         });
 
         btnManageSharing.setOnClickListener(v -> {
             Intent intent = new Intent(this, ChooseChildForSharingActivity.class);
             intent.putExtra("mode", "sharing");
+            intent.putExtra("parentId", parentId);
             startActivity(intent);
         });
 
         btnManagePB.setOnClickListener(v ->
                 startActivity(new Intent(this, ParentHomeActivity.class)));
-
         btnInventory.setOnClickListener(v ->
                 startActivity(new Intent(this, InventoryActivity.class)));
-
-        btnSignOut.setOnClickListener(v -> signOut());
     }
 
     private void loadParentName() {

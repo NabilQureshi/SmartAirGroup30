@@ -46,73 +46,35 @@ public class ViewChildrenActivity extends AppCompatActivity {
         // 初始化 Adapter
         adapter = new ChildAdapter(childList, child -> {
             Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
-
             intent.putExtra("childId", child.getUid());
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());
             intent.putExtra("name", child.getName());
             intent.putExtra("dob", child.getDob());
             intent.putExtra("notes", child.getNotes());
-
             startActivity(intent);
         });
 
         recyclerChildren.setAdapter(adapter);
 
-        resolveParentIdAndLoad();
+        loadChildren();
     }
 
-    private void resolveParentIdAndLoad() {
-
-        // parentId passed from Intent
+    private void loadChildren() {
+        // 优先用 Intent 传过来的 parentId，否则才用当前登录用户
         String parentId = getIntent().getStringExtra("parentId");
-        if (parentId != null) {
-            loadChildren(parentId);
-            return;
+        if (parentId == null) {
+            parentId = user.getUid();
         }
 
-        // user is parent then use parent UID
-        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
-        if (current == null) return;
 
-        //  check if  user is  child or parent
-        db.collection("users")
-                .document(current.getUid())
-                .get()
-                .addOnSuccessListener(doc -> {
 
-                    if (!doc.exists()) {
-                        Toast.makeText(this, "Account not found.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
 
-                    String role = doc.getString("role");
-
-                    if ("child".equals(role)) {
-                        // child then load parentId from child's document
-                        String parentIdValue = doc.getString("parentId");
-
-                        if (parentIdValue == null) {
-                            Toast.makeText(this, "Parent link missing for this child.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        loadChildren(parentIdValue);
-
-                    } else {
-                        // parent then load using parent's UID
-                        loadChildren(current.getUid());
-                    }
-                });
-    }
-
-    private void loadChildren(String parentId) {
-
+        // 监听 children collection 的所有文档
         db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .addSnapshotListener((querySnapshot, error) -> {
-
                     if (error != null) {
                         Toast.makeText(this, "Error loading children: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         return;
@@ -121,13 +83,14 @@ public class ViewChildrenActivity extends AppCompatActivity {
                     childList.clear();
 
                     if (querySnapshot == null || querySnapshot.isEmpty()) {
+                        Toast.makeText(this, "No children found.", Toast.LENGTH_SHORT).show();
                         adapter.notifyDataSetChanged();
                         return;
                     }
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Child child = doc.toObject(Child.class);
-                        child.setUid(doc.getId());
+                        child.setUid(doc.getId()); // 保证 uid 有值
                         childList.add(child);
                     }
 

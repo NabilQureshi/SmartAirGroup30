@@ -31,8 +31,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     private EditText emailEditText, passwordEditText;
     private Button loginButton;
-    private TextView textForgotPassword;
-
     private TextView registerTextView;
     private ProgressBar progressBar;
 
@@ -67,13 +65,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         AuthModel model = new AuthModel();
         presenter = new LoginPresenter(this, model);
 
-        textForgotPassword = findViewById(R.id.textForgotPassword);
-
-        textForgotPassword.setOnClickListener(v ->
-                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class))
-        );
-
-
         loginButton.setOnClickListener(v -> handleLogin());
 
         registerTextView.setOnClickListener(v -> {
@@ -92,56 +83,63 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             loginChild(input, password);
             return;
         }
-        isChildLogin = false;
+
         presenter.onLoginClicked();
     }
     private void loginChild(String username, String password) {
-        isChildLogin = true;
         showLoading();
 
-        String email = username + "@child.smartair.com";
-
-        AuthModel.mAuth
-                .signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(authResult -> {
-
-                    FirebaseUser user = authResult.getUser();
-                    if (user == null) {
+        db.collection("usernames")
+                .document(username)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
                         hideLoading();
-                        showError("Login error: no user returned");
+                        showError("Invalid username");
                         return;
                     }
 
-                    String childUid = user.getUid();
+                    String parentId = doc.getString("parentId");
+                    String childId = doc.getString("childUid");
 
+                    if (parentId == null || childId == null) {
+                        hideLoading();
+                        showError("Account is not configured correctly");
+                        return;
+                    }
 
                     db.collection("users")
-                            .document(childUid)
+                            .document(parentId)
+                            .collection("children")
+                            .document(childId)
                             .get()
-                            .addOnSuccessListener(doc -> {
+                            .addOnSuccessListener(childDoc -> {
                                 hideLoading();
 
-                                if (!doc.exists()) {
-                                    showError("Child account exists but Firestore document is missing.");
+                                if (!childDoc.exists()) {
+                                    showError("Child profile missing");
                                     return;
                                 }
 
-                                // Save role
-                                prefsHelper.saveUserRole("child");
+                                String savedPw = childDoc.getString("password");
 
-                                // Go to homepage
+                                if (!password.equals(savedPw)) {
+                                    showError("Incorrect password");
+                                    return;
+                                }
+                                prefsHelper.saveUserRole("child");
                                 startActivity(new Intent(this, HomepageActivity.class));
                                 finish();
                             })
                             .addOnFailureListener(e -> {
                                 hideLoading();
-                                showError("Failed to load child data: " + e.getMessage());
+                                showError("Failed to load child account");
                             });
 
                 })
                 .addOnFailureListener(e -> {
                     hideLoading();
-                    showError("Child login failed: " + e.getMessage());
+                    showError("Login failed: " + e.getMessage());
                 });
     }
 
@@ -164,14 +162,15 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void navigateToHome(UserRole role) {
+        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+        if (user == null) return;
         if (isChildLogin) {
             prefsHelper.saveUserRole("child");
             startActivity(new Intent(this, HomepageActivity.class));
             finish();
             return;
         }
-        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
-        if (user == null) return;
+
         db.collection("users").document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
