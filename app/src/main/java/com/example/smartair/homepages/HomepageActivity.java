@@ -2,7 +2,6 @@ package com.example.smartair.homepages;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -11,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
 
-import com.example.smartair.SymptomCheckInActivity;
+import com.example.smartair.checkin.SymptomCheckInActivity;
 import com.example.smartair.badges_system.BadgeActivity;
 import com.example.smartair.medicine_logs.LogMedicineActivity;
 import com.example.smartair.pre_post_checks.PrePostCheckActivity;

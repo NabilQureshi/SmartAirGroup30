@@ -12,10 +12,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
-            android:name=".ParentChildSelectActivity"
+            android:name=".checkin.SymptomHistoryActivity"
             android:exported="false" />
         <activity
-            android:name=".SymptomCheckInActivity"
+            android:name=".checkin.HistorySelectChildActivity"
+            android:exported="false" />
+        <activity
+            android:name=".checkin.ParentChildSelectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".checkin.SymptomCheckInActivity"
             android:exported="false" />
         <activity
             android:name=".inventory.InventoryActivity"

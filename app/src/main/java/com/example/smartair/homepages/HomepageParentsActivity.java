@@ -8,15 +8,15 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
+import com.example.smartair.checkin.HistorySelectChildActivity;
 import com.example.smartair.child_managent.AddChildActivity;
 import com.example.smartair.child_managent.ChooseChildForSharingActivity;
-import com.example.smartair.child_managent.ManageChildActivity;
 import com.example.smartair.child_managent.ViewChildrenActivity;
 import com.example.smartair.inventory.InventoryActivity;
 import com.example.smartair.ui.parent.ParentHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.example.smartair.ParentChildSelectActivity; // Added
+import com.example.smartair.checkin.ParentChildSelectActivity; // Added
 
 public class HomepageParentsActivity extends AppCompatActivity {
 
@@ -27,6 +27,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
     private Button btnManagePB;
     private Button btnInventory;
     private Button btnChildCheckIn;
+    private Button btnSymptomHistory;
 
     private TextView textGreeting;
 
@@ -44,6 +45,7 @@ public class HomepageParentsActivity extends AppCompatActivity {
         btnManagePB = findViewById(R.id.btnManagePB);
         btnInventory = findViewById(R.id.btnInventory);
         btnChildCheckIn = findViewById(R.id.btnChildCheckIn);
+        btnSymptomHistory = findViewById(R.id.btnSymptomHistory);
 
         // 加载父母名字
         loadParentName();
@@ -73,6 +75,9 @@ public class HomepageParentsActivity extends AppCompatActivity {
                 startActivity(new Intent(this, InventoryActivity.class)));
         btnChildCheckIn.setOnClickListener(v ->
                 startActivity(new Intent(this, ParentChildSelectActivity.class)));
+        btnSymptomHistory.setOnClickListener(v ->
+                startActivity(new Intent(this, HistorySelectChildActivity.class))
+        );
     }
 
     private void loadParentName() {
