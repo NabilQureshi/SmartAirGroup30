@@ -4,16 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
 import com.example.smartair.badges_system.BadgeActivity;
+
 import com.example.smartair.medicine_logs.LogMedicineActivity;
 import com.example.smartair.pre_post_checks.PrePostCheckActivity;
 import com.example.smartair.technique_guidance.TechniqueActivity;
 import com.example.smartair.ui.child.ChildPEFActivity;
 import com.example.smartair.ui.child.ChildTriageActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomepageActivity extends BaseActivity {
@@ -25,6 +28,7 @@ public class HomepageActivity extends BaseActivity {
     private Button btnCheckPeakFlow;
     private Button btnCheckSymptom;
     private Button btnSignOut;
+
     private TextView textGreeting;
 
     @Override
@@ -60,12 +64,17 @@ public class HomepageActivity extends BaseActivity {
                 startActivity(new Intent(this, ChildTriageActivity.class)));
 
         btnSignOut.setOnClickListener(v -> signOut());
-
         loadChildUsername();
     }
 
     private void loadChildUsername() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
+        if (current == null) {
+            textGreeting.setText("Hello, Child!");
+            return;
+        }
+
+        String uid = current.getUid();
 
         FirebaseFirestore.getInstance()
                 .collection("users")
@@ -74,7 +83,6 @@ public class HomepageActivity extends BaseActivity {
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String username = doc.getString("username");
-
                         if (username != null && !username.isEmpty()) {
                             textGreeting.setText("Hello, " + username + "!");
                         } else {
@@ -84,8 +92,7 @@ public class HomepageActivity extends BaseActivity {
                         textGreeting.setText("Hello, Child!");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    textGreeting.setText("Hello, Child!");
-                });
+                .addOnFailureListener(e ->
+                        textGreeting.setText("Hello, Child!"));
     }
 }

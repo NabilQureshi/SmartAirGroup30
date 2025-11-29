@@ -1,0 +1,572 @@
+Index: app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.child_managent;\r\n\r\nimport android.app.DatePickerDialog;\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.widget.EditText;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.example.smartair.R;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.auth.FirebaseUser;\r\nimport com.google.firebase.firestore.DocumentReference;\r\nimport com.google.firebase.firestore.FieldValue;\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\nimport com.google.firebase.firestore.WriteBatch;\r\n\r\nimport java.util.Calendar;\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\n\r\npublic class AddChildActivity extends AppCompatActivity {\r\n\r\n    private EditText editChildUsername, editChildPassword, editChildName, editChildNotes, editChildDOB;\r\n    private TextView textGreeting;\r\n    private String selectedDOB = \"\";\r\n\r\n    private FirebaseAuth auth;\r\n    private FirebaseFirestore db;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_add_child);\r\n\r\n        auth = FirebaseAuth.getInstance();\r\n        db = FirebaseFirestore.getInstance();\r\n\r\n        FirebaseUser parent = auth.getCurrentUser();\r\n        if (parent == null) {\r\n            Toast.makeText(this, \"Please log in first.\", Toast.LENGTH_SHORT).show();\r\n            finish();\r\n            return;\r\n        }\r\n\r\n        textGreeting = findViewById(R.id.textGreeting);\r\n        editChildUsername = findViewById(R.id.editChildUsername);\r\n        editChildPassword = findViewById(R.id.editChildPassword);\r\n        editChildName = findViewById(R.id.editChildName);\r\n        editChildNotes = findViewById(R.id.editChildNotes);\r\n        editChildDOB = findViewById(R.id.editChildDOB);\r\n\r\n        editChildDOB.setOnClickListener(v -> showDatePickerDialog());\r\n\r\n        findViewById(R.id.btnAddChild).setOnClickListener(v -> checkUsernameAndAddChild());\r\n\r\n        loadParentName(parent.getUid());\r\n    }\r\n\r\n    private void loadParentName(String uid) {\r\n        db.collection(\"users\").document(uid).get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String name = doc.getString(\"name\");\r\n                        if (name != null && !name.isEmpty()) {\r\n                            textGreeting.setText(\"Hello, \" + name);\r\n                        }\r\n                    }\r\n                });\r\n    }\r\n\r\n    private void showDatePickerDialog() {\r\n        Calendar c = Calendar.getInstance();\r\n        int year = c.get(Calendar.YEAR);\r\n        int month = c.get(Calendar.MONTH);\r\n        int day = c.get(Calendar.DAY_OF_MONTH);\r\n\r\n        DatePickerDialog dialog = new DatePickerDialog(\r\n                this,\r\n                (view, yr, mo, dy) -> {\r\n                    selectedDOB = String.format(\"%02d/%02d/%d\", dy, mo + 1, yr);\r\n                    editChildDOB.setText(selectedDOB);\r\n                },\r\n                year, month, day\r\n        );\r\n        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());\r\n        dialog.show();\r\n    }\r\n\r\n    private void checkUsernameAndAddChild() {\r\n        String username = editChildUsername.getText().toString().trim();\r\n        String password = editChildPassword.getText().toString().trim();\r\n        String name = editChildName.getText().toString().trim();\r\n        String dob = selectedDOB;\r\n        String notes = editChildNotes.getText().toString().trim();\r\n\r\n        if (username.isEmpty() || password.isEmpty() || name.isEmpty() || dob.isEmpty()) {\r\n            Toast.makeText(this, \"All fields required.\", Toast.LENGTH_SHORT).show();\r\n            return;\r\n        }\r\n\r\n        // 检查 username 是否存在\r\n        DocumentReference usernameRef = db.collection(\"usernames\").document(username);\r\n        usernameRef.get().addOnSuccessListener(doc -> {\r\n            if (doc.exists()) {\r\n                Toast.makeText(this, \"Username already exists.\", Toast.LENGTH_LONG).show();\r\n            } else {\r\n                createChildFirebaseAuth(username, password, name, dob, notes);\r\n            }\r\n        });\r\n    }\r\n\r\n    private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {\r\n        String email = username + \"@child.smartair.com\";\r\n\r\n        // 保存父母 UID\r\n        String parentId = auth.getCurrentUser().getUid();\r\n\r\n        auth.createUserWithEmailAndPassword(email, password)\r\n                .addOnSuccessListener(authResult -> {\r\n                    String childUid = authResult.getUser().getUid();\r\n                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    Toast.makeText(this, \"Failed to create child account: \" + e.getMessage(), Toast.LENGTH_SHORT).show();\r\n                });\r\n    }\r\n\r\n    private void saveChildFirestore(String parentId, String childUid, String username, String email,\r\n                                    String name, String dob, String notes, String password) {\r\n\r\n        WriteBatch batch = db.batch();\r\n\r\n        DocumentReference childRef = db.collection(\"users\")\r\n                .document(parentId)\r\n                .collection(\"children\")\r\n                .document(childUid);\r\n\r\n        Map<String, Object> childData = new HashMap<>();\r\n        childData.put(\"uid\", childUid);\r\n        childData.put(\"username\", username);\r\n        childData.put(\"email\", email);\r\n        childData.put(\"password\", password);\r\n        childData.put(\"name\", name);\r\n        childData.put(\"dob\", dob);\r\n        childData.put(\"notes\", notes);\r\n        childData.put(\"role\", \"child\");\r\n        childData.put(\"createdAt\", FieldValue.serverTimestamp());\r\n\r\n        DocumentReference usernameRef = db.collection(\"usernames\").document(username);\r\n        Map<String, Object> usernameMap = new HashMap<>();\r\n        usernameMap.put(\"childUid\", childUid);\r\n        usernameMap.put(\"parentId\", parentId);\r\n        usernameMap.put(\"email\", email);\r\n\r\n        batch.set(childRef, childData);\r\n        batch.set(usernameRef, usernameMap);\r\n\r\n        batch.commit()\r\n                .addOnSuccessListener(unused -> {\r\n                    Toast.makeText(this, \"Child account created successfully!\", Toast.LENGTH_SHORT).show();\r\n\r\n                    // 直接回到 ChooseChildForSharingActivity，传父母 UID\r\n                    Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);\r\n                    intent.putExtra(\"parentId\", parentId);\r\n                    startActivity(intent);\r\n\r\n                    finish();\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    Toast.makeText(this, \"Failed to save Firestore data: \" + e.getMessage(), Toast.LENGTH_SHORT).show();\r\n                });\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java b/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java
+--- a/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java	(date 1764371631477)
+@@ -101,7 +101,7 @@
+             return;
+         }
+ 
+-        // 检查 username 是否存在
++        // Check username uniqueness
+         DocumentReference usernameRef = db.collection("usernames").document(username);
+         usernameRef.get().addOnSuccessListener(doc -> {
+             if (doc.exists()) {
+@@ -112,10 +112,14 @@
+         });
+     }
+ 
++    /**
++     * Create a real FirebaseAuth user for the child.
++     * Email = username + "@child.smartair.com"
++     */
+     private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
+         String email = username + "@child.smartair.com";
+ 
+-        // 保存父母 UID
++        // cache parent id BEFORE createUser (since currentUser will switch to child)
+         String parentId = auth.getCurrentUser().getUid();
+ 
+         auth.createUserWithEmailAndPassword(email, password)
+@@ -123,16 +127,22 @@
+                     String childUid = authResult.getUser().getUid();
+                     saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+                 })
+-                .addOnFailureListener(e -> {
+-                    Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+-                });
++                .addOnFailureListener(e ->
++                        Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+     }
+ 
++    /**
++     * Store child in:
++     *  - users/{parentId}/children/{childUid}
++     *  - users/{childUid}
++     *  - usernames/{username}
++     */
+     private void saveChildFirestore(String parentId, String childUid, String username, String email,
+                                     String name, String dob, String notes, String password) {
+ 
+         WriteBatch batch = db.batch();
+ 
++        // users/{parentId}/children/{childUid}
+         DocumentReference childRef = db.collection("users")
+                 .document(parentId)
+                 .collection("children")
+@@ -142,13 +152,27 @@
+         childData.put("uid", childUid);
+         childData.put("username", username);
+         childData.put("email", email);
+-        childData.put("password", password);
++        childData.put("password", password); // not needed?
+         childData.put("name", name);
+         childData.put("dob", dob);
+         childData.put("notes", notes);
+         childData.put("role", "child");
+         childData.put("createdAt", FieldValue.serverTimestamp());
+ 
++        // users/{childUid}
++        DocumentReference childUserRef = db.collection("users").document(childUid);
++        Map<String, Object> childUserData = new HashMap<>();
++        childUserData.put("uid", childUid);
++        childUserData.put("username", username);
++        childUserData.put("email", email);
++        childUserData.put("name", name);
++        childUserData.put("dob", dob);
++        childUserData.put("notes", notes);
++        childUserData.put("role", "child");
++        childUserData.put("parentId", parentId);
++        childUserData.put("createdAt", FieldValue.serverTimestamp());
++
++        // usernames/{username} mapping
+         DocumentReference usernameRef = db.collection("usernames").document(username);
+         Map<String, Object> usernameMap = new HashMap<>();
+         usernameMap.put("childUid", childUid);
+@@ -156,21 +180,20 @@
+         usernameMap.put("email", email);
+ 
+         batch.set(childRef, childData);
++        batch.set(childUserRef, childUserData);
+         batch.set(usernameRef, usernameMap);
+ 
+         batch.commit()
+                 .addOnSuccessListener(unused -> {
+                     Toast.makeText(this, "Child account created successfully!", Toast.LENGTH_SHORT).show();
+ 
+-                    // 直接回到 ChooseChildForSharingActivity，传父母 UID
+                     Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);
+                     intent.putExtra("parentId", parentId);
+                     startActivity(intent);
+ 
+                     finish();
+                 })
+-                .addOnFailureListener(e -> {
+-                    Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+-                });
++                .addOnFailureListener(e ->
++                        Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+     }
+ }
+Index: app/src/main/java/com/example/smartair/homepages/HomepageActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.homepages;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.widget.Button;\r\nimport android.widget.TextView;\r\n\r\nimport com.example.smartair.BaseActivity;\r\nimport com.example.smartair.R;\r\nimport com.example.smartair.badges_system.BadgeActivity;\r\nimport com.example.smartair.medicine_logs.LogMedicineActivity;\r\nimport com.example.smartair.pre_post_checks.PrePostCheckActivity;\r\nimport com.example.smartair.technique_guidance.TechniqueActivity;\r\nimport com.example.smartair.ui.child.ChildPEFActivity;\r\nimport com.example.smartair.ui.child.ChildTriageActivity;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\n\r\npublic class HomepageActivity extends BaseActivity {\r\n\r\n    private Button btnLogMedicine;\r\n    private Button btnTechnique;\r\n    private Button btnPrePostCheck;\r\n    private Button btnBadge;\r\n    private Button btnCheckPeakFlow;\r\n    private Button btnCheckSymptom;\r\n    private Button btnSignOut;\r\n    private TextView textGreeting;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_homepage);\r\n\r\n        textGreeting = findViewById(R.id.textGreeting);\r\n        btnLogMedicine = findViewById(R.id.btnLogMedicine);\r\n        btnTechnique = findViewById(R.id.btnTechnique);\r\n        btnPrePostCheck = findViewById(R.id.btnPrePostCheck);\r\n        btnBadge = findViewById(R.id.btnBadges);\r\n        btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);\r\n        btnCheckSymptom = findViewById(R.id.btnCheckSymptom);\r\n        btnSignOut = findViewById(R.id.btnSignOut);\r\n\r\n        btnLogMedicine.setOnClickListener(v ->\r\n                startActivity(new Intent(this, LogMedicineActivity.class)));\r\n\r\n        btnTechnique.setOnClickListener(v ->\r\n                startActivity(new Intent(this, TechniqueActivity.class)));\r\n\r\n        btnPrePostCheck.setOnClickListener(v ->\r\n                startActivity(new Intent(this, PrePostCheckActivity.class)));\r\n\r\n        btnBadge.setOnClickListener(v ->\r\n                startActivity(new Intent(this, BadgeActivity.class)));\r\n\r\n        btnCheckPeakFlow.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ChildPEFActivity.class)));\r\n\r\n        btnCheckSymptom.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ChildTriageActivity.class)));\r\n\r\n        btnSignOut.setOnClickListener(v -> signOut());\r\n\r\n        loadChildUsername();\r\n    }\r\n\r\n    private void loadChildUsername() {\r\n        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();\r\n\r\n        FirebaseFirestore.getInstance()\r\n                .collection(\"users\")\r\n                .document(uid)\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String username = doc.getString(\"username\");\r\n\r\n                        if (username != null && !username.isEmpty()) {\r\n                            textGreeting.setText(\"Hello, \" + username + \"!\");\r\n                        } else {\r\n                            textGreeting.setText(\"Hello, Child!\");\r\n                        }\r\n                    } else {\r\n                        textGreeting.setText(\"Hello, Child!\");\r\n                    }\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    textGreeting.setText(\"Hello, Child!\");\r\n                });\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java b/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java
+--- a/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java	(date 1764373602203)
+@@ -4,16 +4,20 @@
+ import android.os.Bundle;
+ import android.widget.Button;
+ import android.widget.TextView;
++import androidx.appcompat.app.AppCompatActivity;
+ 
+ import com.example.smartair.BaseActivity;
+ import com.example.smartair.R;
+ import com.example.smartair.badges_system.BadgeActivity;
++import com.example.smartair.medicine_logs.DailyCheckInActivity;
+ import com.example.smartair.medicine_logs.LogMedicineActivity;
++import com.example.smartair.medicine_logs.SymptomHistoryActivity;
+ import com.example.smartair.pre_post_checks.PrePostCheckActivity;
+ import com.example.smartair.technique_guidance.TechniqueActivity;
+ import com.example.smartair.ui.child.ChildPEFActivity;
+ import com.example.smartair.ui.child.ChildTriageActivity;
+ import com.google.firebase.auth.FirebaseAuth;
++import com.google.firebase.auth.FirebaseUser;
+ import com.google.firebase.firestore.FirebaseFirestore;
+ 
+ public class HomepageActivity extends BaseActivity {
+@@ -24,7 +28,10 @@
+     private Button btnBadge;
+     private Button btnCheckPeakFlow;
+     private Button btnCheckSymptom;
++    private Button btnDailyCheckIn;
++    private Button btnSymptomHistory;
+     private Button btnSignOut;
++
+     private TextView textGreeting;
+ 
+     @Override
+@@ -40,6 +47,8 @@
+         btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);
+         btnCheckSymptom = findViewById(R.id.btnCheckSymptom);
+         btnSignOut = findViewById(R.id.btnSignOut);
++        btnDailyCheckIn = findViewById(R.id.btnDailyCheckIn);
++        btnSymptomHistory = findViewById(R.id.btnSymptomHistory);
+ 
+         btnLogMedicine.setOnClickListener(v ->
+                 startActivity(new Intent(this, LogMedicineActivity.class)));
+@@ -59,13 +68,23 @@
+         btnCheckSymptom.setOnClickListener(v ->
+                 startActivity(new Intent(this, ChildTriageActivity.class)));
+ 
++        btnDailyCheckIn.setOnClickListener(v ->
++                startActivity(new Intent(this, DailyCheckInActivity.class)));
++
++        btnSymptomHistory.setOnClickListener(v ->
++                startActivity(new Intent(this, SymptomHistoryActivity.class)));
+         btnSignOut.setOnClickListener(v -> signOut());
+-
+         loadChildUsername();
+     }
+ 
+     private void loadChildUsername() {
+-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
++        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
++        if (current == null) {
++            textGreeting.setText("Hello, Child!");
++            return;
++        }
++
++        String uid = current.getUid();
+ 
+         FirebaseFirestore.getInstance()
+                 .collection("users")
+@@ -74,7 +93,6 @@
+                 .addOnSuccessListener(doc -> {
+                     if (doc.exists()) {
+                         String username = doc.getString("username");
+-
+                         if (username != null && !username.isEmpty()) {
+                             textGreeting.setText("Hello, " + username + "!");
+                         } else {
+@@ -84,8 +102,7 @@
+                         textGreeting.setText("Hello, Child!");
+                     }
+                 })
+-                .addOnFailureListener(e -> {
+-                    textGreeting.setText("Hello, Child!");
+-                });
++                .addOnFailureListener(e ->
++                        textGreeting.setText("Hello, Child!"));
+     }
+-}
+\ No newline at end of file
++}
+Index: app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.homepages;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.widget.Button;\r\nimport android.widget.TextView;\r\n\r\nimport com.example.smartair.BaseActivity;\r\nimport com.example.smartair.R;\r\nimport com.example.smartair.child_managent.AddChildActivity;\r\nimport com.example.smartair.child_managent.ChooseChildForSharingActivity;\r\nimport com.example.smartair.inventory.InventoryActivity;\r\nimport com.example.smartair.ui.parent.ParentHomeActivity;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\n\r\npublic class HomepageParentsActivity extends BaseActivity {\r\n\r\n    private Button btnAddChild;\r\n    private Button btnViewChildren;\r\n    private Button btnManageChild;\r\n    private Button btnManageSharing;\r\n    private Button btnManagePB;\r\n    private Button btnInventory;\r\n    private Button btnSignOut;\r\n    private TextView textGreeting;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_homepage_parents);\r\n\r\n        textGreeting = findViewById(R.id.textGreeting);\r\n        btnAddChild = findViewById(R.id.btnAddChild);\r\n        btnViewChildren = findViewById(R.id.btnViewChildren);\r\n        btnManageChild = findViewById(R.id.btnManageChild);\r\n        btnManageSharing = findViewById(R.id.btnManageSharing);\r\n        btnManagePB = findViewById(R.id.btnManagePB);\r\n        btnInventory = findViewById(R.id.btnInventory);\r\n        btnSignOut = findViewById(R.id.btnSignOut);\r\n\r\n        loadParentName();\r\n\r\n        btnAddChild.setOnClickListener(v ->\r\n                startActivity(new Intent(this, AddChildActivity.class)));\r\n\r\n        btnViewChildren.setOnClickListener(v ->\r\n                startActivity(new Intent(this, com.example.smartair.child_managent.ViewChildrenActivity.class)));\r\n\r\n        btnManageChild.setOnClickListener(v -> {\r\n            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);\r\n            intent.putExtra(\"mode\", \"manageChild\");\r\n            startActivity(intent);\r\n        });\r\n\r\n        btnManageSharing.setOnClickListener(v -> {\r\n            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);\r\n            intent.putExtra(\"mode\", \"sharing\");\r\n            startActivity(intent);\r\n        });\r\n\r\n        btnManagePB.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ParentHomeActivity.class)));\r\n\r\n        btnInventory.setOnClickListener(v ->\r\n                startActivity(new Intent(this, InventoryActivity.class)));\r\n\r\n        btnSignOut.setOnClickListener(v -> signOut());\r\n    }\r\n\r\n    private void loadParentName() {\r\n        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();\r\n\r\n        FirebaseFirestore.getInstance()\r\n                .collection(\"users\")\r\n                .document(uid)\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String name = doc.getString(\"name\");\r\n\r\n                        if (name != null && !name.isEmpty()) {\r\n                            textGreeting.setText(\"Hello, \" + name + \"!\");\r\n                        } else {\r\n                            String email = doc.getString(\"email\");\r\n                            textGreeting.setText(\"Hello, \" + (email != null ? email : \"Parent\") + \"!\");\r\n                        }\r\n                    }\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    textGreeting.setText(\"Hello, Parent!\");\r\n                });\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java b/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java
+--- a/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java	(date 1764367657333)
+@@ -9,6 +9,8 @@
+ import com.example.smartair.R;
+ import com.example.smartair.child_managent.AddChildActivity;
+ import com.example.smartair.child_managent.ChooseChildForSharingActivity;
++import com.example.smartair.child_managent.ManageChildActivity;
++import com.example.smartair.child_managent.ViewChildrenActivity;
+ import com.example.smartair.inventory.InventoryActivity;
+ import com.example.smartair.ui.parent.ParentHomeActivity;
+ import com.google.firebase.auth.FirebaseAuth;
+@@ -22,6 +24,8 @@
+     private Button btnManageSharing;
+     private Button btnManagePB;
+     private Button btnInventory;
++    private Button btnSymptomHistory;
++
+     private Button btnSignOut;
+     private TextView textGreeting;
+ 
+@@ -38,9 +42,13 @@
+         btnManagePB = findViewById(R.id.btnManagePB);
+         btnInventory = findViewById(R.id.btnInventory);
+         btnSignOut = findViewById(R.id.btnSignOut);
++        btnSymptomHistory = findViewById(R.id.btnSymptomHistory);
+ 
+         loadParentName();
+ 
++        btnSymptomHistory.setOnClickListener(v ->
++                startActivity(new Intent(this, com.example.smartair.medicine_logs.SymptomHistoryActivity.class)));
++        // 设置点击事件
+         btnAddChild.setOnClickListener(v ->
+                 startActivity(new Intent(this, AddChildActivity.class)));
+ 
+Index: app/src/main/java/com/example/smartair/auth/LoginActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.auth;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.Button;\r\nimport android.widget.EditText;\r\nimport android.widget.ProgressBar;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.example.smartair.R;\r\nimport com.example.smartair.homepages.HomepageActivity;\r\nimport com.example.smartair.homepages.HomepageParentsActivity;\r\nimport com.example.smartair.homepages.HomepageProvidersActivity;\r\nimport com.example.smartair.models.UserRole;\r\nimport com.example.smartair.utils.SharedPrefsHelper;\r\nimport com.google.firebase.FirebaseApp;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.auth.FirebaseUser;\r\n\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\n\r\n\r\npublic class LoginActivity extends AppCompatActivity implements LoginContract.View {\r\n\r\n    private static final String TAG = \"LoginActivity\";\r\n\r\n    private EditText emailEditText, passwordEditText;\r\n    private Button loginButton;\r\n    private TextView registerTextView;\r\n    private ProgressBar progressBar;\r\n\r\n    private LoginContract.Presenter presenter;\r\n    private SharedPrefsHelper prefsHelper;\r\n    private FirebaseFirestore db;\r\n    private boolean isChildLogin = false;\r\n\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n\r\n        try {\r\n            FirebaseApp.initializeApp(this);\r\n        } catch (Exception e) {\r\n            Log.e(TAG, \"Firebase init failed\", e);\r\n            Toast.makeText(this, \"Firebase initialization failed\", Toast.LENGTH_LONG).show();\r\n        }\r\n\r\n        setContentView(R.layout.activity_login);\r\n\r\n        emailEditText = findViewById(R.id.emailEditText);\r\n        passwordEditText = findViewById(R.id.passwordEditText);\r\n        loginButton = findViewById(R.id.loginButton);\r\n        registerTextView = findViewById(R.id.registerTextView);\r\n        progressBar = findViewById(R.id.progressBar);\r\n\r\n        TextView textForgotPassword = findViewById(R.id.textForgotPassword);\r\n        textForgotPassword.setOnClickListener(v -> {\r\n            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);\r\n            startActivity(intent);\r\n        });\r\n\r\n        db = FirebaseFirestore.getInstance();\r\n        prefsHelper = new SharedPrefsHelper(this);\r\n\r\n        AuthModel model = new AuthModel();\r\n        presenter = new LoginPresenter(this, model);\r\n\r\n        loginButton.setOnClickListener(v -> handleLogin());\r\n\r\n        registerTextView.setOnClickListener(v -> {\r\n            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));\r\n        });\r\n    }\r\n\r\n    private void handleLogin() {\r\n        String input = getEmail();\r\n        String password = getPassword();\r\n\r\n        if (input.isEmpty() || password.isEmpty()) {\r\n            showError(\"Please enter login credentials\");\r\n            return;\r\n        }\r\n        if (!input.contains(\"@\")) {\r\n            loginChild(input, password);\r\n            return;\r\n        }\r\n\r\n        presenter.onLoginClicked();\r\n    }\r\n\r\n    private void loginChild(String username, String password) {\r\n        showLoading();\r\n\r\n        db.collection(\"usernames\")\r\n                .document(username)\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (!doc.exists()) {\r\n                        hideLoading();\r\n                        showError(\"Invalid username\");\r\n                        return;\r\n                    }\r\n\r\n                    String parentId = doc.getString(\"parentId\");\r\n                    String childId = doc.getString(\"childUid\");\r\n\r\n                    if (parentId == null || childId == null) {\r\n                        hideLoading();\r\n                        showError(\"Account is not configured correctly\");\r\n                        return;\r\n                    }\r\n\r\n                    db.collection(\"users\")\r\n                            .document(parentId)\r\n                            .collection(\"children\")\r\n                            .document(childId)\r\n                            .get()\r\n                            .addOnSuccessListener(childDoc -> {\r\n                                hideLoading();\r\n\r\n                                if (!childDoc.exists()) {\r\n                                    showError(\"Child profile missing\");\r\n                                    return;\r\n                                }\r\n\r\n                                String savedPw = childDoc.getString(\"password\");\r\n\r\n                                if (!password.equals(savedPw)) {\r\n                                    showError(\"Incorrect password\");\r\n                                    return;\r\n                                }\r\n\r\n                                prefsHelper.saveUserRole(\"child\");\r\n\r\n                                Intent intent;\r\n                                if (!prefsHelper.isOnboardingComplete()) {\r\n                                    intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);\r\n                                    intent.putExtra(\"userRole\", \"child\");\r\n                                } else {\r\n                                    intent = new Intent(this, HomepageActivity.class);\r\n                                }\r\n                                startActivity(intent);\r\n                                finish();\r\n                            })\r\n                            .addOnFailureListener(e -> {\r\n                                hideLoading();\r\n                                showError(\"Failed to load child account\");\r\n                            });\r\n\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    hideLoading();\r\n                    showError(\"Login failed: \" + e.getMessage());\r\n                });\r\n    }\r\n\r\n    @Override\r\n    public void showLoading() {\r\n        progressBar.setVisibility(ProgressBar.VISIBLE);\r\n        loginButton.setEnabled(false);\r\n    }\r\n\r\n    @Override\r\n    public void hideLoading() {\r\n        progressBar.setVisibility(ProgressBar.GONE);\r\n        loginButton.setEnabled(true);\r\n    }\r\n\r\n    @Override\r\n    public void showError(String message) {\r\n        Toast.makeText(this, message, Toast.LENGTH_LONG).show();\r\n    }\r\n\r\n    @Override\r\n    public void navigateToHome(UserRole role) {\r\n        FirebaseUser user = AuthModel.mAuth.getCurrentUser();\r\n        if (user == null) return;\r\n\r\n        if (isChildLogin) {\r\n            prefsHelper.saveUserRole(\"child\");\r\n\r\n            Intent intent;\r\n            if (!prefsHelper.isOnboardingComplete()) {\r\n                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);\r\n                intent.putExtra(\"userRole\", \"child\");\r\n            } else {\r\n                intent = new Intent(this, HomepageActivity.class);\r\n            }\r\n            startActivity(intent);\r\n            finish();\r\n            return;\r\n        }\r\n\r\n        db.collection(\"users\").document(user.getUid())\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String roleStr = doc.getString(\"role\");\r\n                        if (roleStr == null) roleStr = \"child\";\r\n\r\n                        UserRole userRole = UserRole.fromString(roleStr);\r\n                        prefsHelper.saveUserRole(userRole.getValue());\r\n\r\n                        Intent intent;\r\n                        if (!prefsHelper.isOnboardingComplete()) {\r\n                            intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);\r\n                            intent.putExtra(\"userRole\", userRole.getValue());\r\n                        } else {\r\n                            switch (userRole) {\r\n                                case CHILD:\r\n                                    intent = new Intent(this, HomepageActivity.class);\r\n                                    break;\r\n                                case PARENT:\r\n                                    intent = new Intent(this, HomepageParentsActivity.class);\r\n                                    break;\r\n                                case PROVIDER:\r\n                                    intent = new Intent(this, HomepageProvidersActivity.class);\r\n                                    break;\r\n                                default:\r\n                                    intent = new Intent(this, HomepageActivity.class);\r\n                            }\r\n                        }\r\n                        startActivity(intent);\r\n                        finish();\r\n                    } else {\r\n                        Toast.makeText(this, \"User role not found\", Toast.LENGTH_SHORT).show();\r\n                    }\r\n                })\r\n                .addOnFailureListener(e -> Toast.makeText(this, \"Failed to fetch user role: \" + e.getMessage(), Toast.LENGTH_SHORT).show());\r\n    }\r\n\r\n    @Override\r\n    public String getEmail() {\r\n        return emailEditText.getText().toString().trim();\r\n    }\r\n\r\n    @Override\r\n    public String getPassword() {\r\n        return passwordEditText.getText().toString();\r\n    }\r\n\r\n    @Override\r\n    protected void onDestroy() {\r\n        super.onDestroy();\r\n        presenter.onDestroy();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/auth/LoginActivity.java b/app/src/main/java/com/example/smartair/auth/LoginActivity.java
+--- a/app/src/main/java/com/example/smartair/auth/LoginActivity.java	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/java/com/example/smartair/auth/LoginActivity.java	(date 1764371631455)
+@@ -59,12 +59,6 @@
+         registerTextView = findViewById(R.id.registerTextView);
+         progressBar = findViewById(R.id.progressBar);
+ 
+-        TextView textForgotPassword = findViewById(R.id.textForgotPassword);
+-        textForgotPassword.setOnClickListener(v -> {
+-            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+-            startActivity(intent);
+-        });
+-
+         db = FirebaseFirestore.getInstance();
+         prefsHelper = new SharedPrefsHelper(this);
+ 
+@@ -77,7 +71,6 @@
+             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+         });
+     }
+-
+     private void handleLogin() {
+         String input = getEmail();
+         String password = getPassword();
+@@ -90,73 +83,27 @@
+             loginChild(input, password);
+             return;
+         }
+-
++        isChildLogin = false;
+         presenter.onLoginClicked();
+     }
+-
+     private void loginChild(String username, String password) {
++        isChildLogin = true;
+         showLoading();
+ 
+-        db.collection("usernames")
+-                .document(username)
+-                .get()
+-                .addOnSuccessListener(doc -> {
+-                    if (!doc.exists()) {
+-                        hideLoading();
+-                        showError("Invalid username");
+-                        return;
+-                    }
+-
+-                    String parentId = doc.getString("parentId");
+-                    String childId = doc.getString("childUid");
++        String email = username + "@child.smartair.com";
+ 
+-                    if (parentId == null || childId == null) {
+-                        hideLoading();
+-                        showError("Account is not configured correctly");
+-                        return;
+-                    }
+-
+-                    db.collection("users")
+-                            .document(parentId)
+-                            .collection("children")
+-                            .document(childId)
+-                            .get()
+-                            .addOnSuccessListener(childDoc -> {
+-                                hideLoading();
+-
+-                                if (!childDoc.exists()) {
+-                                    showError("Child profile missing");
+-                                    return;
+-                                }
+-
+-                                String savedPw = childDoc.getString("password");
+-
+-                                if (!password.equals(savedPw)) {
+-                                    showError("Incorrect password");
+-                                    return;
+-                                }
+-
+-                                prefsHelper.saveUserRole("child");
+-
+-                                Intent intent;
+-                                if (!prefsHelper.isOnboardingComplete()) {
+-                                    intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+-                                    intent.putExtra("userRole", "child");
+-                                } else {
+-                                    intent = new Intent(this, HomepageActivity.class);
+-                                }
+-                                startActivity(intent);
+-                                finish();
+-                            })
+-                            .addOnFailureListener(e -> {
+-                                hideLoading();
+-                                showError("Failed to load child account");
+-                            });
+-
++        AuthModel.mAuth
++                .signInWithEmailAndPassword(email, password)
++                .addOnSuccessListener(authResult -> {
++                    hideLoading();
++                    //  current Firebase user becomes the child
++                    prefsHelper.saveUserRole("child");
++                    startActivity(new Intent(this, HomepageActivity.class));
++                    finish();
+                 })
+                 .addOnFailureListener(e -> {
+                     hideLoading();
+-                    showError("Login failed: " + e.getMessage());
++                    showError("Child login failed: " + e.getMessage());
+                 });
+     }
+ 
+@@ -179,24 +126,14 @@
+ 
+     @Override
+     public void navigateToHome(UserRole role) {
+-        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+-        if (user == null) return;
+-
+         if (isChildLogin) {
+             prefsHelper.saveUserRole("child");
+-
+-            Intent intent;
+-            if (!prefsHelper.isOnboardingComplete()) {
+-                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+-                intent.putExtra("userRole", "child");
+-            } else {
+-                intent = new Intent(this, HomepageActivity.class);
+-            }
+-            startActivity(intent);
++            startActivity(new Intent(this, HomepageActivity.class));
+             finish();
+             return;
+         }
+-
++        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
++        if (user == null) return;
+         db.collection("users").document(user.getUid())
+                 .get()
+                 .addOnSuccessListener(doc -> {
+@@ -207,26 +144,17 @@
+                         UserRole userRole = UserRole.fromString(roleStr);
+                         prefsHelper.saveUserRole(userRole.getValue());
+ 
+-                        Intent intent;
+-                        if (!prefsHelper.isOnboardingComplete()) {
+-                            intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+-                            intent.putExtra("userRole", userRole.getValue());
+-                        } else {
+-                            switch (userRole) {
+-                                case CHILD:
+-                                    intent = new Intent(this, HomepageActivity.class);
+-                                    break;
+-                                case PARENT:
+-                                    intent = new Intent(this, HomepageParentsActivity.class);
+-                                    break;
+-                                case PROVIDER:
+-                                    intent = new Intent(this, HomepageProvidersActivity.class);
+-                                    break;
+-                                default:
+-                                    intent = new Intent(this, HomepageActivity.class);
+-                            }
++                        switch (userRole) {
++                            case CHILD:
++                                startActivity(new Intent(this, HomepageActivity.class));
++                                break;
++                            case PARENT:
++                                startActivity(new Intent(this, HomepageParentsActivity.class));
++                                break;
++                            case PROVIDER:
++                                startActivity(new Intent(this, HomepageProvidersActivity.class));
++                                break;
+                         }
+-                        startActivity(intent);
+                         finish();
+                     } else {
+                         Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
+Index: app/src/main/res/layout/activity_homepage.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"match_parent\"\r\n    android:padding=\"24dp\"\r\n    android:background=\"#FFFFFF\">\r\n\r\n    <LinearLayout\r\n        android:orientation=\"vertical\"\r\n        android:gravity=\"center\"\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"wrap_content\">\r\n\r\n        <TextView\r\n            android:id=\"@+id/textGreeting\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Hello!\"\r\n            android:textSize=\"24sp\"\r\n            android:textStyle=\"bold\"\r\n            android:gravity=\"left\"\r\n            android:layout_marginBottom=\"24dp\"\r\n            android:textColor=\"#333333\" />\r\n\r\n\r\n        <!-- Existing Features -->\r\n        <Button\r\n            android:id=\"@+id/btnLogMedicine\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Log Medicine\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnTechnique\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Technique Helper\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnPrePostCheck\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Pre/Post Check\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n\r\n        <Button\r\n            android:id=\"@+id/btnBadges\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Badges\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnCheckPeakFlow\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Check Peak Flow\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnCheckSymptom\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Check Symptom\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnSignOut\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Sign Out\"\r\n            android:backgroundTint=\"@android:color/holo_red_dark\"\r\n            android:textColor=\"@android:color/white\" />\r\n\r\n    </LinearLayout>\r\n\r\n</ScrollView>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage.xml b/app/src/main/res/layout/activity_homepage.xml
+--- a/app/src/main/res/layout/activity_homepage.xml	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/res/layout/activity_homepage.xml	(date 1764367574647)
+@@ -78,6 +78,22 @@
+             android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+             android:padding="12dp" />
++        <Button
++            android:id="@+id/btnDailyCheckIn"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Daily Check-in"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++        <Button
++            android:id="@+id/btnSymptomHistory"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Symptom History"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
+ 
+         <Button
+             android:id="@+id/btnSignOut"
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-11-11T21:26:28.380294500Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection>\r\n          <targets>\r\n            <Target type=\"DEFAULT_BOOT\">\r\n              <handle>\r\n                <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\r\n              </handle>\r\n            </Target>\r\n          </targets>\r\n        </DialogSelection>\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/.idea/deploymentTargetSelector.xml	(date 1764367587060)
+@@ -21,6 +21,9 @@
+           </targets>
+         </DialogSelection>
+       </SelectionState>
++      <SelectionState runConfigName="AddChildActivity">
++        <option name="selectionMode" value="DROPDOWN" />
++      </SelectionState>
+     </selectionStates>
+   </component>
+ </project>
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_homepage_parents.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"match_parent\"\r\n    android:padding=\"24dp\"\r\n    android:background=\"#FFFFFF\">\r\n\r\n    <LinearLayout\r\n        android:orientation=\"vertical\"\r\n        android:gravity=\"center\"\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"wrap_content\">\r\n\r\n        <TextView\r\n            android:id=\"@+id/textGreeting\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Hello!\"\r\n            android:textSize=\"24sp\"\r\n            android:textStyle=\"bold\"\r\n            android:gravity=\"left\"\r\n            android:layout_marginBottom=\"24dp\"\r\n            android:textColor=\"#333333\" />\r\n\r\n        <!-- 父母相关按钮 -->\r\n        <Button\r\n            android:id=\"@+id/btnAddChild\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Add Child\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnViewChildren\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"View Children\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnManageChild\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Manage Child Activity\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnManageSharing\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Manage Sharing\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnManagePB\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Manage PB\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnInventory\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Inventory\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnSignOut\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Sign Out\"\r\n            android:backgroundTint=\"@android:color/holo_red_dark\"\r\n            android:textColor=\"@android:color/white\" />\r\n\r\n        <!-- 其他功能按钮（可选，如果想和父母主页共用）-->\r\n        <!--\r\n        <Button\r\n            android:id=\"@+id/btnLogMedicine\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Log Medicine\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnTechnique\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Technique Helper\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnPrePostCheck\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Pre/Post Check\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnBadges\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Badges\"\r\n            android:textSize=\"18sp\"\r\n            android:padding=\"12dp\" />\r\n        -->\r\n\r\n    </LinearLayout>\r\n</ScrollView>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage_parents.xml b/app/src/main/res/layout/activity_homepage_parents.xml
+--- a/app/src/main/res/layout/activity_homepage_parents.xml	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/res/layout/activity_homepage_parents.xml	(date 1764367680104)
+@@ -76,6 +76,14 @@
+             android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+             android:padding="12dp" />
++        <Button
++            android:id="@+id/btnSymptomHistory"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Symptom History"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
+ 
+         <Button
+             android:id="@+id/btnSignOut"
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.SmartAir\">\r\n        <activity\r\n            android:name=\".inventory.InventoryActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- LOGIN (Launcher) -->\r\n        <activity\r\n            android:name=\".auth.LoginActivity\"\r\n            android:exported=\"true\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n        <activity\r\n            android:name=\".ui.child.ChildPEFActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n        <activity\r\n            android:name=\".ui.child.ChildTriageActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".ui.child.ChildPEFActivity\" />\r\n        <activity\r\n            android:name=\".ui.parent.ParentHomeActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n        <!-- REGISTER -->\r\n        <activity\r\n            android:name=\".auth.RegisterActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- FORGOT PASSWORD -->\r\n        <activity\r\n            android:name=\".auth.ForgotPasswordActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- HOMEPAGE -->\r\n        <activity\r\n            android:name=\".homepages.HomepageActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageParentsActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageProvidersActivity\"\r\n            android:exported=\"true\" />\r\n        <!-- CHILD MANAGEMENT -->\r\n        <activity\r\n            android:name=\".child_managent.ViewChildrenActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".child_managent.AddChildActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".child_managent.ManageChildActivity\"\r\n            android:exported=\"true\" />\r\n        <!-- SHARING MANAGEMENT -->\r\n        <activity\r\n            android:name=\".sharing.ManageSharingActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".child_managent.ChooseChildForSharingActivity\"\r\n            android:exported=\"true\" />\r\n        <!-- OTHER SCREENS -->\r\n        <activity\r\n            android:name=\".medicine_logs.LogMedicineActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".technique_guidance.TechniqueActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".pre_post_checks.PrePostCheckActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".sharing.InviteProviderActivity\"\r\n            android:exported=\"false\" />\r\n\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"false\" />\r\n        <activity android:name=\".badges_system.BadgeActivity\" />\r\n\r\n        <activity\r\n            android:name=\".onboarding.OnboardingActivity\"\r\n            android:exported=\"false\" />\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/app/src/main/AndroidManifest.xml	(date 1764367680067)
+@@ -70,8 +70,7 @@
+             android:exported="false" />
+         <activity
+             android:name=".child_managent.ChooseChildForSharingActivity"
+-            android:exported="true" />
+-        <!-- OTHER SCREENS -->
++            android:exported="true" /> <!-- OTHER SCREENS -->
+         <activity
+             android:name=".medicine_logs.LogMedicineActivity"
+             android:exported="false" />
+@@ -85,6 +84,12 @@
+             android:name=".sharing.InviteProviderActivity"
+             android:exported="false" />
+ 
++        <activity
++            android:name=".medicine_logs.DailyCheckInActivity"
++            android:exported="false"/>
++        <activity
++            android:name=".medicine_logs.SymptomHistoryActivity"
++            android:exported="false"/>
+         <activity
+             android:name=".MainActivity"
+             android:exported="false" />
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_21\" default=\"true\" project-jdk-name=\"jbr-21\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision a244647544b504adad461ca84b3b7246c9fd4c0f)
++++ b/.idea/misc.xml	(date 1764367680091)
+@@ -6,4 +6,11 @@
+   <component name="ProjectType">
+     <option name="id" value="Android" />
+   </component>
++  <component name="VisualizationToolProject">
++    <option name="state">
++      <ProjectState>
++        <option name="scale" value="1.0" />
++      </ProjectState>
++    </option>
++  </component>
+ </project>
+\ No newline at end of file

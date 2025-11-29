@@ -101,7 +101,7 @@ public class AddChildActivity extends AppCompatActivity {
             return;
         }
 
-        // 检查 username 是否存在
+        // Check username uniqueness
         DocumentReference usernameRef = db.collection("usernames").document(username);
         usernameRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
@@ -112,10 +112,14 @@ public class AddChildActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Create a real FirebaseAuth user for the child.
+     * Email = username + "@child.smartair.com"
+     */
     private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
         String email = username + "@child.smartair.com";
 
-        // 保存父母 UID
+        // cache parent id
         String parentId = auth.getCurrentUser().getUid();
 
         auth.createUserWithEmailAndPassword(email, password)
@@ -123,16 +127,22 @@ public class AddChildActivity extends AppCompatActivity {
                     String childUid = authResult.getUser().getUid();
                     saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Store child in:
+     *  - users/{parentId}/children/{childUid}
+     *  - users/{childUid}
+     *  - usernames/{username}
+     */
     private void saveChildFirestore(String parentId, String childUid, String username, String email,
                                     String name, String dob, String notes, String password) {
 
         WriteBatch batch = db.batch();
 
+        // users/{parentId}/children/{childUid}
         DocumentReference childRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
@@ -142,13 +152,27 @@ public class AddChildActivity extends AppCompatActivity {
         childData.put("uid", childUid);
         childData.put("username", username);
         childData.put("email", email);
-        childData.put("password", password);
+        childData.put("password", password); // not needed?
         childData.put("name", name);
         childData.put("dob", dob);
         childData.put("notes", notes);
         childData.put("role", "child");
         childData.put("createdAt", FieldValue.serverTimestamp());
 
+        // users/{childUid}
+        DocumentReference childUserRef = db.collection("users").document(childUid);
+        Map<String, Object> childUserData = new HashMap<>();
+        childUserData.put("uid", childUid);
+        childUserData.put("username", username);
+        childUserData.put("email", email);
+        childUserData.put("name", name);
+        childUserData.put("dob", dob);
+        childUserData.put("notes", notes);
+        childUserData.put("role", "child");
+        childUserData.put("parentId", parentId);
+        childUserData.put("createdAt", FieldValue.serverTimestamp());
+
+        // usernames/{username} mapping
         DocumentReference usernameRef = db.collection("usernames").document(username);
         Map<String, Object> usernameMap = new HashMap<>();
         usernameMap.put("childUid", childUid);
@@ -156,21 +180,20 @@ public class AddChildActivity extends AppCompatActivity {
         usernameMap.put("email", email);
 
         batch.set(childRef, childData);
+        batch.set(childUserRef, childUserData);
         batch.set(usernameRef, usernameMap);
 
         batch.commit()
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Child account created successfully!", Toast.LENGTH_SHORT).show();
 
-                    // 直接回到 ChooseChildForSharingActivity，传父母 UID
                     Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);
                     intent.putExtra("parentId", parentId);
                     startActivity(intent);
 
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

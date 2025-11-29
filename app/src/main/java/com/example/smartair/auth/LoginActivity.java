@@ -31,6 +31,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     private EditText emailEditText, passwordEditText;
     private Button loginButton;
+    private TextView textForgotPassword;
+
     private TextView registerTextView;
     private ProgressBar progressBar;
 
@@ -59,17 +61,18 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
 
-        TextView textForgotPassword = findViewById(R.id.textForgotPassword);
-        textForgotPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-            startActivity(intent);
-        });
-
         db = FirebaseFirestore.getInstance();
         prefsHelper = new SharedPrefsHelper(this);
 
         AuthModel model = new AuthModel();
         presenter = new LoginPresenter(this, model);
+
+        textForgotPassword = findViewById(R.id.textForgotPassword);
+
+        textForgotPassword.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class))
+        );
+
 
         loginButton.setOnClickListener(v -> handleLogin());
 
@@ -77,7 +80,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
     }
-
     private void handleLogin() {
         String input = getEmail();
         String password = getPassword();
@@ -90,73 +92,27 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             loginChild(input, password);
             return;
         }
-
+        isChildLogin = false;
         presenter.onLoginClicked();
     }
-
     private void loginChild(String username, String password) {
+        isChildLogin = true;
         showLoading();
 
-        db.collection("usernames")
-                .document(username)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (!doc.exists()) {
-                        hideLoading();
-                        showError("Invalid username");
-                        return;
-                    }
+        String email = username + "@child.smartair.com";
 
-                    String parentId = doc.getString("parentId");
-                    String childId = doc.getString("childUid");
-
-                    if (parentId == null || childId == null) {
-                        hideLoading();
-                        showError("Account is not configured correctly");
-                        return;
-                    }
-
-                    db.collection("users")
-                            .document(parentId)
-                            .collection("children")
-                            .document(childId)
-                            .get()
-                            .addOnSuccessListener(childDoc -> {
-                                hideLoading();
-
-                                if (!childDoc.exists()) {
-                                    showError("Child profile missing");
-                                    return;
-                                }
-
-                                String savedPw = childDoc.getString("password");
-
-                                if (!password.equals(savedPw)) {
-                                    showError("Incorrect password");
-                                    return;
-                                }
-
-                                prefsHelper.saveUserRole("child");
-
-                                Intent intent;
-                                if (!prefsHelper.isOnboardingComplete()) {
-                                    intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
-                                    intent.putExtra("userRole", "child");
-                                } else {
-                                    intent = new Intent(this, HomepageActivity.class);
-                                }
-                                startActivity(intent);
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                hideLoading();
-                                showError("Failed to load child account");
-                            });
-
+        AuthModel.mAuth
+                .signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    hideLoading();
+                    //  current Firebase user becomes the child
+                    prefsHelper.saveUserRole("child");
+                    startActivity(new Intent(this, HomepageActivity.class));
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     hideLoading();
-                    showError("Login failed: " + e.getMessage());
+                    showError("Child login failed: " + e.getMessage());
                 });
     }
 
@@ -179,24 +135,14 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void navigateToHome(UserRole role) {
-        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
-        if (user == null) return;
-
         if (isChildLogin) {
             prefsHelper.saveUserRole("child");
-
-            Intent intent;
-            if (!prefsHelper.isOnboardingComplete()) {
-                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
-                intent.putExtra("userRole", "child");
-            } else {
-                intent = new Intent(this, HomepageActivity.class);
-            }
-            startActivity(intent);
+            startActivity(new Intent(this, HomepageActivity.class));
             finish();
             return;
         }
-
+        FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+        if (user == null) return;
         db.collection("users").document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -207,26 +153,17 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                         UserRole userRole = UserRole.fromString(roleStr);
                         prefsHelper.saveUserRole(userRole.getValue());
 
-                        Intent intent;
-                        if (!prefsHelper.isOnboardingComplete()) {
-                            intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
-                            intent.putExtra("userRole", userRole.getValue());
-                        } else {
-                            switch (userRole) {
-                                case CHILD:
-                                    intent = new Intent(this, HomepageActivity.class);
-                                    break;
-                                case PARENT:
-                                    intent = new Intent(this, HomepageParentsActivity.class);
-                                    break;
-                                case PROVIDER:
-                                    intent = new Intent(this, HomepageProvidersActivity.class);
-                                    break;
-                                default:
-                                    intent = new Intent(this, HomepageActivity.class);
-                            }
+                        switch (userRole) {
+                            case CHILD:
+                                startActivity(new Intent(this, HomepageActivity.class));
+                                break;
+                            case PARENT:
+                                startActivity(new Intent(this, HomepageParentsActivity.class));
+                                break;
+                            case PROVIDER:
+                                startActivity(new Intent(this, HomepageProvidersActivity.class));
+                                break;
                         }
-                        startActivity(intent);
                         finish();
                     } else {
                         Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();

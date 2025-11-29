@@ -9,6 +9,8 @@ import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
 import com.example.smartair.child_managent.AddChildActivity;
 import com.example.smartair.child_managent.ChooseChildForSharingActivity;
+import com.example.smartair.child_managent.ManageChildActivity;
+import com.example.smartair.child_managent.ViewChildrenActivity;
 import com.example.smartair.inventory.InventoryActivity;
 import com.example.smartair.ui.parent.ParentHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,6 +24,8 @@ public class HomepageParentsActivity extends BaseActivity {
     private Button btnManageSharing;
     private Button btnManagePB;
     private Button btnInventory;
+
+
     private Button btnSignOut;
     private TextView textGreeting;
 
@@ -41,6 +45,7 @@ public class HomepageParentsActivity extends BaseActivity {
 
         loadParentName();
 
+        // 设置点击事件
         btnAddChild.setOnClickListener(v ->
                 startActivity(new Intent(this, AddChildActivity.class)));
 

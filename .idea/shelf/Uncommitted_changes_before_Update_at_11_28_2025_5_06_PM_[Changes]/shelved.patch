@@ -1,0 +1,197 @@
+Index: app/src/main/res/layout/activity_homepage.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"match_parent\"\r\n    android:padding=\"24dp\"\r\n    android:background=\"#FFFFFF\">\r\n\r\n    <LinearLayout\r\n        android:orientation=\"vertical\"\r\n        android:gravity=\"center\"\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"wrap_content\">\r\n\r\n        <TextView\r\n            android:id=\"@+id/textGreeting\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Hello!\"\r\n            android:textSize=\"24sp\"\r\n            android:textStyle=\"bold\"\r\n            android:gravity=\"left\"\r\n            android:layout_marginBottom=\"24dp\"\r\n            android:textColor=\"#333333\" />\r\n\r\n\r\n        <!-- Existing Features -->\r\n        <Button\r\n            android:id=\"@+id/btnLogMedicine\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Log Medicine\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnTechnique\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Technique Helper\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnPrePostCheck\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Pre/Post Check\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n\r\n        <Button\r\n            android:id=\"@+id/btnBadges\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Badges\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnCheckPeakFlow\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Check Peak Flow\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnCheckSymptom\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Check Symptom\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n    </LinearLayout>\r\n\r\n</ScrollView>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage.xml b/app/src/main/res/layout/activity_homepage.xml
+--- a/app/src/main/res/layout/activity_homepage.xml	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/app/src/main/res/layout/activity_homepage.xml	(date 1764223282115)
+@@ -78,6 +78,22 @@
+             android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+             android:padding="12dp" />
++        <Button
++            android:id="@+id/btnDailyCheckIn"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Daily Check-in"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
++        <Button
++            android:id="@+id/btnSymptomHistory"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Symptom History"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
+ 
+     </LinearLayout>
+ 
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-11-11T21:26:28.380294500Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection>\r\n          <targets>\r\n            <Target type=\"DEFAULT_BOOT\">\r\n              <handle>\r\n                <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\HP\\.android\\avd\\Medium_Phone.avd\" />\r\n              </handle>\r\n            </Target>\r\n          </targets>\r\n        </DialogSelection>\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"LoginActivity\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/.idea/deploymentTargetSelector.xml	(date 1764217018749)
+@@ -21,7 +21,7 @@
+           </targets>
+         </DialogSelection>
+       </SelectionState>
+-      <SelectionState runConfigName="LoginActivity">
++      <SelectionState runConfigName="AddChildActivity">
+         <option name="selectionMode" value="DROPDOWN" />
+       </SelectionState>
+     </selectionStates>
+Index: app/src/main/java/com/example/smartair/homepages/HomepageActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.homepages;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.view.View;\r\nimport android.widget.Button;\r\nimport android.widget.TextView;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\n\r\nimport com.example.smartair.R;\r\n\r\nimport com.example.smartair.badges_system.BadgeActivity;\r\nimport com.example.smartair.medicine_logs.LogMedicineActivity;\r\nimport com.example.smartair.pre_post_checks.PrePostCheckActivity;\r\nimport com.example.smartair.technique_guidance.TechniqueActivity;\r\nimport com.example.smartair.ui.child.ChildPEFActivity;\r\nimport com.example.smartair.ui.child.ChildTriageActivity;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\n\r\n\r\npublic class HomepageActivity extends AppCompatActivity {\r\n\r\n    private Button btnLogMedicine;\r\n    private Button btnTechnique;\r\n    private Button btnPrePostCheck;\r\n    private Button btnBadge; // 只声明，不初始化\r\n    private Button btnCheckPeakFlow;\r\n    private Button btnCheckSymptom;\r\n    private TextView textGreeting;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_homepage);\r\n        // 确保布局文件存在\r\n        textGreeting = findViewById(R.id.textGreeting);\r\n        // 初始化按钮\r\n        btnLogMedicine = findViewById(R.id.btnLogMedicine);\r\n        btnTechnique = findViewById(R.id.btnTechnique);\r\n        btnPrePostCheck = findViewById(R.id.btnPrePostCheck);\r\n        btnBadge = findViewById(R.id.btnBadges); // ✅ 放到这里初始化\r\n        btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);\r\n        btnCheckSymptom = findViewById(R.id.btnCheckSymptom);\r\n\r\n\r\n        btnLogMedicine.setOnClickListener(v ->\r\n                startActivity(new Intent(this, LogMedicineActivity.class)));\r\n\r\n        btnTechnique.setOnClickListener(v ->\r\n                startActivity(new Intent(this, TechniqueActivity.class)));\r\n\r\n        btnPrePostCheck.setOnClickListener(v ->\r\n                startActivity(new Intent(this, PrePostCheckActivity.class)));\r\n\r\n        btnBadge.setOnClickListener(v ->\r\n                startActivity(new Intent(this, BadgeActivity.class)));\r\n        btnCheckPeakFlow.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ChildPEFActivity.class)));\r\n        btnCheckSymptom.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ChildTriageActivity.class)));\r\n        loadChildUsername();\r\n    }\r\n    private void loadChildUsername() {\r\n        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();\r\n\r\n        FirebaseFirestore.getInstance()\r\n                .collection(\"users\")\r\n                .document(uid)\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String username = doc.getString(\"username\");\r\n\r\n                        if (username != null && !username.isEmpty()) {\r\n                            textGreeting.setText(\"Hello, \" + username + \"!\");\r\n                        } else {\r\n                            textGreeting.setText(\"Hello, Child!\");\r\n                        }\r\n                    } else {\r\n                        textGreeting.setText(\"Hello, Child!\");\r\n                    }\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    textGreeting.setText(\"Hello, Child!\");\r\n                });\r\n    }\r\n\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java b/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java
+--- a/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/app/src/main/java/com/example/smartair/homepages/HomepageActivity.java	(date 1764223748540)
+@@ -12,6 +12,7 @@
+ import com.example.smartair.R;
+ 
+ import com.example.smartair.badges_system.BadgeActivity;
++import com.example.smartair.medicine_logs.DailyCheckInActivity;
+ import com.example.smartair.medicine_logs.LogMedicineActivity;
+ import com.example.smartair.pre_post_checks.PrePostCheckActivity;
+ import com.example.smartair.technique_guidance.TechniqueActivity;
+@@ -30,6 +31,7 @@
+     private Button btnCheckPeakFlow;
+     private Button btnCheckSymptom;
+     private TextView textGreeting;
++    private Button btnDailyCheckIn;
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -44,6 +46,10 @@
+         btnBadge = findViewById(R.id.btnBadges); // ✅ 放到这里初始化
+         btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);
+         btnCheckSymptom = findViewById(R.id.btnCheckSymptom);
++        btnDailyCheckIn = findViewById(R.id.btnDailyCheckIn);
++
++        btnDailyCheckIn.setOnClickListener(v ->
++                startActivity(new Intent(this, DailyCheckInActivity.class)));
+ 
+ 
+         btnLogMedicine.setOnClickListener(v ->
+Index: app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.homepages;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.widget.Button;\r\nimport android.widget.TextView;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.example.smartair.R;\r\nimport com.example.smartair.child_managent.AddChildActivity;\r\nimport com.example.smartair.child_managent.ChooseChildForSharingActivity;\r\nimport com.example.smartair.child_managent.ManageChildActivity;\r\nimport com.example.smartair.child_managent.ViewChildrenActivity;\r\nimport com.example.smartair.inventory.InventoryActivity;\r\nimport com.example.smartair.ui.parent.ParentHomeActivity;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\n\r\npublic class HomepageParentsActivity extends AppCompatActivity {\r\n\r\n    private Button btnAddChild;\r\n    private Button btnViewChildren;\r\n    private Button btnManageChild;\r\n    private Button btnManageSharing;\r\n    private Button btnManagePB;\r\n    private Button btnInventory;\r\n\r\n    private TextView textGreeting;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_homepage_parents); // 你的新布局文件\r\n\r\n        textGreeting = findViewById(R.id.textGreeting);\r\n        // 初始化按钮\r\n        btnAddChild = findViewById(R.id.btnAddChild);\r\n        btnViewChildren = findViewById(R.id.btnViewChildren);\r\n        btnManageChild = findViewById(R.id.btnManageChild);\r\n        btnManageSharing = findViewById(R.id.btnManageSharing);\r\n        btnManagePB = findViewById(R.id.btnManagePB);\r\n        btnInventory = findViewById(R.id.btnInventory);\r\n\r\n        // 加载父母名字\r\n        loadParentName();\r\n\r\n        // 设置点击事件\r\n        btnAddChild.setOnClickListener(v ->\r\n                startActivity(new Intent(this, AddChildActivity.class)));\r\n\r\n        btnViewChildren.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ViewChildrenActivity.class)));\r\n\r\n        btnManageChild.setOnClickListener(v -> {\r\n            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);\r\n            intent.putExtra(\"mode\", \"manageChild\");\r\n            startActivity(intent);\r\n        });\r\n\r\n        btnManageSharing.setOnClickListener(v -> {\r\n            Intent intent = new Intent(this, ChooseChildForSharingActivity.class);\r\n            intent.putExtra(\"mode\", \"sharing\");\r\n            startActivity(intent);\r\n        });\r\n\r\n        btnManagePB.setOnClickListener(v ->\r\n                startActivity(new Intent(this, ParentHomeActivity.class)));\r\n        btnInventory.setOnClickListener(v ->\r\n                startActivity(new Intent(this, InventoryActivity.class)));\r\n    }\r\n\r\n    private void loadParentName() {\r\n        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();\r\n\r\n        FirebaseFirestore.getInstance()\r\n                .collection(\"users\")\r\n                .document(uid)\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String name = doc.getString(\"name\");\r\n\r\n                        if (name != null && !name.isEmpty()) {\r\n                            textGreeting.setText(\"Hello, \" + name + \"!\");\r\n                        } else {\r\n                            String email = doc.getString(\"email\");\r\n                            textGreeting.setText(\"Hello, \" + (email != null ? email : \"Parent\") + \"!\");\r\n                        }\r\n                    }\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    textGreeting.setText(\"Hello, Parent!\");\r\n                });\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java b/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java
+--- a/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/app/src/main/java/com/example/smartair/homepages/HomepageParentsActivity.java	(date 1764223709888)
+@@ -25,6 +25,7 @@
+     private Button btnManageSharing;
+     private Button btnManagePB;
+     private Button btnInventory;
++    private Button btnSymptomHistory;
+ 
+     private TextView textGreeting;
+ 
+@@ -41,10 +42,13 @@
+         btnManageSharing = findViewById(R.id.btnManageSharing);
+         btnManagePB = findViewById(R.id.btnManagePB);
+         btnInventory = findViewById(R.id.btnInventory);
++        btnSymptomHistory = findViewById(R.id.btnSymptomHistory);
+ 
+         // 加载父母名字
+         loadParentName();
+ 
++        btnSymptomHistory.setOnClickListener(v ->
++                startActivity(new Intent(this, com.example.smartair.medicine_logs.SymptomHistoryActivity.class)));
+         // 设置点击事件
+         btnAddChild.setOnClickListener(v ->
+                 startActivity(new Intent(this, AddChildActivity.class)));
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.SmartAir\">\r\n        <activity\r\n            android:name=\".inventory.InventoryActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- LOGIN (Launcher) -->\r\n        <activity\r\n            android:name=\".auth.LoginActivity\"\r\n            android:exported=\"true\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n        <activity\r\n            android:name=\".ui.child.ChildPEFActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n        <activity\r\n            android:name=\".ui.child.ChildTriageActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".ui.child.ChildPEFActivity\" />\r\n        <activity\r\n            android:name=\".ui.parent.ParentHomeActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" /> <!-- REGISTER -->\r\n        <activity\r\n            android:name=\".auth.RegisterActivity\"\r\n            android:exported=\"false\" /> <!-- HOMEPAGE -->\r\n        <activity\r\n            android:name=\".homepages.HomepageActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageParentsActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageProvidersActivity\"\r\n            android:exported=\"true\" /> <!-- CHILD MANAGEMENT -->\r\n        <activity\r\n            android:name=\".child_managent.ViewChildrenActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".child_managent.AddChildActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".child_managent.ManageChildActivity\"\r\n            android:exported=\"true\" /> <!-- SHARING MANAGEMENT -->\r\n        <activity\r\n            android:name=\".sharing.ManageSharingActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".child_managent.ChooseChildForSharingActivity\"\r\n            android:exported=\"true\" /> <!-- OTHER SCREENS -->\r\n        <activity\r\n            android:name=\".medicine_logs.LogMedicineActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".technique_guidance.TechniqueActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".pre_post_checks.PrePostCheckActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".sharing.InviteProviderActivity\"\r\n            android:exported=\"false\" /> <!-- OPTIONAL: remove if not used anymore -->\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"false\" />\r\n        <activity android:name=\".badges_system.BadgeActivity\" />\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/app/src/main/AndroidManifest.xml	(date 1764227425191)
+@@ -76,9 +76,16 @@
+             android:name=".sharing.InviteProviderActivity"
+             android:exported="false" /> <!-- OPTIONAL: remove if not used anymore -->
+         <activity
++            android:name=".medicine_logs.DailyCheckInActivity"
++            android:exported="false"/>
++        <activity
++            android:name=".medicine_logs.SymptomHistoryActivity"
++            android:exported="false"/>
++        <activity
+             android:name=".MainActivity"
+             android:exported="false" />
+         <activity android:name=".badges_system.BadgeActivity" />
++
+     </application>
+ 
+ </manifest>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_21\" default=\"true\" project-jdk-name=\"jbr-21\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/.idea/misc.xml	(date 1764367472352)
+@@ -6,4 +6,11 @@
+   <component name="ProjectType">
+     <option name="id" value="Android" />
+   </component>
++  <component name="VisualizationToolProject">
++    <option name="state">
++      <ProjectState>
++        <option name="scale" value="1.0" />
++      </ProjectState>
++    </option>
++  </component>
+ </project>
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_homepage_parents.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"match_parent\"\r\n    android:padding=\"24dp\"\r\n    android:background=\"#FFFFFF\">\r\n\r\n    <LinearLayout\r\n        android:orientation=\"vertical\"\r\n        android:gravity=\"center\"\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"wrap_content\">\r\n\r\n        <TextView\r\n            android:id=\"@+id/textGreeting\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Hello!\"\r\n            android:textSize=\"24sp\"\r\n            android:textStyle=\"bold\"\r\n            android:gravity=\"left\"\r\n            android:layout_marginBottom=\"24dp\"\r\n            android:textColor=\"#333333\" />\r\n\r\n        <!-- 父母相关按钮 -->\r\n        <Button\r\n            android:id=\"@+id/btnAddChild\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Add Child\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnViewChildren\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"View Children\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnManageChild\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Manage Child Activity\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnManageSharing\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Manage Sharing\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnManagePB\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Manage PB\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnInventory\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Inventory\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <!-- 其他功能按钮（可选，如果想和父母主页共用）-->\r\n        <!--\r\n        <Button\r\n            android:id=\"@+id/btnLogMedicine\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Log Medicine\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnTechnique\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Technique Helper\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnPrePostCheck\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Pre/Post Check\"\r\n            android:textSize=\"18sp\"\r\n            android:layout_marginBottom=\"16dp\"\r\n            android:padding=\"12dp\" />\r\n\r\n        <Button\r\n            android:id=\"@+id/btnBadges\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"Badges\"\r\n            android:textSize=\"18sp\"\r\n            android:padding=\"12dp\" />\r\n        -->\r\n\r\n    </LinearLayout>\r\n</ScrollView>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage_parents.xml b/app/src/main/res/layout/activity_homepage_parents.xml
+--- a/app/src/main/res/layout/activity_homepage_parents.xml	(revision 433ef701811fb068a7f6ab65fc7a5bc67f0dbf46)
++++ b/app/src/main/res/layout/activity_homepage_parents.xml	(date 1764223649895)
+@@ -76,6 +76,14 @@
+             android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+             android:padding="12dp" />
++        <Button
++            android:id="@+id/btnSymptomHistory"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Symptom History"
++            android:textSize="18sp"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp" />
+ 
+         <!-- 其他功能按钮（可选，如果想和父母主页共用）-->
+         <!--

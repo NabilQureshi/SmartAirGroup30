@@ -70,8 +70,7 @@
             android:exported="false" />
         <activity
             android:name=".child_managent.ChooseChildForSharingActivity"
-            android:exported="true" />
-        <!-- OTHER SCREENS -->
+            android:exported="true" /> <!-- OTHER SCREENS -->
         <activity
             android:name=".medicine_logs.LogMedicineActivity"
             android:exported="false" />
@@ -84,7 +83,9 @@
         <activity
             android:name=".sharing.InviteProviderActivity"
             android:exported="false" />
-
+        <activity
+            android:name=".auth.ForgotPasswordActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />

@@ -79,6 +79,7 @@
             android:layout_marginBottom="16dp"
             android:padding="12dp" />
 
+
         <Button
             android:id="@+id/btnSignOut"
             android:layout_width="wrap_content"
