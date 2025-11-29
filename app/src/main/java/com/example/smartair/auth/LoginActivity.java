@@ -100,9 +100,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     }
 
                     String parentId = doc.getString("parentId");
-                    String childId = doc.getString("childUid");
+                    String childUid = doc.getString("childUid");
 
-                    if (parentId == null || childId == null) {
+                    if (parentId == null || childUid == null) {
                         hideLoading();
                         showError("Account is not configured correctly");
                         return;
@@ -111,25 +111,47 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     db.collection("users")
                             .document(parentId)
                             .collection("children")
-                            .document(childId)
+                            .document(childUid)
                             .get()
                             .addOnSuccessListener(childDoc -> {
-                                hideLoading();
 
                                 if (!childDoc.exists()) {
+                                    hideLoading();
                                     showError("Child profile missing");
                                     return;
                                 }
 
                                 String savedPw = childDoc.getString("password");
+                                String email = childDoc.getString("email");
 
                                 if (!password.equals(savedPw)) {
+                                    hideLoading();
                                     showError("Incorrect password");
                                     return;
                                 }
-                                prefsHelper.saveUserRole("child");
-                                startActivity(new Intent(this, HomepageActivity.class));
-                                finish();
+
+                                if (email == null) {
+                                    hideLoading();
+                                    showError("Missing email for child account");
+                                    return;
+                                }
+
+                                FirebaseAuth.getInstance()
+                                        .signInWithEmailAndPassword(email, password)
+                                        .addOnSuccessListener(authResult -> {
+                                            hideLoading();
+
+                                            prefsHelper.saveUserRole("child");
+
+                                            // IMPORTANT: Use the CHILD homepage
+                                            startActivity(new Intent(this, HomepageActivity.class));
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            hideLoading();
+                                            showError("Auth login failed: " + e.getMessage());
+                                        });
+
                             })
                             .addOnFailureListener(e -> {
                                 hideLoading();
@@ -142,6 +164,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     showError("Login failed: " + e.getMessage());
                 });
     }
+
 
     @Override
     public void showLoading() {
