@@ -258,7 +258,7 @@ public class ChildPEFActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
-                        Number pbValue = doc.get("personalBest", Number.class);
+                        Long pbValue = doc.getLong("personalBest");
                         currentPersonalBest = pbValue != null ? pbValue.intValue() : null;
                         lastUpdatedZoneState = doc.getString("latestZoneState");
                     } else {
