@@ -25,8 +25,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Today's Zone: Loading..."
-        tools:layout_editor_absoluteX="33dp"
-        tools:layout_editor_absoluteY="117dp" />
+        app:layout_constraintStart_toStartOf="@+id/title"
+        app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <TextView
         android:id="@+id/lastRescueText"
@@ -50,10 +50,10 @@
         android:id="@+id/exportButton"
         android:layout_width="163dp"
         android:layout_height="57dp"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="8dp"
         android:text="Export"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="233dp" />
+        app:layout_constraintStart_toStartOf="@id/weeklyRescueText"
+        app:layout_constraintTop_toBottomOf="@+id/weeklyRescueText" />
 
     <Button
         android:id="@+id/trendTimelineToggle"

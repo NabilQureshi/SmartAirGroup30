@@ -52,7 +52,8 @@ public class DashboardActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
     private FirebaseFirestore database;
-    private String parentId, childId;
+    private String parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private String childId;
     private String username, password, name, dob, notes;
 
     @Override
@@ -161,6 +162,47 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void loadTodaysZone() {
+        database.collection("users")
+                .document(childId)
+                .collection("pef_entries")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        DocumentSnapshot doc = query.getDocuments().get(0);
+                        Long timestamp = doc.getLong("timestamp");
+                        Long currentPEF = doc.getLong("pefValue");
+                        if (isFromToday(timestamp)) {
+                            todayZoneText.setText("Today's Zone (not quite yet): " + currentPEF);
+                        } else {
+                            todayZoneText.setText("Today's Zone: No PEF data today");
+                        }
+                    } else {
+                        todayZoneText.setText("Today's Zone: " + childId);
+                    }
+                });
+    }
+
+    private boolean isFromToday(Long timestamp) {
+        if (timestamp == null) return false;
+
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+        long startOfToday = today.getTimeInMillis();
+
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_YEAR, 1);
+        tomorrow.set(Calendar.HOUR_OF_DAY, 0);
+        tomorrow.set(Calendar.MINUTE, 0);
+        tomorrow.set(Calendar.SECOND, 0);
+        tomorrow.set(Calendar.MILLISECOND, 0);
+        long startOfTomorrow = tomorrow.getTimeInMillis();
+
+        return timestamp >= startOfToday && timestamp < startOfTomorrow;
     }
 
     private void setupRealTimeListeners() {
