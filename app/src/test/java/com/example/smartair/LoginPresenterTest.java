@@ -1,5 +1,8 @@
-package com.example.smartair.auth;
+package com.example.smartair;
 
+import com.example.smartair.auth.AuthModel;
+import com.example.smartair.auth.LoginContract;
+import com.example.smartair.auth.LoginPresenter;
 import com.example.smartair.models.UserRole;
 
 import org.junit.Before;

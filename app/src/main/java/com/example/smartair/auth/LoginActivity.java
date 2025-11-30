@@ -147,7 +147,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
                                             prefsHelper.saveUserRole("child");
                                 prefsHelper.saveUserRole("child");
-                                prefsHelper.saveUserId(childId);
+                                prefsHelper.saveUserId(childUid);
                                 prefsHelper.saveParentId(parentId);
 
                                             // IMPORTANT: Use the CHILD homepage
@@ -189,11 +189,13 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
+
     @Override
     public void navigateToHome(UserRole role) {
         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
         if (user == null) return;
 
+        // CHILD LOGIN FLOW
         if (isChildLogin) {
             prefsHelper.saveUserRole("child");
 
@@ -204,44 +206,52 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             } else {
                 intent = new Intent(this, HomepageActivity.class);
             }
+
             startActivity(intent);
             finish();
             return;
         }
-        // Store parent email + password for child creation login fix
+
+        // NORMAL LOGIN FLOW (parent/provider)
         SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_EMAIL", getEmail());
         SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_PASSWORD", getPassword());
 
-        db.collection("users").document(user.getUid())
+
+        db.collection("users")
+                .document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String roleStr = doc.getString("role");
-                        if (roleStr == null) roleStr = "child";
-
-                        UserRole userRole = UserRole.fromString(roleStr);
-                        prefsHelper.saveUserRole(userRole.getValue());
-                        prefsHelper.saveUserId(user.getUid());
-
-                        switch (userRole) {
-                            case CHILD:
-                                startActivity(new Intent(this, HomepageActivity.class));
-                                break;
-                            case PARENT:
-                                startActivity(new Intent(this, HomepageParentsActivity.class));
-                                break;
-                            case PROVIDER:
-                                startActivity(new Intent(this, HomepageProvidersActivity.class));
-                                break;
-                        }
-                        startActivity(intent);
-                        finish();
-                    } else {
+                    if (!doc.exists()) {
                         Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+
+                    String roleStr = doc.getString("role");
+                    if (roleStr == null) roleStr = "child";
+
+                    UserRole userRole = UserRole.fromString(roleStr);
+                    prefsHelper.saveUserRole(userRole.getValue());
+                    prefsHelper.saveUserId(user.getUid());
+
+                    switch (userRole) {
+                        case CHILD:
+                            startActivity(new Intent(this, HomepageActivity.class));
+                            break;
+                        case PARENT:
+                            startActivity(new Intent(this, HomepageParentsActivity.class));
+                            break;
+                        case PROVIDER:
+                            startActivity(new Intent(this, HomepageProvidersActivity.class));
+                            break;
+                    }
+
+                    finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
+
 
     @Override
     public String getEmail() {
