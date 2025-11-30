@@ -1,18 +1,14 @@
 package com.example.smartair.checkin;
 
 import android.os.Bundle;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
-import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.smartair.R;
 import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -25,12 +21,13 @@ public class SymptomCheckInActivity extends AppCompatActivity {
     private Button btnSubmit;
 
     // Firebase
-    private FirebaseFirestore db;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    // Roles & user flow
-    private String submittedBy = "Guest";   // who is performing check-in
-    private String targetUID = "anonymous"; // who the check-in belongs to (child)
-    private boolean openedByParent = false;
+    // Submission Identity
+    private boolean parentMode = false;
+    private String loggedInUid = "anonymous";  // whoever is using device
+    private String targetUid = "anonymous";    // whose record is being written
+    private String submittedByRole = "guest";  // data written to DB
 
     private String todayId;
 
@@ -39,29 +36,26 @@ public class SymptomCheckInActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_symptom_check_in);
 
-        db = FirebaseFirestore.getInstance();
         todayId = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-        // Determine if parent opened a child check-in
-        openedByParent = getIntent().getBooleanExtra("openedByParent", false);
-        String childId = getIntent().getStringExtra("childId");
+        // ------------------------ WHO IS SUBMITTING? ------------------------
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            loggedInUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
 
-        if (openedByParent && childId != null) {
-            targetUID = childId;
-            submittedBy = "parent";   // parent is recording FOR child
+        parentMode = getIntent().getBooleanExtra("openedByParent", false);
+
+        if (parentMode) {
+            targetUid = getIntent().getStringExtra("childId");
+            submittedByRole = "parent";
             Toast.makeText(this, "Parent editing child's check-in", Toast.LENGTH_SHORT).show();
-        }
-        else if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            targetUID = FirebaseAuth.getInstance().getCurrentUser().getUid(); // save under child self account
-            submittedBy = "child";  // child doing their own check-in
-        }
-        else {
-            targetUID = "anonymous";
-            submittedBy = "Guest"; // emergency use only
-            Toast.makeText(this, "No login detected — Guest mode", Toast.LENGTH_SHORT).show();
+
+        } else {
+            targetUid = loggedInUid; // child is submitting for themselves
+            submittedByRole = "child";
         }
 
-        // UI binding
+        // ------------------------ UI SETUP ------------------------
         rgNightWaking = findViewById(R.id.rg_night_waking);
         rgActivityLimits = findViewById(R.id.rg_activity_limits);
         rgCough = findViewById(R.id.rg_cough);
@@ -77,34 +71,31 @@ public class SymptomCheckInActivity extends AppCompatActivity {
         btnSubmit = findViewById(R.id.btn_submit);
         btnSubmit.setEnabled(false);
 
-        setupRadioGroupListeners();
-        btnSubmit.setOnClickListener(v -> saveOrUpdateCheckIn());
+        setupRadioListeners();
+        btnSubmit.setOnClickListener(v -> saveCheckin());
     }
 
-    private void setupRadioGroupListeners() {
-        RadioGroup.OnCheckedChangeListener listen = (group, checkedId) -> checkAllSelected();
-        rgNightWaking.setOnCheckedChangeListener(listen);
-        rgActivityLimits.setOnCheckedChangeListener(listen);
-        rgCough.setOnCheckedChangeListener(listen);
-        rgChestPain.setOnCheckedChangeListener(listen);
+    private void setupRadioListeners() {
+        RadioGroup.OnCheckedChangeListener listener = (g, id) -> validateSelectable();
+        rgNightWaking.setOnCheckedChangeListener(listener);
+        rgActivityLimits.setOnCheckedChangeListener(listener);
+        rgCough.setOnCheckedChangeListener(listener);
+        rgChestPain.setOnCheckedChangeListener(listener);
     }
 
-    private void checkAllSelected() {
-        boolean ready =
-                rgNightWaking.getCheckedRadioButtonId() != -1 &&
-                        rgActivityLimits.getCheckedRadioButtonId() != -1 &&
-                        rgCough.getCheckedRadioButtonId() != -1 &&
-                        rgChestPain.getCheckedRadioButtonId() != -1;
-
-        btnSubmit.setEnabled(ready);
+    private void validateSelectable() {
+        boolean enable = rgNightWaking.getCheckedRadioButtonId() != -1 &&
+                rgActivityLimits.getCheckedRadioButtonId() != -1 &&
+                rgCough.getCheckedRadioButtonId() != -1 &&
+                rgChestPain.getCheckedRadioButtonId() != -1;
+        btnSubmit.setEnabled(enable);
     }
 
-    private String getSelected(RadioGroup g) {
-        RadioButton rb = findViewById(g.getCheckedRadioButtonId());
-        return rb.getText().toString();
+    private String sel(RadioGroup g){
+        return ((RadioButton)findViewById(g.getCheckedRadioButtonId())).getText().toString();
     }
 
-    private void saveOrUpdateCheckIn() {
+    private void saveCheckin() {
 
         List<String> triggers = new ArrayList<>();
         if (chipExercise.isChecked()) triggers.add("Exercise");
@@ -115,26 +106,25 @@ public class SymptomCheckInActivity extends AppCompatActivity {
         if (chipPerfume.isChecked()) triggers.add("Perfume/Odors");
 
         Map<String,Object> data = new HashMap<>();
-        data.put("nightWaking", getSelected(rgNightWaking));
-        data.put("activityLimits", getSelected(rgActivityLimits));
-        data.put("cough", getSelected(rgCough));
-        data.put("chestPain", getSelected(rgChestPain));
+        data.put("nightWaking", sel(rgNightWaking));
+        data.put("activityLimits", sel(rgActivityLimits));
+        data.put("cough", sel(rgCough));
+        data.put("chestPain", sel(rgChestPain));
         data.put("triggers", triggers);
-        data.put("submittedBy", submittedBy);  // <-- FIXED always correct
+        data.put("submittedBy", submittedByRole);   // child or parent
+        data.put("submittedByUid", loggedInUid);    // who actually pressed submit
         data.put("lastUpdated", System.currentTimeMillis());
 
         DocumentReference doc = db.collection("symptomCheckIns")
-                .document(targetUID)
+                .document(targetUid)    // ALWAYS child's UID
                 .collection("daily")
-                .document(todayId); // only 1 per day per user
+                .document(todayId);
 
         doc.set(data)
-                .addOnSuccessListener(x -> {
-                    Toast.makeText(this, "Saved for " + todayId + " (" + submittedBy + ")", Toast.LENGTH_SHORT).show();
-                    finish();
+                .addOnSuccessListener(a->{
+                    Toast.makeText(this,"Saved for "+todayId,Toast.LENGTH_SHORT).show();
+                    finish(); // return to home page
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e->Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show());
     }
 }
