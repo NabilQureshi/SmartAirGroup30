@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.smartair.checkin.ParentChildSelectActivity; // Added
 
-public class HomepageParentsActivity extends AppCompatActivity {
+public class HomepageParentsActivity extends BaseActivity {
 
     private Button btnAddChild;
     private Button btnViewChildren;

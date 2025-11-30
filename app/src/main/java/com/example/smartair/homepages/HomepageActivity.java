@@ -24,7 +24,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 
-public class HomepageActivity extends AppCompatActivity {
+public class HomepageActivity extends BaseActivity {
 
     private Button btnLogMedicine;
     private Button btnTechnique;
@@ -48,7 +48,8 @@ public class HomepageActivity extends AppCompatActivity {
         btnBadge = findViewById(R.id.btnBadges);
         btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);
         btnCheckSymptom = findViewById(R.id.btnCheckSymptom);
-        btnSymptomCheckIn = findViewById(R.id.btnSymptomCheckIn); // added
+        btnSymptomCheckIn = findViewById(R.id.btnSymptomCheckIn);
+        btnSignOut = findViewById(R.id.btnSignOut);
 
         btnLogMedicine.setOnClickListener(v ->
                 startActivity(new Intent(this, LogMedicineActivity.class)));
