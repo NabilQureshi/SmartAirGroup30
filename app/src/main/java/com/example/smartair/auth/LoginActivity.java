@@ -86,8 +86,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
         presenter.onLoginClicked();
     }
+
     private void loginChild(String username, String password) {
         showLoading();
+
+        FirebaseAuth.getInstance().signOut();
 
         db.collection("usernames")
                 .document(username)
@@ -114,6 +117,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                             .document(childUid)
                             .get()
                             .addOnSuccessListener(childDoc -> {
+                                hideLoading();
 
                                 if (!childDoc.exists()) {
                                     hideLoading();
@@ -142,6 +146,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                                             hideLoading();
 
                                             prefsHelper.saveUserRole("child");
+                                prefsHelper.saveUserRole("child");
+                                prefsHelper.saveUserId(childId);
+                                prefsHelper.saveParentId(parentId);
 
                                             // IMPORTANT: Use the CHILD homepage
                                             startActivity(new Intent(this, HomepageActivity.class));
@@ -165,7 +172,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                 });
     }
 
-
     @Override
     public void showLoading() {
         progressBar.setVisibility(ProgressBar.VISIBLE);
@@ -186,11 +192,19 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void navigateToHome(UserRole role) {
         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
-
         if (user == null) return;
+
         if (isChildLogin) {
             prefsHelper.saveUserRole("child");
-            startActivity(new Intent(this, HomepageActivity.class));
+
+            Intent intent;
+            if (!prefsHelper.isOnboardingComplete()) {
+                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+                intent.putExtra("userRole", "child");
+            } else {
+                intent = new Intent(this, HomepageActivity.class);
+            }
+            startActivity(intent);
             finish();
             return;
         }
@@ -207,6 +221,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
                         UserRole userRole = UserRole.fromString(roleStr);
                         prefsHelper.saveUserRole(userRole.getValue());
+                        prefsHelper.saveUserId(user.getUid());
 
                         switch (userRole) {
                             case CHILD:
@@ -219,6 +234,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                                 startActivity(new Intent(this, HomepageProvidersActivity.class));
                                 break;
                         }
+                        startActivity(intent);
                         finish();
                     } else {
                         Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();

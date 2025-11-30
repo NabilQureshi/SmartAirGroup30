@@ -9,6 +9,8 @@ public class SharedPrefsHelper {
     private static final String PREFS_NAME = "SmartAirPrefs";
     private static final String KEY_USER_ROLE = "user_role";
     private static final String KEY_USER_UID = "user_uid";
+    private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_PARENT_ID = "parent_id";
     private static final String KEY_ONBOARDING_COMPLETE = "onboarding_complete";
 
     private final SharedPreferences preferences;
@@ -44,6 +46,22 @@ public class SharedPrefsHelper {
         return preferences.getString(KEY_USER_UID, null);
     }
 
+    public void saveUserId(String userId) {
+        preferences.edit().putString(KEY_USER_ID, userId).apply();
+    }
+
+    public String getUserId() {
+        return preferences.getString(KEY_USER_ID, null);
+    }
+
+    public void saveParentId(String parentId) {
+        preferences.edit().putString(KEY_PARENT_ID, parentId).apply();
+    }
+
+    public String getParentId() {
+        return preferences.getString(KEY_PARENT_ID, null);
+    }
+
     public void clear() {
         preferences.edit().clear().apply();
     }
@@ -53,6 +71,8 @@ public class SharedPrefsHelper {
         preferences.edit()
                 .remove(KEY_USER_ROLE)
                 .remove(KEY_USER_UID)
+                .remove(KEY_USER_ID)
+                .remove(KEY_PARENT_ID)
                 .apply();
     }
 

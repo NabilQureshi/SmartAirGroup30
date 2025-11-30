@@ -50,6 +50,11 @@ public class RegisterActivity extends AppCompatActivity {
         authModel = new AuthModel();
         db = FirebaseFirestore.getInstance();
 
+        View radioChild = findViewById(R.id.radioChild);
+        if (radioChild != null) {
+            radioChild.setVisibility(View.GONE);
+        }
+
         registerButton.setOnClickListener(v -> register());
         backToLoginTextView.setOnClickListener(v -> finish());
     }
@@ -75,8 +80,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // 固定写死 role，也可以按界面选择
-        UserRole role = UserRole.CHILD;
+        UserRole role = UserRole.PARENT;
         int checkedId = roleRadioGroup.getCheckedRadioButtonId();
         if (checkedId == R.id.radioParent) role = UserRole.PARENT;
         else if (checkedId == R.id.radioProvider) role = UserRole.PROVIDER;
@@ -84,7 +88,6 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar.setVisibility(android.view.View.VISIBLE);
         registerButton.setEnabled(false);
 
-        // 超时处理
         timeoutRunnable = () -> {
             progressBar.setVisibility(android.view.View.GONE);
             registerButton.setEnabled(true);
@@ -97,12 +100,11 @@ public class RegisterActivity extends AppCompatActivity {
             public void onSuccess(UserRole r) {
                 timeoutHandler.removeCallbacks(timeoutRunnable);
 
-                // 注册成功后把用户信息写入 Firestore
                 String uid = authModel.mAuth.getCurrentUser().getUid();
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("name", name);
                 userMap.put("email", email);
-                userMap.put("role", r.getValue()); // ✅ 用枚举 getValue 写入 Firestore
+                userMap.put("role", r.getValue());
 
                 db.collection("users").document(uid)
                         .set(userMap)
@@ -110,7 +112,7 @@ public class RegisterActivity extends AppCompatActivity {
                             progressBar.setVisibility(android.view.View.GONE);
                             registerButton.setEnabled(true);
                             Toast.makeText(RegisterActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
-                            finish(); // 返回登录页
+                            finish();
                         })
                         .addOnFailureListener(e -> {
                             progressBar.setVisibility(android.view.View.GONE);
