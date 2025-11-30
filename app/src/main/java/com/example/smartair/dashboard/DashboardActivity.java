@@ -62,9 +62,6 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        initializeViews();
-        initializeFirebase();
-
         childId = getIntent().getStringExtra("childId");
         username = getIntent().getStringExtra("username");
         password = getIntent().getStringExtra("password");
@@ -73,6 +70,14 @@ public class DashboardActivity extends AppCompatActivity {
         notes = getIntent().getStringExtra("notes");
         exportButton.setOnClickListener(v -> generateProviderReport());
         trendTimelineToggle.setOnClickListener(v -> toggleTrendRange());
+
+        initializeViews();
+        initializeFirebase();
+        loadDashboardData();
+        setupRealTimeListeners();
+        checkFirebaseStructure();
+        setupBasicChart();
+        checkForAlerts();
 
         if (childId == null) {
             Toast.makeText(this, "Error: No child selected.", Toast.LENGTH_LONG).show();
@@ -92,11 +97,30 @@ public class DashboardActivity extends AppCompatActivity {
             intent.putExtra("notes", notes);
             startActivity(intent);
         });
+    }
 
-        loadDashboardData();
-        setupRealTimeListeners();
-        checkFirebaseStructure();
-        setupBasicChart();
+    private void checkForAlerts() {
+        checkRedZoneAlert();
+        checkRapidRescueAlert();
+        checkWorseAfterDoseAlert();
+        checkTriageEscalationAlert();
+        checkLowInventoryAlert();
+
+    }
+
+    private void checkLowInventoryAlert() {
+    }
+
+    private void checkTriageEscalationAlert() {
+    }
+
+    private void checkWorseAfterDoseAlert() {
+    }
+
+    private void checkRapidRescueAlert() {
+    }
+
+    private void checkRedZoneAlert() {
     }
 
     private void debugFirebaseStructure() {
@@ -131,14 +155,7 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        childSettings = findViewById(R.id.childSettings);
-        trendChart = findViewById(R.id.trendChart);
-        exportButton = findViewById(R.id.exportButton);
-        trendTimelineToggle = findViewById(R.id.trendTimelineToggle);
-        todayZoneText = findViewById(R.id.todayZoneText);
-        lastRescueText = findViewById(R.id.lastRescueText);
-        weeklyRescueText = findViewById(R.id.weeklyRescueText);
-        title = findViewById(R.id.title);
+
     }
 
     private void initializeFirebase() {
