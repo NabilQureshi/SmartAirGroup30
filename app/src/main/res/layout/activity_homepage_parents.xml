@@ -78,6 +78,24 @@
             android:padding="12dp" />
 
         <Button
+            android:id="@+id/btnChildCheckIn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Daily Symptom Check-In for Children"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnSymptomHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Symptom History (6 Months)"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
             android:id="@+id/btnSignOut"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

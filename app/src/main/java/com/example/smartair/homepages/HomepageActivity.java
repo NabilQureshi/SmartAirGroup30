@@ -2,12 +2,16 @@ package com.example.smartair.homepages;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
+
+import com.example.smartair.checkin.SymptomCheckInActivity;
 import com.example.smartair.badges_system.BadgeActivity;
 
 import com.example.smartair.medicine_logs.LogMedicineActivity;
@@ -19,18 +23,19 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class HomepageActivity extends BaseActivity {
+
+public class HomepageActivity extends AppCompatActivity {
 
     private Button btnLogMedicine;
     private Button btnTechnique;
     private Button btnPrePostCheck;
-    private Button btnBadge;
+    private Button btnBadge; // 只声明，不初始化
     private Button btnCheckPeakFlow;
     private Button btnCheckSymptom;
     private Button btnSignOut;
 
     private TextView textGreeting;
-
+    private Button btnSymptomCheckIn; // added
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,7 +48,7 @@ public class HomepageActivity extends BaseActivity {
         btnBadge = findViewById(R.id.btnBadges);
         btnCheckPeakFlow = findViewById(R.id.btnCheckPeakFlow);
         btnCheckSymptom = findViewById(R.id.btnCheckSymptom);
-        btnSignOut = findViewById(R.id.btnSignOut);
+        btnSymptomCheckIn = findViewById(R.id.btnSymptomCheckIn); // added
 
         btnLogMedicine.setOnClickListener(v ->
                 startActivity(new Intent(this, LogMedicineActivity.class)));
@@ -65,6 +70,8 @@ public class HomepageActivity extends BaseActivity {
 
         btnSignOut.setOnClickListener(v -> signOut());
         loadChildUsername();
+        btnSymptomCheckIn.setOnClickListener(v ->  //  Added new button action
+                startActivity(new Intent(this, SymptomCheckInActivity.class)));
     }
 
     private void loadChildUsername() {
@@ -83,6 +90,7 @@ public class HomepageActivity extends BaseActivity {
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String username = doc.getString("username");
+
                         if (username != null && !username.isEmpty()) {
                             textGreeting.setText("Hello, " + username + "!");
                         } else {
@@ -95,4 +103,6 @@ public class HomepageActivity extends BaseActivity {
                 .addOnFailureListener(e ->
                         textGreeting.setText("Hello, Child!"));
     }
+
 }
+

@@ -21,6 +21,7 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class AddChildActivity extends AppCompatActivity {
 
@@ -110,6 +111,7 @@ public class AddChildActivity extends AppCompatActivity {
             if (doc.exists()) {
                 Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
             } else {
+                // Create child WITHOUT FirebaseAuth account
                 createChildFirebaseAuth(username, password, name, dob, notes);
             }
         });
@@ -134,32 +136,26 @@ public class AddChildActivity extends AppCompatActivity {
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-
                     String childUid = authResult.getUser().getUid();
-
-                    auth.signInWithEmailAndPassword(parentEmail, parentPassword)
-                            .addOnSuccessListener(parentLoginResult -> {
-
-                                saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
-
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(this, "Failed to log parent back in: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            });
-
+                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
-
-
+    /**
+     * Store child in:
+     *  - users/{parentId}/children/{childUid}
+     *  - users/{childUid}
+     *  - usernames/{username}
+     */
     private void saveChildFirestore(String parentId, String childUid, String username, String email,
                                     String name, String dob, String notes, String password) {
 
         WriteBatch batch = db.batch();
 
+        // users/{parentId}/children/{childUid}
         DocumentReference childRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
