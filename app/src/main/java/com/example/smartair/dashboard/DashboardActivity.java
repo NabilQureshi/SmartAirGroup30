@@ -1,6 +1,7 @@
 package com.example.smartair.dashboard;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -81,9 +82,6 @@ public class DashboardActivity extends AppCompatActivity {
 
         title.setText("Hi " + name + "!");
 
-        loadDashboardData();
-        setupRealTimeListeners();
-
         childSettings.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, ManageChildActivity.class);
             intent.putExtra("childId", childId);
@@ -94,6 +92,11 @@ public class DashboardActivity extends AppCompatActivity {
             intent.putExtra("notes", notes);
             startActivity(intent);
         });
+
+        loadDashboardData();
+        setupRealTimeListeners();
+        checkFirebaseStructure();
+        setupBasicChart();
     }
 
     private void debugFirebaseStructure() {
@@ -156,14 +159,69 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void loadWeeklyRescueCount() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -7);
+        long weekAgo = cal.getTimeInMillis();
+
+        database.collection("users")
+                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .collection("medicine_logs")
+                //.whereEqualTo("type", "Rescue")
+                //.whereGreaterThanOrEqualTo("timestamp", weekAgo)
+                .get()
+                .addOnSuccessListener(query -> {
+                    int count = query.size();
+                    weeklyRescueText.setText("Weekly Rescues: " + count);
+                })
+                .addOnFailureListener(e -> {
+                    weeklyRescueText.setText("Weekly Rescues: Error");
+                    Log.e("Dashboard", "Error loading weekly rescues", e);
+                });;
     }
 
     private void loadLastRescueTime() {
+        database.collection("users")
+                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .collection("medicine_logs")
+                //.whereEqualTo("type", "Rescue")
+                //.orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        DocumentSnapshot doc = query.getDocuments().get(0);
+                        Long timestamp = doc.getLong("timestamp");
+
+                        String timeDisplay = formatRescueTime(timestamp);
+                        lastRescueText.setText("Last Rescue: " + timestamp);
+                    } else {
+                        lastRescueText.setText("Last Rescue: Never");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    lastRescueText.setText("Last Rescue: Error loading");
+                });
+    }
+
+    private void setupBasicChart() {
+        // Just show some sample data to prove chart works
+        List<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(1, 300f));
+        entries.add(new Entry(2, 350f));
+        entries.add(new Entry(3, 320f));
+        entries.add(new Entry(4, 370f));
+
+        LineDataSet dataSet = new LineDataSet(entries, "PEF");
+        dataSet.setColor(Color.BLUE);
+
+        trendChart.setData(new LineData(dataSet));
+        trendChart.getDescription().setEnabled(false);
+        trendChart.invalidate();
     }
 
     private void loadTodaysZone() {
         database.collection("users")
-                .document(childId)
+                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
                 .collection("pef_entries")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(1)
@@ -182,6 +240,77 @@ public class DashboardActivity extends AppCompatActivity {
                         todayZoneText.setText("Today's Zone: " + childId);
                     }
                 });
+    }
+
+    private void checkFirebaseStructure() {
+        Log.d("DEBUG", "Checking Firebase structure for child: " + childId);
+
+        // Check if child document exists
+        database.collection("users")
+                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Log.d("DEBUG", "Child document exists: " + doc.getData());
+                    } else {
+                        Log.d("DEBUG", "Child document does NOT exist");
+                    }
+                });
+
+        // Check what collections exist under child
+        database.collection("users")
+                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .collection("medicine_logs")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.isEmpty()) {
+                        Log.d("DEBUG", "medicine_logs exists. Sample: " + snapshot.getDocuments().get(0).getData());
+                    } else {
+                        Log.d("DEBUG", "medicine_logs collection exists but is empty");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.d("DEBUG", "medicine_logs collection does NOT exist or error: " + e.getMessage());
+                });
+
+        // Check pef_entries collection
+        database.collection("users")
+                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .collection("pef_entries")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.isEmpty()) {
+                        Log.d("DEBUG", "pef_entries exists. Sample: " + snapshot.getDocuments().get(0).getData());
+                    } else {
+                        Log.d("DEBUG", "pef_entries collection exists but is empty");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.d("DEBUG", "pef_entries collection does NOT exist or error: " + e.getMessage());
+                });
+    }
+
+    private String formatRescueTime(Long timestamp) {
+        if (timestamp == null) return "Unknown";
+
+        long now = System.currentTimeMillis();
+        long diff = now - timestamp;
+
+        long minutes = diff / (1000 * 60);
+        long hours = minutes / 60;
+        long days = hours / 24;
+
+        if (days > 0) {
+            return days + " day" + (days > 1 ? "s" : "") + " ago";
+        } else if (hours > 0) {
+            return hours + " hour" + (hours > 1 ? "s" : "") + " ago";
+        } else if (minutes > 0) {
+            return minutes + " minute" + (minutes > 1 ? "s" : "") + " ago";
+        } else {
+            return "Just now";
+        }
     }
 
     private boolean isFromToday(Long timestamp) {

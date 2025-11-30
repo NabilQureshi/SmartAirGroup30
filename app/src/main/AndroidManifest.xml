@@ -12,9 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
-            android:name=".inventory.InventoryActivity"
+            android:name=".ui.parent.NotificationActivity"
             android:exported="false" />
-        <!-- LOGIN (Launcher) -->
+        <activity
+            android:name=".inventory.InventoryActivity"
+            android:exported="false" /> <!-- LOGIN (Launcher) -->
         <activity
             android:name=".auth.LoginActivity"
             android:exported="true">
@@ -35,16 +37,13 @@
         <activity
             android:name=".ui.parent.ParentHomeActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
-        <!-- REGISTER -->
+            android:parentActivityName=".MainActivity" /> <!-- REGISTER -->
         <activity
             android:name=".auth.RegisterActivity"
-            android:exported="false" />
-        <!-- FORGOT PASSWORD -->
+            android:exported="false" /> <!-- FORGOT PASSWORD -->
         <activity
             android:name=".auth.ForgotPasswordActivity"
-            android:exported="false" />
-        <!-- HOMEPAGE -->
+            android:exported="false" /> <!-- HOMEPAGE -->
         <activity
             android:name=".homepages.HomepageActivity"
             android:exported="true" />
@@ -53,8 +52,7 @@
             android:exported="true" />
         <activity
             android:name=".homepages.HomepageProvidersActivity"
-            android:exported="true" />
-        <!-- CHILD MANAGEMENT -->
+            android:exported="true" /> <!-- CHILD MANAGEMENT -->
         <activity
             android:name=".child_managent.ViewChildrenActivity"
             android:exported="true" />
@@ -64,16 +62,13 @@
         <activity
             android:name=".child_managent.ManageChildActivity"
             android:exported="true" />
-        <activity
-            android:name=".dashboard.DashboardActivity" />
-        <!-- SHARING MANAGEMENT -->
+        <activity android:name=".dashboard.DashboardActivity" /> <!-- SHARING MANAGEMENT -->
         <activity
             android:name=".sharing.ManageSharingActivity"
             android:exported="false" />
         <activity
             android:name=".child_managent.ChooseChildForSharingActivity"
-            android:exported="true" />
-        <!-- OTHER SCREENS -->
+            android:exported="true" /> <!-- OTHER SCREENS -->
         <activity
             android:name=".medicine_logs.LogMedicineActivity"
             android:exported="false" />
@@ -86,12 +81,10 @@
         <activity
             android:name=".sharing.InviteProviderActivity"
             android:exported="false" />
-
         <activity
             android:name=".MainActivity"
             android:exported="false" />
         <activity android:name=".badges_system.BadgeActivity" />
-
         <activity
             android:name=".onboarding.OnboardingActivity"
             android:exported="false" />
