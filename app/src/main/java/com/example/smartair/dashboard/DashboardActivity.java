@@ -62,6 +62,13 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
+        initializeViews();
+        initializeFirebase();
+        loadDashboardData();
+        setupRealTimeListeners();
+        checkFirebaseStructure();
+        setupBasicChart();
+
         childId = getIntent().getStringExtra("childId");
         username = getIntent().getStringExtra("username");
         password = getIntent().getStringExtra("password");
@@ -71,13 +78,7 @@ public class DashboardActivity extends AppCompatActivity {
         exportButton.setOnClickListener(v -> generateProviderReport());
         trendTimelineToggle.setOnClickListener(v -> toggleTrendRange());
 
-        initializeViews();
-        initializeFirebase();
-        loadDashboardData();
-        setupRealTimeListeners();
-        checkFirebaseStructure();
-        setupBasicChart();
-        checkForAlerts();
+        //checkForAlerts();
 
         if (childId == null) {
             Toast.makeText(this, "Error: No child selected.", Toast.LENGTH_LONG).show();
@@ -155,7 +156,14 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-
+        todayZoneText = findViewById(R.id.todayZoneText);
+        lastRescueText = findViewById(R.id.lastRescueText);
+        weeklyRescueText = findViewById(R.id.weeklyRescueText);
+        title = findViewById(R.id.title);
+        exportButton = findViewById(R.id.exportButton);
+        trendTimelineToggle = findViewById(R.id.trendTimelineToggle);
+        childSettings = findViewById(R.id.childSettings);
+        trendChart = findViewById(R.id.trendChart);
     }
 
     private void initializeFirebase() {

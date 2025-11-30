@@ -85,6 +85,7 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity android:name=".badges_system.BadgeActivity" />
+
         <activity
             android:name=".onboarding.OnboardingActivity"
             android:exported="false" />
