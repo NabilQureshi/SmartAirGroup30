@@ -97,6 +97,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private void loginChild(String username, String password) {
         showLoading();
 
+        FirebaseAuth.getInstance().signOut();
+
         db.collection("usernames")
                 .document(username)
                 .get()
@@ -137,6 +139,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                                 }
 
                                 prefsHelper.saveUserRole("child");
+                                prefsHelper.saveUserId(childId);
+                                prefsHelper.saveParentId(parentId);
 
                                 Intent intent;
                                 if (!prefsHelper.isOnboardingComplete()) {
@@ -206,6 +210,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
                         UserRole userRole = UserRole.fromString(roleStr);
                         prefsHelper.saveUserRole(userRole.getValue());
+                        prefsHelper.saveUserId(user.getUid());
 
                         Intent intent;
                         if (!prefsHelper.isOnboardingComplete()) {
