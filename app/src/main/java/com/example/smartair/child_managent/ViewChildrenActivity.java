@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartair.R;
+import com.example.smartair.dashboard.DashboardActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -45,7 +46,7 @@ public class ViewChildrenActivity extends AppCompatActivity {
 
         // 初始化 Adapter
         adapter = new ChildAdapter(childList, child -> {
-            Intent intent = new Intent(ViewChildrenActivity.this, ManageChildActivity.class);
+            Intent intent = new Intent(ViewChildrenActivity.this, DashboardActivity.class);
             intent.putExtra("childId", child.getUid());
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());

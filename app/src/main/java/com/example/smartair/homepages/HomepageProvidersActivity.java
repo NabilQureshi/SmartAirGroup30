@@ -19,7 +19,7 @@ public class HomepageProvidersActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage_providers);
 
-        textGreeting = findViewById(R.id.main);
+        textGreeting = findViewById(R.id.textGreeting);
         btnSignOut = findViewById(R.id.btnSignOut);
 
         btnSignOut.setOnClickListener(v -> signOut());
