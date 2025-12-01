@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.child_managent.ChildAdapter;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class DashboardActivity extends AppCompatActivity {
     private TextView todayZoneText, lastRescueText, weeklyRescueText, title;
@@ -110,6 +112,24 @@ public class DashboardActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            checkForAlerts();
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .show();
+
+        Toast.makeText(this, title + ": " + message, Toast.LENGTH_LONG).show();
+    }
+
     private void checkLowInventoryAlert() {
     }
 
@@ -117,6 +137,22 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void checkWorseAfterDoseAlert() {
+        database.collection("users")
+                .document(childId)
+                .collection("prepost_checks")
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        for (DocumentSnapshot doc : query) {
+                            Long timestamp = doc.getLong("timestamp");
+                            if (Objects.equals(doc.getString("result"), "worse") && Objects.equals(doc.getString("when"), "before")  && isFromToday(timestamp)) {
+                                showAlert("Worse After Dose for child " + childId,
+                                        "Symptoms worsened after medication. Please monitor your child closely!");
+                                return;
+                            }
+                        }
+                    }
+                });
     }
 
     private void checkRapidRescueAlert() {
