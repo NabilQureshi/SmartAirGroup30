@@ -131,9 +131,12 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void checkLowInventoryAlert() {
+        // Dealt with elsewhere
     }
 
+
     private void checkTriageEscalationAlert() {
+        // Dealt with elsewhere
     }
 
     private void checkWorseAfterDoseAlert() {
