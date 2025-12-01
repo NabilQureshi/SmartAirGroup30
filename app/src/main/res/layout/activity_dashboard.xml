@@ -5,84 +5,190 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".dashboard.DashboardActivity">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
         android:text="Hi Nabil!"
         android:textColor="@android:color/black"
         android:textSize="32sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="52dp" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/todayZoneText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Today's Zone: Loading..."
-        app:layout_constraintStart_toStartOf="@+id/title"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/zoneCard"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="24dp"
+        app:cardBackgroundColor="#4CAF50"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toStartOf="@+id/rescueCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title">
 
-    <TextView
-        android:id="@+id/lastRescueText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Last Rescue: Loading..."
-        app:layout_constraintStart_toStartOf="@+id/todayZoneText"
-        app:layout_constraintTop_toBottomOf="@+id/todayZoneText"
-        android:layout_marginTop="16dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <TextView
-        android:id="@+id/weeklyRescueText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Weekly Rescues: Loading..."
-        app:layout_constraintStart_toStartOf="@+id/lastRescueText"
-        app:layout_constraintTop_toBottomOf="@+id/lastRescueText"
-        android:layout_marginTop="16dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today's Zone"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/exportButton"
-        android:layout_width="163dp"
-        android:layout_height="57dp"
-        android:layout_marginStart="8dp"
-        android:text="Export"
-        app:layout_constraintStart_toStartOf="@id/weeklyRescueText"
-        app:layout_constraintTop_toBottomOf="@+id/weeklyRescueText" />
+            <TextView
+                android:id="@+id/todayZoneText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Loading..."
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/trendTimelineToggle"
-        android:layout_width="163dp"
-        android:layout_height="57dp"
-        android:text="Toggle Timeline"
-        app:layout_constraintStart_toStartOf="@+id/exportButton"
-        app:layout_constraintTop_toBottomOf="@+id/exportButton"
-        android:layout_marginTop="16dp" />
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/rescueCard"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        app:cardBackgroundColor="#2196F3"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/zoneCard"
+        app:layout_constraintTop_toBottomOf="@+id/title">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Last Rescue"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/lastRescueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Loading..."
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/weeklyCard"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="16dp"
+        app:cardBackgroundColor="#FF9800"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/zoneCard">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Weekly Rescues"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/weeklyRescueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Loading..."
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/trendChart"
         android:layout_width="0dp"
-        android:layout_height="184dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/trendTimelineToggle"
-        android:layout_marginStart="33dp"
-        android:layout_marginEnd="33dp"
-        android:layout_marginTop="32dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/weeklyCard" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trendChart">
+
+        <Button
+            android:id="@+id/exportButton"
+            android:layout_width="0dp"
+            android:layout_height="57dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="Export" />
+
+        <Button
+            android:id="@+id/trendTimelineToggle"
+            android:layout_width="0dp"
+            android:layout_height="57dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="7 Day / 30 Day" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/childSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
         android:text="Child Settings"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginStart="32dp"
-        android:layout_marginBottom="32dp" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

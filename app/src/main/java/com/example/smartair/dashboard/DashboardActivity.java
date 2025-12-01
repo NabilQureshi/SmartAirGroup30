@@ -62,21 +62,22 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        initializeViews();
-        initializeFirebase();
-        loadDashboardData();
-        setupRealTimeListeners();
-        checkFirebaseStructure();
-        setupBasicChart();
-
         childId = getIntent().getStringExtra("childId");
         username = getIntent().getStringExtra("username");
         password = getIntent().getStringExtra("password");
         name = getIntent().getStringExtra("name");
         dob = getIntent().getStringExtra("dob");
         notes = getIntent().getStringExtra("notes");
+
+        initializeViews();
+
         exportButton.setOnClickListener(v -> generateProviderReport());
         trendTimelineToggle.setOnClickListener(v -> toggleTrendRange());
+
+        initializeFirebase();
+        loadDashboardData();
+        setupRealTimeListeners();
+        checkFirebaseStructure();
 
         //checkForAlerts();
 
@@ -86,7 +87,7 @@ public class DashboardActivity extends AppCompatActivity {
             return;
         }
 
-        title.setText("Hi " + name + "!");
+        title.setText(name + "'s Dashboard");
 
         childSettings.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, ManageChildActivity.class);
@@ -180,7 +181,49 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void loadTrendData() {
+        database.collection("users")
+                .document(childId)
+                .collection("pef_entries")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .limit(30)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if(query.isEmpty()) {
+                        setupBasicChart();
+                        return;
+                    }
 
+                    List<Entry> entries = new ArrayList<>();
+                    int index = 0;
+
+                    for (DocumentSnapshot doc : query.getDocuments()) {
+                        Long pefValue = doc.getLong("pefValue");
+
+                        if (pefValue != null) {
+                            entries.add(new Entry(index, pefValue));
+
+                            index++;
+                        }
+                    }
+
+                    LineDataSet dataSet = new LineDataSet(entries, "PEF Trend");
+                    dataSet.setColor(Color.parseColor("#2196F3"));
+                    dataSet.setLineWidth(3f);
+                    dataSet.setCircleColor(Color.parseColor("#FF9800"));
+                    dataSet.setCircleRadius(4f);
+                    dataSet.setDrawValues(false);
+
+                    LineData lineData = new LineData(dataSet);
+                    trendChart.setData(lineData);
+
+                    trendChart.getDescription().setEnabled(false);
+                    trendChart.getAxisRight().setEnabled(false);
+                    trendChart.invalidate();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Chart", "Error loading chart data", e);
+                    setupBasicChart();
+                });
     }
 
     private void loadWeeklyRescueCount() {
@@ -189,24 +232,24 @@ public class DashboardActivity extends AppCompatActivity {
         long weekAgo = cal.getTimeInMillis();
 
         database.collection("users")
-                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .document(childId)
                 .collection("medicine_logs")
                 //.whereEqualTo("type", "Rescue")
                 //.whereGreaterThanOrEqualTo("timestamp", weekAgo)
                 .get()
                 .addOnSuccessListener(query -> {
                     int count = query.size();
-                    weeklyRescueText.setText("Weekly Rescues: " + count);
+                    weeklyRescueText.setText(String.valueOf(count));
                 })
                 .addOnFailureListener(e -> {
-                    weeklyRescueText.setText("Weekly Rescues: Error");
+                    weeklyRescueText.setText("Error");
                     Log.e("Dashboard", "Error loading weekly rescues", e);
                 });;
     }
 
     private void loadLastRescueTime() {
         database.collection("users")
-                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
+                .document(childId)
                 .collection("medicine_logs")
                 //.whereEqualTo("type", "Rescue")
                 //.orderBy("timestamp", Query.Direction.DESCENDING)
@@ -218,13 +261,13 @@ public class DashboardActivity extends AppCompatActivity {
                         Long timestamp = doc.getLong("timestamp");
 
                         String timeDisplay = formatRescueTime(timestamp);
-                        lastRescueText.setText("Last Rescue: " + timestamp);
+                        lastRescueText.setText(timeDisplay);
                     } else {
-                        lastRescueText.setText("Last Rescue: Never");
+                        lastRescueText.setText("Never");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    lastRescueText.setText("Last Rescue: Error loading");
+                    lastRescueText.setText("Error loading");
                 });
     }
 
@@ -237,7 +280,11 @@ public class DashboardActivity extends AppCompatActivity {
         entries.add(new Entry(4, 370f));
 
         LineDataSet dataSet = new LineDataSet(entries, "PEF");
-        dataSet.setColor(Color.BLUE);
+        dataSet.setColor(Color.parseColor("#2196F3"));
+        dataSet.setLineWidth(3f);
+        dataSet.setCircleColor(Color.parseColor("#FF9800"));
+        dataSet.setCircleRadius(4f);
+        dataSet.setDrawValues(false);
 
         trendChart.setData(new LineData(dataSet));
         trendChart.getDescription().setEnabled(false);
@@ -246,24 +293,21 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void loadTodaysZone() {
         database.collection("users")
-                .document("2NJQsGjfAHMDkT3uAp4jYmEvYD62")
-                .collection("pef_entries")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(1)
+                .document(childId)
                 .get()
                 .addOnSuccessListener(query -> {
-                    if (!query.isEmpty()) {
-                        DocumentSnapshot doc = query.getDocuments().get(0);
-                        Long timestamp = doc.getLong("timestamp");
-                        Long currentPEF = doc.getLong("pefValue");
-                        if (isFromToday(timestamp)) {
-                            todayZoneText.setText("Today's Zone (not quite yet): " + currentPEF);
-                        } else {
-                            todayZoneText.setText("Today's Zone: No PEF data today");
-                        }
-                    } else {
-                        todayZoneText.setText("Today's Zone: " + childId);
+                    String pb = String.valueOf(query.getLong("latestZonePercent"));
+                    if (query.getLong("latestZonePercent") == null) {
+                        pb = "N/A";
                     }
+                    String pbZone = query.getString("latestZoneState");
+                    if (pbZone == null) {
+                        pbZone = "No Zone";
+                    }
+                    todayZoneText.setText(pbZone + "(" + pb + "%)");
+                })
+                .addOnFailureListener(e -> {
+                    todayZoneText.setText("Error");
                 });
     }
 
