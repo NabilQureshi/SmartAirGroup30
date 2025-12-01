@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.TextView;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.core.content.ContextCompat;
@@ -98,7 +97,6 @@ public class ChildTriageActivity extends AppCompatActivity {
             showZoneDetails(null);
             stopTimer();
             logTriageOutcome(true, currentPef, usedRescueRecently, hasSpeechFlag, hasChestFlag, hasColorFlag);
-            notifyParentEmergency();
         } else {
             PEFZoneCalculator.ZoneResult zoneResult = PEFZoneCalculator.calculateZone(currentPef, personalBest);
             resultTitle.setText(R.string.triage_result_home_title);
@@ -247,7 +245,6 @@ public class ChildTriageActivity extends AppCompatActivity {
             data.put("personalBest", personalBest);
             triageSessions.add(data);
         }
-        notifyParentStart();
         sendParentNotification("triage_start", "Triage session started.", false);
     }
 
@@ -270,24 +267,6 @@ public class ChildTriageActivity extends AppCompatActivity {
         if (emergency) {
             sendParentNotification("triage_emergency", "Triage escalated: call emergency now.", true);
         }
-    }
-
-    private void notifyParentStart() {
-        if (isFinishing()) return;
-        new AlertDialog.Builder(this)
-            .setTitle("Triage started")
-            .setMessage("A triage session just started. Please check in with your child.")
-            .setPositiveButton("OK", null)
-            .show();
-    }
-
-    private void notifyParentEmergency() {
-        if (isFinishing()) return;
-        new AlertDialog.Builder(this)
-            .setTitle("Triage escalation: Call emergency")
-            .setMessage("The triage session flagged emergency signs. Call emergency services now.")
-            .setPositiveButton("OK", null)
-            .show();
     }
 
     private void sendParentNotification(String event, String message, boolean emergency) {
