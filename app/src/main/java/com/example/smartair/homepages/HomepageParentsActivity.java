@@ -7,6 +7,8 @@ import android.widget.TextView;
 
 import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
+import com.example.smartair.checkin.HistorySelectChildActivity;
+import com.example.smartair.checkin.ParentChildSelectActivity;
 import com.example.smartair.child_managent.AddChildActivity;
 import com.example.smartair.child_managent.ChooseChildForSharingActivity;
 import com.example.smartair.child_managent.ManageChildActivity;
@@ -43,6 +45,8 @@ public class HomepageParentsActivity extends BaseActivity {
     private Button btnManagePB;
     private Button btnInventory;
     private Button btnSignOut;
+    private Button btnChildCheckIn;
+    private Button btnSymptomHistory;
     private TextView textGreeting;
     private String parentId;
     private ListenerRegistration notificationListener;
@@ -62,7 +66,10 @@ public class HomepageParentsActivity extends BaseActivity {
         btnManageSharing = findViewById(R.id.btnManageSharing);
         btnManagePB = findViewById(R.id.btnManagePB);
         btnInventory = findViewById(R.id.btnInventory);
+        btnChildCheckIn = findViewById(R.id.btnChildCheckIn);
+        btnSymptomHistory = findViewById(R.id.btnSymptomHistory);
         btnSignOut = findViewById(R.id.btnSignOut);
+
 
         // �S�����^�_?�??�--
         loadParentName();
@@ -103,6 +110,11 @@ public class HomepageParentsActivity extends BaseActivity {
                 startActivity(new Intent(this, ParentHomeActivity.class)));
         btnInventory.setOnClickListener(v ->
                 startActivity(new Intent(this, InventoryActivity.class)));
+        btnChildCheckIn.setOnClickListener(v ->
+                startActivity(new Intent(this, ParentChildSelectActivity.class)));
+        btnSymptomHistory.setOnClickListener(v ->
+                startActivity(new Intent(this, HistorySelectChildActivity.class))
+        );
         btnSignOut.setOnClickListener(v -> signOut());
     }
 
