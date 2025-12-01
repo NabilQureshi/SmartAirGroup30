@@ -137,7 +137,31 @@ public class AddChildActivity extends AppCompatActivity {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     String childUid = authResult.getUser().getUid();
-                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+                    auth.signInWithEmailAndPassword(parentEmail, parentPassword)
+
+
+                            .addOnSuccessListener(parentLoginResult -> {
+
+
+
+
+
+                                saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+
+
+
+
+
+                            })
+
+
+                            .addOnFailureListener(e -> {
+
+
+                                Toast.makeText(this, "Failed to log parent back in: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+
+                            });
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();

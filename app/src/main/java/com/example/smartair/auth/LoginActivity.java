@@ -34,6 +34,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private TextView registerTextView;
     private ProgressBar progressBar;
 
+    private TextView textForgotPassword;
     private LoginContract.Presenter presenter;
     private SharedPrefsHelper prefsHelper;
     private FirebaseFirestore db;
@@ -58,6 +59,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         loginButton = findViewById(R.id.loginButton);
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
+
+        textForgotPassword = findViewById(R.id.textForgotPassword);
+
+        textForgotPassword.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
 
         db = FirebaseFirestore.getInstance();
         prefsHelper = new SharedPrefsHelper(this);
@@ -86,7 +92,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
         presenter.onLoginClicked();
     }
-
     private void loginChild(String username, String password) {
         showLoading();
 
