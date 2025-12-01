@@ -205,11 +205,28 @@ public class HomepageParentsActivity extends BaseActivity {
                 // simple throttle to alert again only if 5 minutes have passed since last alert for this child and prevent spam
                 if (lastAlertTime == null || now - lastAlertTime > 5 * 60 * 1000L) {
                     lastRescueAlert.put(childUid, now);
-                    showTriageAlert("3+ rescue uses in last 3 hours for child " + childUid, true);
+                    String message = "3+ rescue uses in last 3 hours for child " + childUid;
+                    showTriageAlert(message, true);
+                    logRescueAlert(childUid, message);
                 }
             }
         });
         rescueListeners.put(childUid, reg);
+    }
+
+    private void logRescueAlert(String childUid, String message) {
+        if (parentId == null || parentId.isEmpty()) return;
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("timestamp", System.currentTimeMillis());
+        payload.put("event", "rescue_repeat");
+        payload.put("message", message);
+        payload.put("childId", childUid);
+        payload.put("emergency", true);
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(parentId)
+                .collection("notifications")
+                .add(payload);
     }
 
     @Override
@@ -224,4 +241,5 @@ public class HomepageParentsActivity extends BaseActivity {
         }
         rescueListeners.clear();
     }
+
 }
