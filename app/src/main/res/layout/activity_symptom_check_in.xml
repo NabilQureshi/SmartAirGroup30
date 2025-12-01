@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".checkin.SymptomCheckInActivity">
+
+    <RadioGroup
+        android:id="@+id/rg_chest_pain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="45dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_chest_pain">
+
+        <RadioButton
+            android:id="@+id/rd_pain_none"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="None"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_pain_mild"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mild"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_pain_moderate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Moderate"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_pain_severe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Severe"
+            android:textSize="24sp" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/tv_chest_pain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="48dp"
+        android:text="Chest Pain"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rg_night_waking" />
+
+    <TextView
+        android:id="@+id/tv_cough"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Cough/Wheeze"
+        android:textSize="28sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rg_activity_limits" />
+
+    <RadioGroup
+        android:id="@+id/rg_cough"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_cough">
+
+        <RadioButton
+            android:id="@+id/rd_cough_none"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="None"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_cough_mild"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mild"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_cough_moderate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Moderate"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_cough_severe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Severe"
+            android:textSize="24sp" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/tv_night_waking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Night Waking"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <RadioGroup
+        android:id="@+id/rg_night_waking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="45dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_night_waking">
+
+        <RadioButton
+            android:id="@+id/rd_night_none"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="None"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_night_mild"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mild"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_night_moderate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Moderate"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_night_severe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Severe"
+            android:textSize="24sp" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/tv_activity_limits"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Activity Limits"
+        android:textSize="28sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <RadioGroup
+        android:id="@+id/rg_activity_limits"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_activity_limits">
+
+        <RadioButton
+            android:id="@+id/rd_limit_none"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="None"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_limit_mild"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mild"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_limit_moderate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Moderate"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rd_limit_severe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Severe"
+            android:textSize="24sp" />
+    </RadioGroup>
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/cg_triggers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_triggers">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/trigger1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:text="Exercise"
+            android:textSize="16sp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/trigger2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:text="Cold Air"
+            android:textSize="16sp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/trigger3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:text="Dust/Pets"
+            android:textSize="16sp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/trigger4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:text="Smoke"
+            android:textSize="16sp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/trigger5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:text="Illness"
+            android:textSize="16sp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/trigger6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:text="Perfume/Odors"
+            android:textSize="16sp" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <Button
+        android:id="@+id/btn_submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:enabled="false"
+        android:text="Submit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_triggers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Triggers"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rg_cough" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

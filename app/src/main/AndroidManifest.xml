@@ -15,9 +15,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
-            android:name=".inventory.InventoryActivity"
+            android:name=".checkin.SymptomHistoryActivity"
             android:exported="false" />
-        <!-- LOGIN (Launcher) -->
+        <activity
+            android:name=".checkin.HistorySelectChildActivity"
+            android:exported="false" />
+        <activity
+            android:name=".checkin.ParentChildSelectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".checkin.SymptomCheckInActivity"
+            android:exported="false" />
+        <activity
+            android:name=".inventory.InventoryActivity"
+            android:exported="false" /> <!-- LOGIN (Launcher) -->
         <activity
             android:name=".auth.LoginActivity"
             android:exported="true">
