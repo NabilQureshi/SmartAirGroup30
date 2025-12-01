@@ -146,7 +146,7 @@ public class DashboardActivity extends AppCompatActivity {
                         for (DocumentSnapshot doc : query) {
                             Long timestamp = doc.getLong("timestamp");
                             if (Objects.equals(doc.getString("result"), "worse") && Objects.equals(doc.getString("when"), "before")  && isFromToday(timestamp)) {
-                                showAlert("Worse After Dose for child " + childId,
+                                showAlert("Worse After Dose for " + childId,
                                         "Symptoms worsened after medication. Please monitor your child closely!");
                                 return;
                             }
@@ -156,35 +156,37 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void checkRapidRescueAlert() {
+        Calendar threeHoursAgo = Calendar.getInstance();
+        threeHoursAgo.add(Calendar.HOUR_OF_DAY, -3);
+
+        database.collection("users")
+                .document(childId)
+                .collection("medicine_logs")
+                .whereEqualTo("type", "rescue")
+                .whereGreaterThanOrEqualTo("timestamp", threeHoursAgo.getTimeInMillis())
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (query.size() >= 3) {
+                        showAlert("Rapid Rescue Alert for ",
+                                "3+ rescue uses in 3 hours. Consider contacting provider.");
+                    }
+                });
     }
 
     private void checkRedZoneAlert() {
-    }
-
-    private void debugFirebaseStructure() {
         database.collection("users")
-                .document(parentId)
-                .collection("children")
                 .document(childId)
                 .get()
-                .addOnSuccessListener(doc -> {
-                    Log.d("DEBUG", "Child data: " + doc.getData());
-
-                    // Check what subcollections exist
-                    database.collection("users")
-                            .document(parentId)
-                            .collection("children")
-                            .document(childId)
-                            .collection("medicineLogs")
-                            .limit(1)
-                            .get()
-                            .addOnSuccessListener(snapshot -> {
-                                if (!snapshot.isEmpty()) {
-                                    Log.d("DEBUG", "Medicine log sample: " + snapshot.getDocuments().get(0).getData());
-                                }
-                            });
+                .addOnSuccessListener(query -> {
+                    Long timestamp = query.getLong("timestamp");
+                    String pbZone = query.getString("latestZoneState");
+                    if (Objects.equals(pbZone, "RED") && isFromToday(timestamp)) {
+                        showAlert("Red Zone for " + childId,
+                                "Your child is in the Red Zone today. Check action plan immediately!");
+                    }
                 });
     }
+
 
     private void toggleTrendRange() {
     }
