@@ -1,0 +1,85 @@
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.SmartAir\">\r\n        <activity\r\n            android:name=\".inventory.InventoryActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- LOGIN (Launcher) -->\r\n        <activity\r\n            android:name=\".auth.LoginActivity\"\r\n            android:exported=\"true\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n        <activity\r\n            android:name=\".ui.child.ChildPEFActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n        <activity\r\n            android:name=\".ui.child.ChildTriageActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".ui.child.ChildPEFActivity\" />\r\n        <activity\r\n            android:name=\".ui.parent.ParentHomeActivity\"\r\n            android:exported=\"false\"\r\n            android:parentActivityName=\".MainActivity\" />\r\n        <!-- REGISTER -->\r\n        <activity\r\n            android:name=\".auth.RegisterActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- FORGOT PASSWORD -->\r\n        <activity\r\n            android:name=\".auth.ForgotPasswordActivity\"\r\n            android:exported=\"false\" />\r\n        <!-- HOMEPAGE -->\r\n        <activity\r\n            android:name=\".homepages.HomepageActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageParentsActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".homepages.HomepageProvidersActivity\"\r\n            android:exported=\"true\" />\r\n        <!-- CHILD MANAGEMENT -->\r\n        <activity\r\n            android:name=\".child_managent.ViewChildrenActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".child_managent.AddChildActivity\"\r\n            android:exported=\"true\" />\r\n        <activity\r\n            android:name=\".child_managent.ManageChildActivity\"\r\n            android:exported=\"true\" />\r\n        <!-- SHARING MANAGEMENT -->\r\n        <activity\r\n            android:name=\".sharing.ManageSharingActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".child_managent.ChooseChildForSharingActivity\"\r\n            android:exported=\"true\" />\r\n        <!-- OTHER SCREENS -->\r\n        <activity\r\n            android:name=\".medicine_logs.LogMedicineActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".technique_guidance.TechniqueActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".pre_post_checks.PrePostCheckActivity\"\r\n            android:exported=\"false\" />\r\n        <activity\r\n            android:name=\".sharing.InviteProviderActivity\"\r\n            android:exported=\"false\" />\r\n\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"false\" />\r\n        <activity android:name=\".badges_system.BadgeActivity\" />\r\n\r\n        <activity\r\n            android:name=\".onboarding.OnboardingActivity\"\r\n            android:exported=\"false\" />\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision c51f6a8713fa932cf2136cb0d033e2489cc96aee)
++++ b/app/src/main/AndroidManifest.xml	(date 1764370064345)
+@@ -12,9 +12,11 @@
+         android:supportsRtl="true"
+         android:theme="@style/Theme.SmartAir">
+         <activity
++            android:name=".develop.Develop"
++            android:exported="false" />
++        <activity
+             android:name=".inventory.InventoryActivity"
+-            android:exported="false" />
+-        <!-- LOGIN (Launcher) -->
++            android:exported="false" /> <!-- LOGIN (Launcher) -->
+         <activity
+             android:name=".auth.LoginActivity"
+             android:exported="true">
+@@ -35,16 +37,13 @@
+         <activity
+             android:name=".ui.parent.ParentHomeActivity"
+             android:exported="false"
+-            android:parentActivityName=".MainActivity" />
+-        <!-- REGISTER -->
++            android:parentActivityName=".MainActivity" /> <!-- REGISTER -->
+         <activity
+             android:name=".auth.RegisterActivity"
+-            android:exported="false" />
+-        <!-- FORGOT PASSWORD -->
++            android:exported="false" /> <!-- FORGOT PASSWORD -->
+         <activity
+             android:name=".auth.ForgotPasswordActivity"
+-            android:exported="false" />
+-        <!-- HOMEPAGE -->
++            android:exported="false" /> <!-- HOMEPAGE -->
+         <activity
+             android:name=".homepages.HomepageActivity"
+             android:exported="true" />
+@@ -53,8 +52,7 @@
+             android:exported="true" />
+         <activity
+             android:name=".homepages.HomepageProvidersActivity"
+-            android:exported="true" />
+-        <!-- CHILD MANAGEMENT -->
++            android:exported="true" /> <!-- CHILD MANAGEMENT -->
+         <activity
+             android:name=".child_managent.ViewChildrenActivity"
+             android:exported="true" />
+@@ -63,15 +61,13 @@
+             android:exported="true" />
+         <activity
+             android:name=".child_managent.ManageChildActivity"
+-            android:exported="true" />
+-        <!-- SHARING MANAGEMENT -->
++            android:exported="true" /> <!-- SHARING MANAGEMENT -->
+         <activity
+             android:name=".sharing.ManageSharingActivity"
+             android:exported="false" />
+         <activity
+             android:name=".child_managent.ChooseChildForSharingActivity"
+-            android:exported="true" />
+-        <!-- OTHER SCREENS -->
++            android:exported="true" /> <!-- OTHER SCREENS -->
+         <activity
+             android:name=".medicine_logs.LogMedicineActivity"
+             android:exported="false" />
+@@ -84,12 +80,10 @@
+         <activity
+             android:name=".sharing.InviteProviderActivity"
+             android:exported="false" />
+-
+         <activity
+             android:name=".MainActivity"
+             android:exported="false" />
+         <activity android:name=".badges_system.BadgeActivity" />
+-
+         <activity
+             android:name=".onboarding.OnboardingActivity"
+             android:exported="false" />

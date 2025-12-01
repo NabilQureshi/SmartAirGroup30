@@ -49,6 +49,7 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation(libs.fragment)
 
     // ---- Tests ----
     testImplementation("junit:junit:4.13.2")
@@ -58,4 +59,9 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:5.2.0")
     testImplementation("net.bytebuddy:byte-buddy:1.14.10")
     testImplementation("net.bytebuddy:byte-buddy-agent:1.14.10")
+
+    // Chart View added by Nabil
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
+
+
