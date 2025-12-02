@@ -1,10 +1,14 @@
 package com.example.smartair.dashboard;
 
+import android.content.ContentValues;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
-import android.os.Environment;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
@@ -25,6 +29,7 @@ import com.google.firebase.firestore.Query;
 import com.google.type.DateTime;
 
 import java.text.SimpleDateFormat;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -576,12 +581,7 @@ public class DashboardProvidersActivity extends AppCompatActivity {
     }
 
     private void generateProviderReport() {
-        File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        if (dir == null) {
-            dir = getFilesDir();
-        }
         String fileName = "provider_report_" + (childId != null ? childId : "child") + ".pdf";
-        File pdfFile = new File(dir, fileName);
 
         PdfDocument pdfDocument = new PdfDocument();
         PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create(); // A4-ish
@@ -613,9 +613,8 @@ public class DashboardProvidersActivity extends AppCompatActivity {
 
         pdfDocument.finishPage(page);
 
-        try (FileOutputStream fos = new FileOutputStream(pdfFile)) {
-            pdfDocument.writeTo(fos);
-            Toast.makeText(this, "Report saved: " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        try {
+            savePdfToDownloads(pdfDocument, fileName);
         } catch (IOException e) {
             Toast.makeText(this, "Failed to save report: " + e.getMessage(), Toast.LENGTH_LONG).show();
         } finally {
@@ -629,5 +628,40 @@ public class DashboardProvidersActivity extends AppCompatActivity {
         paint.setFakeBoldText(false);
         page.getCanvas().drawText(value != null ? value : "N/A", x + 180, y, paint);
         return y + 18;
+    }
+
+    private void savePdfToDownloads(PdfDocument pdfDocument, String fileName) throws IOException {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            pdfDocument.writeTo(baos);
+            byte[] data = baos.toByteArray();
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
+            values.put(MediaStore.Downloads.IS_PENDING, 1);
+
+            Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) throw new IOException("Unable to create file in Downloads");
+
+            try (java.io.OutputStream out = getContentResolver().openOutputStream(uri)) {
+                if (out == null) throw new IOException("No output stream for Downloads");
+                out.write(data);
+            }
+
+            values.clear();
+            values.put(MediaStore.Downloads.IS_PENDING, 0);
+            getContentResolver().update(uri, values, null, null);
+
+            Toast.makeText(this, "Report saved to Downloads", Toast.LENGTH_LONG).show();
+        } else {
+            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (dir != null && !dir.exists()) dir.mkdirs();
+            File pdfFile = new File(dir, fileName);
+            try (FileOutputStream fos = new FileOutputStream(pdfFile)) {
+                pdfDocument.writeTo(fos);
+            }
+            Toast.makeText(this, "Report saved: " + (dir != null ? dir.getAbsolutePath() : "Downloads"), Toast.LENGTH_LONG).show();
+        }
     }
 }
