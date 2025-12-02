@@ -43,21 +43,13 @@
 - `parents/{parentId}/children/{childId}/linkedProviders/{providerId}`.
 - `usernames/{username}` – maps child username → childUid/parentId (contains password, see risks).
 
-## Security and privacy caveats
-- Child passwords are stored in Firestore in plaintext in multiple places; this is a major security risk. Consider moving children to Firebase Auth or hashing/removing passwords.
-- Firestore rules are not locked down to enforce sharing toggles; add rules to gate provider reads per sharing flags.
-- Inventory/health data stored without encryption; use caution on client storage.
+
 
 ## Notable UX screens/components
 - Parent: child management, sharing toggles, PB set dialog, inventory, symptom check-in, triage, badges.
 - Child: PEF entry with zone card, triage, symptom check-in, badges.
 - Provider: Invite redeem, linked-children list (name/username), dashboard (tiles, trend, alerts), PDF export.
 
-## Known gaps
-- PDF export includes only summary tiles (no charts or detailed series).
-- Sharing enforcement in UI is only implemented on provider dashboard; other provider views should also gate queries.
-- Firestore rules need to be added to enforce sharing toggles and restrict provider scope.
-- Password storage needs remediation.
 
 ## Build / environment
 - Android app module `app`.
