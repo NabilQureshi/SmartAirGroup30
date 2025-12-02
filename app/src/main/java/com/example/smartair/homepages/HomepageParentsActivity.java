@@ -52,6 +52,7 @@ public class HomepageParentsActivity extends BaseActivity {
     private ListenerRegistration notificationListener;
     private final Map<String, ListenerRegistration> rescueListeners = new HashMap<>();
     private final Map<String, Long> lastRescueAlert = new HashMap<>();
+    private final Map<String, String> childNameCache = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,17 +158,21 @@ public class HomepageParentsActivity extends BaseActivity {
                 if (change.getType() == DocumentChange.Type.ADDED) {
                     String message = change.getDocument().getString("message");
                     Boolean emergency = change.getDocument().getBoolean("emergency");
-                    showTriageAlert(message, emergency != null && emergency);
+                    String childName = change.getDocument().getString("childName");
+                    showTriageAlert(message, emergency != null && emergency, childName);
                 }
             }
         });
     }
 
-    private void showTriageAlert(String message, boolean emergency) {
+    private void showTriageAlert(String message, boolean emergency, String childName) {
         String title = emergency ? "Triage escalation" : "Triage alert";
         String body = (message == null || message.isEmpty())
                 ? "New triage update from your child."
                 : message;
+        if (childName != null && !childName.isEmpty()) {
+            body = body.replaceAll("child\\s+[A-Za-z0-9_-]+", "child " + childName);
+        }
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(body)
@@ -185,6 +190,10 @@ public class HomepageParentsActivity extends BaseActivity {
                 .addOnSuccessListener(childrenSnapshot -> {
                     for (DocumentSnapshot childDoc : childrenSnapshot) {
                         String childUid = childDoc.getId();
+                        String childName = childDoc.getString("name");
+                        if (childUid != null && childName != null) {
+                            childNameCache.put(childUid, childName);
+                        }
                         if (childUid != null && !childUid.isEmpty() && !rescueListeners.containsKey(childUid)) {
                             attachRescueListener(childUid);
                         }
@@ -217,16 +226,18 @@ public class HomepageParentsActivity extends BaseActivity {
                 // simple throttle to alert again only if 5 minutes have passed since last alert for this child and prevent spam
                 if (lastAlertTime == null || now - lastAlertTime > 5 * 60 * 1000L) {
                     lastRescueAlert.put(childUid, now);
-                    String message = "3+ rescue uses in last 3 hours for child " + childUid;
-                    showTriageAlert(message, true);
-                    logRescueAlert(childUid, message);
+                    String childName = childNameCache.get(childUid);
+                    String displayName = childName != null ? childName : childUid;
+                    String message = "3+ rescue uses in last 3 hours for child " + displayName;
+                    showTriageAlert(message, true, childName);
+                    logRescueAlert(childUid, childName, message);
                 }
             }
         });
         rescueListeners.put(childUid, reg);
     }
 
-    private void logRescueAlert(String childUid, String message) {
+    private void logRescueAlert(String childUid, String message, String childName) {
         if (parentId == null || parentId.isEmpty()) return;
         Map<String, Object> payload = new HashMap<>();
         payload.put("timestamp", System.currentTimeMillis());

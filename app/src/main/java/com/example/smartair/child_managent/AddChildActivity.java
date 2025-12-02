@@ -198,6 +198,7 @@ public class AddChildActivity extends AppCompatActivity {
         Map<String, Object> usernameMap = new HashMap<>();
         usernameMap.put("childUid", childUid);
         usernameMap.put("parentId", parentId);
+        childData.put("parentId", parentId);
         usernameMap.put("email", email);
 
         DocumentReference childRef_2 = db.collection("users").document(childUid);
