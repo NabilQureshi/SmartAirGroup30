@@ -138,8 +138,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                                     return;
                                 }
 
-                                prefsHelper.saveUserRole("child");
                                 prefsHelper.saveUserId(childId);
+                                prefsHelper.saveUserRole("child");
                                 prefsHelper.saveParentId(parentId);
 
                                 Intent intent;
@@ -199,8 +199,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     if (roleStr == null) roleStr = "child";
 
                     UserRole userRole = UserRole.fromString(roleStr);
-                    prefsHelper.saveUserRole(userRole.getValue());
+
                     prefsHelper.saveUserId(user.getUid());
+                    prefsHelper.saveUserRole(userRole.getValue());
+                    SharedPrefsHelper.saveString(this, "PARENT_EMAIL", getEmail());
+                    SharedPrefsHelper.saveString(this, "PARENT_PASSWORD", getPassword());
 
                     Intent intent;
                     if (!prefsHelper.isOnboardingComplete()) {
