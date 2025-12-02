@@ -1,5 +1,6 @@
 package com.example.smartair.auth;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
 import com.example.smartair.models.UserRole;
+import com.example.smartair.onboarding.OnboardingActivity;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -30,6 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private AuthModel authModel;
     private FirebaseFirestore db;
+    private SharedPrefsHelper prefsHelper;
     private Handler timeoutHandler = new Handler(Looper.getMainLooper());
     private Runnable timeoutRunnable;
 
@@ -49,6 +53,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         authModel = new AuthModel();
         db = FirebaseFirestore.getInstance();
+        prefsHelper = new SharedPrefsHelper(this);
 
         View radioChild = findViewById(R.id.radioChild);
         if (radioChild != null) {
@@ -95,6 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
         };
         timeoutHandler.postDelayed(timeoutRunnable, 15000);
 
+        UserRole finalRole = role;
         authModel.register(email, password, role, new AuthModel.AuthCallback() {
             @Override
             public void onSuccess(UserRole r) {
@@ -111,7 +117,16 @@ public class RegisterActivity extends AppCompatActivity {
                         .addOnSuccessListener(aVoid -> {
                             progressBar.setVisibility(android.view.View.GONE);
                             registerButton.setEnabled(true);
+
+                            prefsHelper.saveUserRole(finalRole.getValue());
+                            prefsHelper.saveUserId(uid);
+
                             Toast.makeText(RegisterActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
+
+                            Intent intent = new Intent(RegisterActivity.this, OnboardingActivity.class);
+                            intent.putExtra("userRole", finalRole.getValue());
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
                             finish();
                         })
                         .addOnFailureListener(e -> {

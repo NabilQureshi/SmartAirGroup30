@@ -59,6 +59,12 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
 
+        TextView textForgotPassword = findViewById(R.id.textForgotPassword);
+        textForgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
+
         db = FirebaseFirestore.getInstance();
         prefsHelper = new SharedPrefsHelper(this);
 
@@ -71,6 +77,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
     }
+
     private void handleLogin() {
         String input = getEmail();
         String password = getPassword();
@@ -103,9 +110,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     }
 
                     String parentId = doc.getString("parentId");
-                    String childUid = doc.getString("childUid");
+                    String childId = doc.getString("childUid");
 
-                    if (parentId == null || childUid == null) {
+                    if (parentId == null || childId == null) {
                         hideLoading();
                         showError("Account is not configured correctly");
                         return;
@@ -114,51 +121,36 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     db.collection("users")
                             .document(parentId)
                             .collection("children")
-                            .document(childUid)
+                            .document(childId)
                             .get()
                             .addOnSuccessListener(childDoc -> {
                                 hideLoading();
 
                                 if (!childDoc.exists()) {
-                                    hideLoading();
                                     showError("Child profile missing");
                                     return;
                                 }
 
                                 String savedPw = childDoc.getString("password");
-                                String email = childDoc.getString("email");
 
                                 if (!password.equals(savedPw)) {
-                                    hideLoading();
                                     showError("Incorrect password");
                                     return;
                                 }
 
-                                if (email == null) {
-                                    hideLoading();
-                                    showError("Missing email for child account");
-                                    return;
-                                }
-
-                                FirebaseAuth.getInstance()
-                                        .signInWithEmailAndPassword(email, password)
-                                        .addOnSuccessListener(authResult -> {
-                                            hideLoading();
-
-                                            prefsHelper.saveUserRole("child");
                                 prefsHelper.saveUserRole("child");
-                                prefsHelper.saveUserId(childUid);
+                                prefsHelper.saveUserId(childId);
                                 prefsHelper.saveParentId(parentId);
 
-                                            // IMPORTANT: Use the CHILD homepage
-                                            startActivity(new Intent(this, HomepageActivity.class));
-                                            finish();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            hideLoading();
-                                            showError("Auth login failed: " + e.getMessage());
-                                        });
-
+                                Intent intent;
+                                if (!prefsHelper.isOnboardingComplete()) {
+                                    intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+                                    intent.putExtra("userRole", "child");
+                                } else {
+                                    intent = new Intent(this, HomepageActivity.class);
+                                }
+                                startActivity(intent);
+                                finish();
                             })
                             .addOnFailureListener(e -> {
                                 hideLoading();
@@ -189,33 +181,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
-
     @Override
     public void navigateToHome(UserRole role) {
         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
         if (user == null) return;
-
-        // CHILD LOGIN FLOW
-        if (isChildLogin) {
-            prefsHelper.saveUserRole("child");
-
-            Intent intent;
-            if (!prefsHelper.isOnboardingComplete()) {
-                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
-                intent.putExtra("userRole", "child");
-            } else {
-                intent = new Intent(this, HomepageActivity.class);
-            }
-
-            startActivity(intent);
-            finish();
-            return;
-        }
-
-        // NORMAL LOGIN FLOW (parent/provider)
-        SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_EMAIL", getEmail());
-        SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_PASSWORD", getPassword());
-
 
         db.collection("users")
                 .document(user.getUid())
@@ -233,25 +202,32 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     prefsHelper.saveUserRole(userRole.getValue());
                     prefsHelper.saveUserId(user.getUid());
 
-                    switch (userRole) {
-                        case CHILD:
-                            startActivity(new Intent(this, HomepageActivity.class));
-                            break;
-                        case PARENT:
-                            startActivity(new Intent(this, HomepageParentsActivity.class));
-                            break;
-                        case PROVIDER:
-                            startActivity(new Intent(this, HomepageProvidersActivity.class));
-                            break;
+                    Intent intent;
+                    if (!prefsHelper.isOnboardingComplete()) {
+                        intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+                        intent.putExtra("userRole", userRole.getValue());
+                    } else {
+                        switch (userRole) {
+                            case CHILD:
+                                intent = new Intent(this, HomepageActivity.class);
+                                break;
+                            case PARENT:
+                                intent = new Intent(this, HomepageParentsActivity.class);
+                                break;
+                            case PROVIDER:
+                                intent = new Intent(this, HomepageProvidersActivity.class);
+                                break;
+                            default:
+                                intent = new Intent(this, HomepageActivity.class);
+                        }
                     }
-
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
     }
-
 
     @Override
     public String getEmail() {
