@@ -277,7 +277,24 @@ public class ChildTriageActivity extends AppCompatActivity {
     }
 
     private void sendParentNotification(String event, String message, boolean emergency) {
-        if (parentId == null || parentId.isEmpty() || db == null) return;
+        if (db == null) return;
+
+        // If parentId is missing (e.g., child username login), try to resolve from child profile
+        if (parentId == null || parentId.isEmpty()) {
+            if (childId == null || childId.isEmpty()) return;
+            db.collection("users")
+                    .document(childId)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        String pid = doc.getString("parentId");
+                        if (pid != null && !pid.isEmpty()) {
+                            parentId = pid;
+                            sendParentNotification(event, message, emergency); // retry now that parentId resolved
+                        }
+                    });
+            return;
+        }
+
         HashMap<String, Object> payload = new HashMap<>();
         payload.put("timestamp", System.currentTimeMillis());
         payload.put("event", event);
