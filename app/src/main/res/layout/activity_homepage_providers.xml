@@ -5,22 +5,50 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background3"
+    android:gravity="center"
     tools:context=".HomepageProvidersActivity">
 
-    <TextView
-        android:id="@+id/textGreeting"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Homepage for providers"
-        android:textSize="25sp"
-        android:layout_gravity="center" />
+        >
 
-    <Button
-        android:id="@+id/btnSignOut"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign Out"
-        android:backgroundTint="@android:color/holo_red_dark"
-        android:textColor="@android:color/white" />
+        <TextView
+            android:id="@+id/textGreeting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hello providers!"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingTop="24dp"
+            android:paddingBottom="12dp"
+            android:textColor="#FFFFFF"
+            android:letterSpacing="0.02"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 父母相关按钮 -->
+        <Button
+            android:id="@+id/btnShareLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Share Logs"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnSignOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Out"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
 
 </LinearLayout>
+

@@ -112,6 +112,8 @@
             android:name=".onboarding.OnboardingActivity"
             android:exported="false" />
         <activity android:name=".dashboard.DashboardActivity" /> <!-- SHARING MANAGEMENT -->
+        <activity android:name=".dashboard.DashboardProvidersActivity" /> <!-- SHARING MANAGEMENT -->
+        <activity android:name=".providers.ShareLogActivity" />
     </application>
 
 </manifest>
