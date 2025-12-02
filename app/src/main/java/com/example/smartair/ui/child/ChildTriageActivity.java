@@ -75,11 +75,12 @@ public class ChildTriageActivity extends AppCompatActivity {
         user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             triageSessions = db.collection("users")
-                .document(user.getUid())
-                .collection("triage_sessions");
+                    .document(user.getUid())
+                    .collection("triage_sessions");
         }
         loadPersonalBest();
         logTriageStart();
+        startTimer();
     }
 
     private void evaluateFlags() {
@@ -110,8 +111,8 @@ public class ChildTriageActivity extends AppCompatActivity {
 
     private void setResultColors(boolean emergency) {
         int titleColor = emergency
-            ? ContextCompat.getColor(this, R.color.zone_red_text)
-            : ContextCompat.getColor(this, R.color.zone_green_text);
+                ? ContextCompat.getColor(this, R.color.zone_red_text)
+                : ContextCompat.getColor(this, R.color.zone_green_text);
         int messageColor = ContextCompat.getColor(this, android.R.color.black);
 
         resultTitle.setTextColor(titleColor);
@@ -142,8 +143,8 @@ public class ChildTriageActivity extends AppCompatActivity {
         }
 
         String zoneValue = getString(R.string.triage_zone_value_format,
-            zoneLabel,
-            String.format("%.0f", zoneResult.getPercentOfPersonalBest()));
+                zoneLabel,
+                String.format("%.0f", zoneResult.getPercentOfPersonalBest()));
         resultZoneLabel.setVisibility(TextView.VISIBLE);
         resultZoneValue.setVisibility(View.VISIBLE);
         resultZoneValue.setText(zoneValue);
@@ -215,23 +216,29 @@ public class ChildTriageActivity extends AppCompatActivity {
         timerValue.setText(R.string.triage_timer_finished);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopTimer();
+    }
+
     private void loadPersonalBest() {
         if (user == null) {
             personalBest = null;
             return;
         }
         db.collection("users")
-            .document(user.getUid())
-            .get()
-            .addOnSuccessListener(doc -> {
-                if (doc.exists()) {
-                    Long pbValue = doc.getLong("personalBest");
-                    personalBest = pbValue != null ? pbValue.intValue() : null;
-                } else {
-                    personalBest = null;
-                }
-            })
-            .addOnFailureListener(e -> personalBest = null);
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Long pbValue = doc.getLong("personalBest");
+                        personalBest = pbValue != null ? pbValue.intValue() : null;
+                    } else {
+                        personalBest = null;
+                    }
+                })
+                .addOnFailureListener(e -> personalBest = null);
     }
 
     private void logTriageStart() {
@@ -278,8 +285,8 @@ public class ChildTriageActivity extends AppCompatActivity {
         payload.put("childId", childId);
         payload.put("emergency", emergency);
         db.collection("users")
-            .document(parentId)
-            .collection("notifications")
-            .add(payload);
+                .document(parentId)
+                .collection("notifications")
+                .add(payload);
     }
 }
