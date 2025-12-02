@@ -1,0 +1,220 @@
+Index: app/src/main/res/layout/activity_homepage.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    android:padding=\"24dp\"\n    android:background=\"#FFFFFF\">\n\n    <LinearLayout\n        android:orientation=\"vertical\"\n        android:gravity=\"center\"\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"wrap_content\">\n\n        <TextView\n            android:id=\"@+id/textGreeting\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Hello!\"\n            android:textSize=\"24sp\"\n            android:textStyle=\"bold\"\n            android:gravity=\"left\"\n            android:layout_marginBottom=\"24dp\"\n            android:textColor=\"#333333\" />\n\n\n        <!-- Existing Features -->\n        <Button\n            android:id=\"@+id/btnLogMedicine\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Log Medicine\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnTechnique\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Technique Helper\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnPrePostCheck\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Pre/Post Check\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n\n        <Button\n            android:id=\"@+id/btnBadges\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Badges\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnCheckPeakFlow\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Check Peak Flow\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnCheckSymptom\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Check Symptom\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n\n        <Button\n            android:id=\"@+id/btnSignOut\"\n            android:layout_width=\"wrap_content\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Sign Out\"\n            android:backgroundTint=\"@android:color/holo_red_dark\"\n            android:textColor=\"@android:color/white\" />\n\n    </LinearLayout>\n\n</ScrollView>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage.xml b/app/src/main/res/layout/activity_homepage.xml
+--- a/app/src/main/res/layout/activity_homepage.xml	(revision 14130ee8a885499cbce1cc777f40ddce52fda1f6)
++++ b/app/src/main/res/layout/activity_homepage.xml	(date 1764617744490)
+@@ -1,26 +1,30 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+-    android:padding="24dp"
+-    android:background="#FFFFFF">
++    android:background="@drawable/background"
++    android:orientation="horizontal"
++    android:padding="24dp">
+ 
+     <LinearLayout
+-        android:orientation="vertical"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
+         android:gravity="center"
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content">
++        android:orientation="vertical">
+ 
+         <TextView
+             android:id="@+id/textGreeting"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
++            android:layout_marginBottom="8dp"
++            android:gravity="center"
++            android:letterSpacing="0.02"
++            android:paddingTop="24dp"
++            android:paddingBottom="12dp"
+             android:text="Hello!"
+-            android:textSize="24sp"
+-            android:textStyle="bold"
+-            android:gravity="left"
+-            android:layout_marginBottom="24dp"
+-            android:textColor="#333333" />
++            android:textColor="#4A4A4A"
++            android:textSize="26sp"
++            android:textStyle="bold" />
+ 
+ 
+         <!-- Existing Features -->
+@@ -28,66 +32,66 @@
+             android:id="@+id/btnLogMedicine"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+-            android:text="Log Medicine"
+-            android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
++            android:padding="12dp"
++            android:text="Log Medicine"
++            android:textSize="18sp" />
+ 
+         <Button
+             android:id="@+id/btnTechnique"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp"
+             android:text="Technique Helper"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
++            android:textSize="18sp" />
+ 
+         <Button
+             android:id="@+id/btnPrePostCheck"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+-            android:text="Pre/Post Check"
+-            android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
++            android:padding="12dp"
++            android:text="Pre/Post Check"
++            android:textSize="18sp" />
+ 
+ 
+         <Button
+             android:id="@+id/btnBadges"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+-            android:text="Badges"
+-            android:textSize="18sp"
+             android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
++            android:padding="12dp"
++            android:text="Badges"
++            android:textSize="18sp" />
+ 
+         <Button
+             android:id="@+id/btnCheckPeakFlow"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp"
+             android:text="Check Peak Flow"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
++            android:textSize="18sp" />
+ 
+         <Button
+             android:id="@+id/btnCheckSymptom"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
++            android:layout_marginBottom="16dp"
++            android:padding="12dp"
+             android:text="Check Symptom"
+-            android:textSize="18sp"
+-            android:layout_marginBottom="16dp"
+-            android:padding="12dp" />
++            android:textSize="18sp" />
+ 
+ 
+         <Button
+             android:id="@+id/btnSignOut"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+-            android:text="Sign Out"
+             android:backgroundTint="@android:color/holo_red_dark"
++            android:text="Sign Out"
+             android:textColor="@android:color/white" />
+ 
+     </LinearLayout>
+ 
+-</ScrollView>
++</LinearLayout>
+Index: app/src/main/res/layout/activity_homepage_parents.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ScrollView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    android:padding=\"24dp\"\n    android:background=\"#FFFFFF\">\n\n    <LinearLayout\n        android:orientation=\"vertical\"\n        android:gravity=\"center\"\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"wrap_content\">\n\n        <TextView\n            android:id=\"@+id/textGreeting\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Hello!\"\n            android:textSize=\"24sp\"\n            android:textStyle=\"bold\"\n            android:gravity=\"left\"\n            android:layout_marginBottom=\"24dp\"\n            android:textColor=\"#333333\" />\n\n        <!-- 父母相关按钮 -->\n        <Button\n            android:id=\"@+id/btnAddChild\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Add Child\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnViewChildren\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"View Children\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnManageChild\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Manage Child Activity\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnManageSharing\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Manage Sharing\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnManagePB\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Manage PB\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnInventory\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Inventory\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnSignOut\"\n            android:layout_width=\"wrap_content\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Sign Out\"\n            android:backgroundTint=\"@android:color/holo_red_dark\"\n            android:textColor=\"@android:color/white\" />\n\n        <!-- 其他功能按钮（可选，如果想和父母主页共用）-->\n        <!--\n        <Button\n            android:id=\"@+id/btnLogMedicine\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Log Medicine\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnTechnique\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Technique Helper\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnPrePostCheck\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Pre/Post Check\"\n            android:textSize=\"18sp\"\n            android:layout_marginBottom=\"16dp\"\n            android:padding=\"12dp\" />\n\n        <Button\n            android:id=\"@+id/btnBadges\"\n            android:layout_width=\"match_parent\"\n            android:layout_height=\"wrap_content\"\n            android:text=\"Badges\"\n            android:textSize=\"18sp\"\n            android:padding=\"12dp\" />\n        -->\n\n    </LinearLayout>\n</ScrollView>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_homepage_parents.xml b/app/src/main/res/layout/activity_homepage_parents.xml
+--- a/app/src/main/res/layout/activity_homepage_parents.xml	(revision 14130ee8a885499cbce1cc777f40ddce52fda1f6)
++++ b/app/src/main/res/layout/activity_homepage_parents.xml	(date 1764617650319)
+@@ -1,26 +1,30 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:padding="24dp"
+-    android:background="#FFFFFF">
++    android:background="@drawable/background2">
+ 
+     <LinearLayout
+         android:orientation="vertical"
+         android:gravity="center"
+         android:layout_width="match_parent"
+-        android:layout_height="wrap_content">
++        android:layout_height="wrap_content"
++        >
+ 
+         <TextView
+             android:id="@+id/textGreeting"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="Hello!"
+-            android:textSize="24sp"
++            android:textSize="26sp"
+             android:textStyle="bold"
+-            android:gravity="left"
+-            android:layout_marginBottom="24dp"
+-            android:textColor="#333333" />
++            android:gravity="center"
++            android:paddingTop="24dp"
++            android:paddingBottom="12dp"
++            android:textColor="#FF7F7F"
++            android:letterSpacing="0.02"
++            android:layout_marginBottom="8dp" />
+ 
+         <!-- 父母相关按钮 -->
+         <Button
+@@ -124,4 +128,4 @@
+         -->
+ 
+     </LinearLayout>
+-</ScrollView>
++</LinearLayout>
+Index: app/src/main/res/drawable/background2.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/drawable/background2.xml b/app/src/main/res/drawable/background2.xml
+new file mode 100644
+--- /dev/null	(date 1764617244700)
++++ b/app/src/main/res/drawable/background2.xml	(date 1764617244700)
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="utf-8"?>
++<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <!-- 底层透明背景 -->
++    <item>
++        <color android:color="@android:color/transparent"/>
++    </item>
++
++    <!-- JPG 图片，尽量铺满并裁掉白边 -->
++    <item>
++        <bitmap
++            android:src="@drawable/night"
++            android:gravity="fill"
++            android:tileMode="disabled" />
++    </item>
++
++</layer-list>

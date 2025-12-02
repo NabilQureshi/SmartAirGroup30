@@ -1,5 +1,6 @@
 package com.example.smartair.auth;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartair.R;
 import com.example.smartair.models.UserRole;
+import com.example.smartair.onboarding.OnboardingActivity;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -30,6 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private AuthModel authModel;
     private FirebaseFirestore db;
+    private SharedPrefsHelper prefsHelper;
     private Handler timeoutHandler = new Handler(Looper.getMainLooper());
     private Runnable timeoutRunnable;
 
@@ -49,6 +53,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         authModel = new AuthModel();
         db = FirebaseFirestore.getInstance();
+        prefsHelper = new SharedPrefsHelper(this);
+
+        View radioChild = findViewById(R.id.radioChild);
+        if (radioChild != null) {
+            radioChild.setVisibility(View.GONE);
+        }
 
         registerButton.setOnClickListener(v -> register());
         backToLoginTextView.setOnClickListener(v -> finish());
@@ -75,8 +85,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // 固定写死 role，也可以按界面选择
-        UserRole role = UserRole.CHILD;
+        UserRole role = UserRole.PARENT;
         int checkedId = roleRadioGroup.getCheckedRadioButtonId();
         if (checkedId == R.id.radioParent) role = UserRole.PARENT;
         else if (checkedId == R.id.radioProvider) role = UserRole.PROVIDER;
@@ -84,7 +93,6 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar.setVisibility(android.view.View.VISIBLE);
         registerButton.setEnabled(false);
 
-        // 超时处理
         timeoutRunnable = () -> {
             progressBar.setVisibility(android.view.View.GONE);
             registerButton.setEnabled(true);
@@ -92,25 +100,34 @@ public class RegisterActivity extends AppCompatActivity {
         };
         timeoutHandler.postDelayed(timeoutRunnable, 15000);
 
+        UserRole finalRole = role;
         authModel.register(email, password, role, new AuthModel.AuthCallback() {
             @Override
             public void onSuccess(UserRole r) {
                 timeoutHandler.removeCallbacks(timeoutRunnable);
 
-                // 注册成功后把用户信息写入 Firestore
                 String uid = authModel.mAuth.getCurrentUser().getUid();
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("name", name);
                 userMap.put("email", email);
-                userMap.put("role", r.getValue()); // ✅ 用枚举 getValue 写入 Firestore
+                userMap.put("role", r.getValue());
 
                 db.collection("users").document(uid)
                         .set(userMap)
                         .addOnSuccessListener(aVoid -> {
                             progressBar.setVisibility(android.view.View.GONE);
                             registerButton.setEnabled(true);
+
+                            prefsHelper.saveUserRole(finalRole.getValue());
+                            prefsHelper.saveUserId(uid);
+
                             Toast.makeText(RegisterActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
-                            finish(); // 返回登录页
+
+                            Intent intent = new Intent(RegisterActivity.this, OnboardingActivity.class);
+                            intent.putExtra("userRole", finalRole.getValue());
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
                         })
                         .addOnFailureListener(e -> {
                             progressBar.setVisibility(android.view.View.GONE);

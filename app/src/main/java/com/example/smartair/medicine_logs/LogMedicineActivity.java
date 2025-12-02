@@ -2,7 +2,6 @@ package com.example.smartair.medicine_logs;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -12,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartair.R;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,12 +31,14 @@ public class LogMedicineActivity extends AppCompatActivity {
     private MaterialButton btnSubmit;
     private RecyclerView rvHistory;
     private MedicineLogAdapter adapter;
-    private View emptyStateText;
+    private android.view.View emptyStateText;
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private CollectionReference logRef;
     private FirebaseUser user;
+    private String targetUid;
+    private String targetEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +55,23 @@ public class LogMedicineActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         user = auth.getCurrentUser();
 
-        if (user == null) {
+        SharedPrefsHelper prefs = new SharedPrefsHelper(this);
+        String savedRole = prefs.getUserRole();
+        String savedChildId = prefs.getUserId();
+
+        if ("child".equalsIgnoreCase(savedRole) && savedChildId != null) {
+            targetUid = savedChildId;
+            targetEmail = null;
+        } else if (user != null) {
+            targetUid = user.getUid();
+            targetEmail = user.getEmail();
+        } else {
             Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        logRef = db.collection("users").document(user.getUid()).collection("medicine_logs");
+        logRef = db.collection("users").document(targetUid).collection("medicine_logs");
 
         rvHistory.setLayoutManager(new LinearLayoutManager(this));
         adapter = new MedicineLogAdapter();
@@ -89,14 +101,14 @@ public class LogMedicineActivity extends AppCompatActivity {
         try {
             dose = Long.parseLong(doseStr);
         } catch (NumberFormatException ex) {
-            Toast.makeText(this, "剂量必须为数字", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "剂量格式不正确", Toast.LENGTH_SHORT).show();
             return;
         }
 
         long now = System.currentTimeMillis();
         HashMap<String, Object> data = new HashMap<>();
-        data.put("uid", user.getUid());
-        data.put("email", user.getEmail());
+        data.put("uid", targetUid);
+        data.put("email", targetEmail);
         data.put("type", type);
         data.put("dose", dose);
         data.put("timestamp", now);
@@ -106,7 +118,7 @@ public class LogMedicineActivity extends AppCompatActivity {
             btnSubmit.setEnabled(true);
             Toast.makeText(this, "记录已保存", Toast.LENGTH_SHORT).show();
             etDose.setText("");
-            fetchLogs(); // 更新列表
+            fetchLogs();
         }).addOnFailureListener(e -> {
             btnSubmit.setEnabled(true);
             Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -117,15 +129,16 @@ public class LogMedicineActivity extends AppCompatActivity {
         logRef.orderBy("timestamp").limit(50).get().addOnSuccessListener(queryDocumentSnapshots -> {
             List<DocumentSnapshot> logs = queryDocumentSnapshots.getDocuments();
             if (logs.isEmpty()) {
-                emptyStateText.setVisibility(View.VISIBLE);
-                rvHistory.setVisibility(View.GONE);
+                emptyStateText.setVisibility(android.view.View.VISIBLE);
+                rvHistory.setVisibility(android.view.View.GONE);
             } else {
-                emptyStateText.setVisibility(View.GONE);
-                rvHistory.setVisibility(View.VISIBLE);
+                emptyStateText.setVisibility(android.view.View.GONE);
+                rvHistory.setVisibility(android.view.View.VISIBLE);
                 adapter.setLogs(logs);
             }
         }).addOnFailureListener(e -> {
-            Toast.makeText(this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "加载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 }
+

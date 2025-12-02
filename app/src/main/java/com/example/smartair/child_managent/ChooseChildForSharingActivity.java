@@ -31,6 +31,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String parentId;
     private String mode = "sharing";
+    private int cnt = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +42,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
         loadingIndicator = findViewById(R.id.loadingIndicator);
         recyclerChildren = findViewById(R.id.recyclerChildren);
         recyclerChildren.setLayoutManager(new LinearLayoutManager(this));
+
 
         // 获取传入的 parentId，如果没有就用当前登录用户
         parentId = getIntent().getStringExtra("parentId");
@@ -58,6 +60,7 @@ public class ChooseChildForSharingActivity extends AppCompatActivity {
             } else {
                 intent = new Intent(this, ManageSharingActivity.class);
             }
+            //intent = new Intent(this, ManageSharingActivity.class);
             intent.putExtra("childId", child.getUid());
             intent.putExtra("username", child.getUsername());
             intent.putExtra("password", child.getPassword());

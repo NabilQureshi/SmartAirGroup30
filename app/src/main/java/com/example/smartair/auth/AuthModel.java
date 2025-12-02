@@ -15,12 +15,12 @@ public class AuthModel {
         void onError(String message);
     }
 
-    // 破坏了封装性，但是不得不改
-    public static FirebaseAuth mAuth = FirebaseAuth.getInstance();
-
+    public static FirebaseAuth mAuth;
 
     public AuthModel() {
-        mAuth = FirebaseAuth.getInstance();
+        if (mAuth == null) {
+            mAuth = FirebaseAuth.getInstance();
+        }
     }
 
     public void login(String email, String password, AuthCallback callback) {
@@ -51,8 +51,8 @@ public class AuthModel {
                         } else {
                             Exception e = task.getException();
                             if(e != null) {
-                                e.printStackTrace();   // 在 Logcat 打印完整错误
-                                callback.onError(e.toString());  // 返回完整信息
+                                e.printStackTrace();
+                                callback.onError(e.toString());
                             } else {
                                 callback.onError("Unknown error during login");
                             }

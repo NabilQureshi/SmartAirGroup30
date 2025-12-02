@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:background="#FFFFFF">
+    android:background="@drawable/background"
+    android:orientation="horizontal"
+    android:padding="24dp">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/textGreeting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:letterSpacing="0.02"
+            android:paddingTop="24dp"
+            android:paddingBottom="12dp"
             android:text="Hello!"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:gravity="left"
-            android:layout_marginBottom="24dp"
-            android:textColor="#333333" />
+            android:textColor="#4A4A4A"
+            android:textSize="26sp"
+            android:textStyle="bold" />
 
 
         <!-- Existing Features -->
@@ -28,47 +32,47 @@
             android:id="@+id/btnLogMedicine"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Log Medicine"
-            android:textSize="18sp"
             android:layout_marginBottom="16dp"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:text="Log Medicine"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/btnTechnique"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Technique Helper"
-            android:textSize="18sp"
             android:layout_marginBottom="16dp"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:text="Technique Helper"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/btnPrePostCheck"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pre/Post Check"
-            android:textSize="18sp"
             android:layout_marginBottom="16dp"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:text="Pre/Post Check"
+            android:textSize="18sp" />
 
 
         <Button
             android:id="@+id/btnBadges"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Badges"
-            android:textSize="18sp"
             android:layout_marginBottom="16dp"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:text="Badges"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/btnCheckPeakFlow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Check Peak Flow"
-            android:textSize="18sp"
             android:layout_marginBottom="16dp"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:text="Check Peak Flow"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/btnCheckSymptom"
@@ -84,10 +88,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Daily Symptom Check-In"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp"
-            android:padding="12dp" />
+            android:textSize="18sp" />
+
+
+        <Button
+            android:id="@+id/btnSignOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:text="Sign Out"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 
-</ScrollView>
+</LinearLayout>

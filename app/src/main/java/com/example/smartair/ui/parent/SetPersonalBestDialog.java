@@ -11,9 +11,20 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+import android.util.Log;
 import com.example.smartair.R;
 import com.example.smartair.data.ChildRepository;
 import com.example.smartair.model.Child;
+import com.example.smartair.util.PEFZoneCalculator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.SetOptions;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Dialog for setting or updating a child's Personal Best (PB) value.
@@ -21,6 +32,7 @@ import com.example.smartair.model.Child;
  */
 public class SetPersonalBestDialog extends DialogFragment {
     private static final String ARG_CHILD = "child";
+    private static final String TAG = "SetPersonalBestDialog";
     
     private Child child;
     private ChildRepository childRepository;
@@ -100,6 +112,7 @@ public class SetPersonalBestDialog extends DialogFragment {
 
             // Update the child's Personal Best
             childRepository.updatePersonalBest(child.getId(), pbValue);
+            syncPersonalBestToFirestore(pbValue);
             
             Toast.makeText(requireContext(), 
                 "Personal Best updated to " + pbValue + " L/min", 
@@ -113,6 +126,60 @@ public class SetPersonalBestDialog extends DialogFragment {
             dismiss();
         } catch (NumberFormatException e) {
             Toast.makeText(requireContext(), "Please enter a valid number", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Persist PB to Firestore so the child's account (and zone colors) can see it.
+     */
+    private void syncPersonalBestToFirestore(int pbValue) {
+        if (child == null || child.getId() == null || child.getId().isEmpty()) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference childDoc = db.collection("users").document(child.getId());
+
+        // Read the child doc to reuse the latest PEF the child already stored.
+        childDoc.get()
+                .addOnSuccessListener(snapshot -> {
+                    Map<String, Object> payload = new HashMap<>();
+                    payload.put("personalBest", pbValue);
+
+                    Long latestPef = snapshot.getLong("latestZonePefValue");
+                    if (latestPef != null && latestPef > 0) {
+                        PEFZoneCalculator.ZoneResult zoneResult =
+                                PEFZoneCalculator.calculateZone(latestPef.intValue(), pbValue);
+                        if (zoneResult.isReady()) {
+                            payload.put("latestZoneState", zoneResult.getZone().name());
+                            payload.put("latestZonePercent", zoneResult.getPercentOfPersonalBest());
+                            payload.put("latestZonePefValue", zoneResult.getPefValue());
+                            payload.put("latestZoneUpdatedAt", System.currentTimeMillis());
+                        }
+                    }
+
+                    writePayloadToChildAndParent(db, childDoc, payload);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed to read child doc before PB sync", e);
+                    Map<String, Object> payload = new HashMap<>();
+                    payload.put("personalBest", pbValue);
+                    writePayloadToChildAndParent(db, childDoc, payload);
+                });
+    }
+
+    private void writePayloadToChildAndParent(FirebaseFirestore db,
+                                              DocumentReference childDoc,
+                                              Map<String, Object> payload) {
+        childDoc.set(payload, SetOptions.merge())
+                .addOnFailureListener(e -> Log.w(TAG, "Failed to write PB payload to child doc", e));
+
+        FirebaseUser parent = FirebaseAuth.getInstance().getCurrentUser();
+        if (parent != null) {
+            db.collection("users")
+                    .document(parent.getUid())
+                    .collection("children")
+                    .document(child.getId())
+                    .set(payload, SetOptions.merge())
+                    .addOnFailureListener(e -> Log.w(TAG, "Failed to write PB payload to parent child doc", e));
         }
     }
 }

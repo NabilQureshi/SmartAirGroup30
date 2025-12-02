@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -22,6 +23,7 @@ import com.example.smartair.R;
 import com.example.smartair.model.PEFEntry;
 import com.example.smartair.util.PEFValidator;
 import com.example.smartair.util.PEFZoneCalculator;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,6 +32,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +71,13 @@ public class ChildPEFActivity extends AppCompatActivity {
     // Firebase
     private FirebaseFirestore db;
     private CollectionReference pefCollection;
+    private CollectionReference zoneHistoryCollection;
     private FirebaseUser user;
+    private String targetUid;
+    private String targetEmail;
+    private String lastUpdatedZoneState;
+
+    private static final String TAG = "ChildPEFActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,11 +87,28 @@ public class ChildPEFActivity extends AppCompatActivity {
         // Firebase setup
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            pefCollection = db.collection("users")
-                    .document(user.getUid())
-                    .collection("pef_entries");
+        SharedPrefsHelper prefs = new SharedPrefsHelper(this);
+        String savedRole = prefs.getUserRole();
+        String savedChildId = prefs.getUserId();
+
+        if ("child".equalsIgnoreCase(savedRole) && savedChildId != null) {
+            targetUid = savedChildId;
+            targetEmail = null;
+        } else if (user != null) {
+            targetUid = user.getUid();
+            targetEmail = user.getEmail();
+        } else {
+            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
+
+        pefCollection = db.collection("users")
+                .document(targetUid)
+                .collection("pef_entries");
+        zoneHistoryCollection = db.collection("users")
+                .document(targetUid)
+                .collection("zone_history");
 
         // Views
         pefInput = findViewById(R.id.pef_input);
@@ -132,14 +158,14 @@ public class ChildPEFActivity extends AppCompatActivity {
             );
         }
 
-        updatePersonalBestCard();
+        loadChildProfile();
         fetchPEFEntries();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        updatePersonalBestCard();
+        loadChildProfile();
         fetchPEFEntries();
     }
 
@@ -194,6 +220,12 @@ public class ChildPEFActivity extends AppCompatActivity {
             data.put("medicineTag", tag.name());
 
             saveButton.setEnabled(false);
+            if (pefCollection == null) {
+                Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+                saveButton.setEnabled(true);
+                return;
+            }
+
             pefCollection.add(data)
                     .addOnSuccessListener(docRef -> {
                         saveButton.setEnabled(true);
@@ -238,6 +270,31 @@ public class ChildPEFActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to fetch entries: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void loadChildProfile() {
+        if (targetUid == null) return;
+
+        db.collection("users")
+                .document(targetUid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Long pbValue = doc.getLong("personalBest");
+                        currentPersonalBest = pbValue != null ? pbValue.intValue() : null;
+                        lastUpdatedZoneState = doc.getString("latestZoneState");
+                    } else {
+                        currentPersonalBest = null;
+                        lastUpdatedZoneState = null;
+                    }
+                    updatePersonalBestCard();
+                    updateZoneCardUsingCurrentState();
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed to load child profile", e);
+                    updatePersonalBestCard();
+                    updateZoneCardUsingCurrentState();
                 });
     }
 
@@ -327,6 +384,9 @@ public class ChildPEFActivity extends AppCompatActivity {
                 : R.string.zone_based_on_latest_entry);
 
         applyZoneColors(result.getZone());
+        if (!basedOnInput) {
+            updateLatestZone(result);
+        }
     }
 
     private String formatPercent(float percent) {
@@ -361,5 +421,44 @@ public class ChildPEFActivity extends AppCompatActivity {
         zoneCard.setCardBackgroundColor(ContextCompat.getColor(this, backgroundColorRes));
         zoneStateText.setTextColor(ContextCompat.getColor(this, textColorRes));
         zonePercentText.setTextColor(ContextCompat.getColor(this, textColorRes));
+    }
+
+    /**
+     * Save the latest zone so the parent app can show it.
+     * Only updates when the zone comes from the newest saved PEF entry.
+     */
+    private void updateLatestZone(PEFZoneCalculator.ZoneResult result) {
+        if (result == null || !result.isReady() || targetUid == null) return;
+
+        String newState = result.getZone().name();
+        boolean zoneChanged = lastUpdatedZoneState == null
+                || !lastUpdatedZoneState.equals(newState);
+        long now = System.currentTimeMillis();
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("latestZoneState", newState);
+        update.put("latestZonePercent", result.getPercentOfPersonalBest());
+        update.put("latestZonePefValue", result.getPefValue());
+        update.put("latestZoneUpdatedAt", now);
+
+        db.collection("users")
+                .document(targetUid)
+                .set(update, SetOptions.merge());
+
+        if (zoneChanged && zoneHistoryCollection != null) {
+            Map<String, Object> history = new HashMap<>();
+            history.put("zoneState", newState);
+            history.put("percentOfPersonalBest", result.getPercentOfPersonalBest());
+            history.put("pefValue", result.getPefValue());
+            history.put("timestamp", now);
+            if (lastUpdatedZoneState != null) {
+                history.put("previousZoneState", lastUpdatedZoneState);
+            }
+
+            zoneHistoryCollection.add(history)
+                    .addOnFailureListener(e -> Log.w(TAG, "Failed to write zone history", e));
+        }
+
+        lastUpdatedZoneState = newState;
     }
 }

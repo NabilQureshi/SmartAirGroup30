@@ -27,6 +27,7 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
 
     private List<PEFEntry> pefEntries;
     private final SimpleDateFormat dateFormat;
+    private boolean showSharedTag;
 
     public PEFHistoryAdapter() {
         this.pefEntries = new ArrayList<>();
@@ -35,6 +36,11 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
 
     public void setPEFEntries(List<PEFEntry> entries) {
         this.pefEntries = entries != null ? entries : new ArrayList<>();
+        notifyDataSetChanged();
+    }
+
+    public void setShowSharedTag(boolean showSharedTag) {
+        this.showSharedTag = showSharedTag;
         notifyDataSetChanged();
     }
 
@@ -49,7 +55,7 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
     @Override
     public void onBindViewHolder(@NonNull PEFViewHolder holder, int position) {
         PEFEntry entry = pefEntries.get(position);
-        holder.bind(entry);
+        holder.bind(entry, showSharedTag);
     }
 
     @Override
@@ -63,6 +69,7 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
         private final TextView medicineTagText;
         private final TextView timestampText;
         private final TextView comparisonText;
+        private final TextView sharedTagText;
         private final SimpleDateFormat dateFormat;
 
         public PEFViewHolder(@NonNull View itemView) {
@@ -71,10 +78,11 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
             medicineTagText = itemView.findViewById(R.id.medicine_tag_text);
             timestampText = itemView.findViewById(R.id.timestamp_text);
             comparisonText = itemView.findViewById(R.id.comparison_text);
+            sharedTagText = itemView.findViewById(R.id.shared_tag);
             this.dateFormat = new SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault());
         }
 
-        public void bind(PEFEntry entry) {
+        public void bind(PEFEntry entry, boolean showSharedTag) {
             // 显示 PEF 数值
             pefValueText.setText(entry.getPefValue() + " L/min");
 
@@ -113,6 +121,8 @@ public class PEFHistoryAdapter extends RecyclerView.Adapter<PEFHistoryAdapter.PE
             } else {
                 comparisonText.setVisibility(View.GONE);
             }
+
+            sharedTagText.setVisibility(showSharedTag ? View.VISIBLE : View.GONE);
         }
     }
 }

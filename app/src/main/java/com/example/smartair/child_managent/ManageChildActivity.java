@@ -45,20 +45,6 @@ public class ManageChildActivity extends AppCompatActivity {
         parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         childId = getIntent().getStringExtra("childId");
-        DocumentReference childRef = db.collection("users")
-                .document(parentId)
-                .collection("children")
-                .document(childId);
-
-        childRef.get().addOnSuccessListener(doc -> {
-            if (doc.exists()) {
-                editChildUsername.setText(doc.getString("username"));
-                editChildPassword.setText(doc.getString("password"));
-                editChildName.setText(doc.getString("name"));
-                editChildDOB.setText(doc.getString("dob"));
-                editChildNotes.setText(doc.getString("notes"));
-            }
-        });
 
         if (childId == null) {
             Toast.makeText(this, "Error: No child selected.", Toast.LENGTH_LONG).show();
@@ -66,11 +52,12 @@ public class ManageChildActivity extends AppCompatActivity {
             return;
         }
 
+        // Initialize UI FIRST
         editChildUsername = findViewById(R.id.editChildUsername);
         editChildPassword = findViewById(R.id.editChildPassword);
-        editChildName = findViewById(R.id.editChildName);
-        editChildDOB = findViewById(R.id.editChildDOB);
-        editChildNotes = findViewById(R.id.editChildNotes);
+        editChildName     = findViewById(R.id.editChildName);
+        editChildDOB      = findViewById(R.id.editChildDOB);
+        editChildNotes    = findViewById(R.id.editChildNotes);
 
         btnSave = findViewById(R.id.btnSave);
         btnDelete = findViewById(R.id.btnDelete);
@@ -96,6 +83,7 @@ public class ManageChildActivity extends AppCompatActivity {
             startActivity(i);
         });
     }
+
 
     private void loadChildInfo() {
         db.collection("users")

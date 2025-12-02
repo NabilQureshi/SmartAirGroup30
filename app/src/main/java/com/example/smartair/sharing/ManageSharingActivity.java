@@ -13,10 +13,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.smartair.R;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +58,9 @@ public class ManageSharingActivity extends AppCompatActivity {
             return;
         }
 
-        docRef = db.collection("parents")
+        // Keep sharing settings alongside the rest of the child data under users/{parent}/children/{child}
+        // so toggles are actually tied to the child created in AddChild/ManageChild.
+        docRef = db.collection("users")
                 .document(parentId)
                 .collection("children")
                 .document(childId)
@@ -157,18 +160,12 @@ public class ManageSharingActivity extends AppCompatActivity {
 
     private void saveAllSettings() {
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("rescueLogs", switchRescue.isChecked());
-        data.put("controller", switchController.isChecked());
-        data.put("symptoms", switchSymptoms.isChecked());
-        data.put("triggers", switchTriggers.isChecked());
-        data.put("pef", switchPEF.isChecked());
-        data.put("triage", switchTriage.isChecked());
-        data.put("charts", switchCharts.isChecked());
+        Map<String, Object> data = buildSettingsPayload();
 
         docRef.set(data, SetOptions.merge())
                 .addOnSuccessListener(a -> {
                     textSaving.setText("All changes saved!");
+                    syncToLinkedProviders(data);
 
                     textSaving.postDelayed(() -> {
                         textSaving.setVisibility(View.GONE);
@@ -179,6 +176,44 @@ public class ManageSharingActivity extends AppCompatActivity {
                     textSaving.setVisibility(View.GONE);
                     Toast.makeText(this, "Error saving settings", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private Map<String, Object> buildSettingsPayload() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("rescueLogs", switchRescue.isChecked());
+        data.put("controller", switchController.isChecked());
+        data.put("symptoms", switchSymptoms.isChecked());
+        data.put("triggers", switchTriggers.isChecked());
+        data.put("pef", switchPEF.isChecked());
+        data.put("triage", switchTriage.isChecked());
+        data.put("charts", switchCharts.isChecked());
+        return data;
+    }
+
+    private void syncToLinkedProviders(Map<String, Object> data) {
+        db.collection("parents")
+                .document(parentId)
+                .collection("children")
+                .document(childId)
+                .collection("linkedProviders")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot == null || snapshot.isEmpty()) return;
+
+                    for (DocumentSnapshot providerDoc : snapshot.getDocuments()) {
+                        String providerId = providerDoc.getId();
+                        db.collection("providers")
+                                .document(providerId)
+                                .collection("linkedChildren")
+                                .document(childId)
+                                .collection("settings")
+                                .document("sharing")
+                                .set(data, SetOptions.merge());
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Saved locally, but failed to sync to providers.", Toast.LENGTH_SHORT).show()
+                );
     }
 
 

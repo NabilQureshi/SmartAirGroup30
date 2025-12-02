@@ -156,10 +156,36 @@ public class InviteProviderActivity extends AppCompatActivity {
                         }
                         doc.getReference().delete();
 
+                        // Also revoke any existing provider links for this child
+                        revokeProviderLinks();
+
                         updateUI(false, null);
                     }
 
                     if (onFinished != null) onFinished.run();
+                });
+    }
+
+    private void revokeProviderLinks() {
+        db.collection("parents").document(parentId)
+                .collection("children").document(childId)
+                .collection("linkedProviders")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot == null || snapshot.isEmpty()) return;
+                    snapshot.getDocuments().forEach(providerDoc -> {
+                        String providerId = providerDoc.getId();
+
+                        // Delete provider-side link
+                        db.collection("providers")
+                                .document(providerId)
+                                .collection("linkedChildren")
+                                .document(childId)
+                                .delete();
+
+                        // Delete parent-side link entry
+                        providerDoc.getReference().delete();
+                    });
                 });
     }
 

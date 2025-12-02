@@ -21,6 +21,12 @@ public class PrePostCheckAdapter extends RecyclerView.Adapter<PrePostCheckAdapte
 
     private List<DocumentSnapshot> checkList = new ArrayList<>();
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    private boolean showSharedTag;
+
+    public void setShowSharedTag(boolean showSharedTag) {
+        this.showSharedTag = showSharedTag;
+        notifyDataSetChanged();
+    }
 
     public void setChecks(List<DocumentSnapshot> checks) {
         this.checkList = checks != null ? checks : new ArrayList<>();
@@ -42,7 +48,7 @@ public class PrePostCheckAdapter extends RecyclerView.Adapter<PrePostCheckAdapte
 
     @Override
     public void onBindViewHolder(@NonNull CheckViewHolder holder, int position) {
-        holder.bind(checkList.get(position));
+        holder.bind(checkList.get(position), showSharedTag);
     }
 
     @Override
@@ -52,7 +58,7 @@ public class PrePostCheckAdapter extends RecyclerView.Adapter<PrePostCheckAdapte
 
     static class CheckViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvWhenResult, tvRating, tvNote, tvTimestamp;
+        TextView tvWhenResult, tvRating, tvNote, tvTimestamp, tvSharedTag;
 
         public CheckViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -60,9 +66,10 @@ public class PrePostCheckAdapter extends RecyclerView.Adapter<PrePostCheckAdapte
             tvRating = itemView.findViewById(R.id.tvRating);
             tvNote = itemView.findViewById(R.id.tvNote);
             tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
+            tvSharedTag = itemView.findViewById(R.id.tvSharedTag);
         }
 
-        public void bind(DocumentSnapshot doc) {
+        public void bind(DocumentSnapshot doc, boolean showSharedTag) {
             String when = doc.getString("when");
             String result = doc.getString("result");
             Double rating = doc.getDouble("rating");
@@ -84,6 +91,8 @@ public class PrePostCheckAdapter extends RecyclerView.Adapter<PrePostCheckAdapte
             } else {
                 tvTimestamp.setText("-");
             }
+
+            tvSharedTag.setVisibility(showSharedTag ? View.VISIBLE : View.GONE);
         }
     }
 }

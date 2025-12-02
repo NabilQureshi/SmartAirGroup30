@@ -1,0 +1,277 @@
+Index: app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.child_managent;\r\n\r\nimport android.app.DatePickerDialog;\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.widget.EditText;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.example.smartair.R;\r\nimport com.example.smartair.utils.SharedPrefsHelper;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.auth.FirebaseUser;\r\nimport com.google.firebase.firestore.DocumentReference;\r\nimport com.google.firebase.firestore.FieldValue;\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\nimport com.google.firebase.firestore.WriteBatch;\r\n\r\nimport java.util.Calendar;\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\nimport java.util.UUID;\r\n\r\npublic class AddChildActivity extends AppCompatActivity {\r\n\r\n    private EditText editChildUsername, editChildPassword, editChildName, editChildNotes, editChildDOB;\r\n    private TextView textGreeting;\r\n    private String selectedDOB = \"\";\r\n\r\n    private FirebaseAuth auth;\r\n    private FirebaseFirestore db;\r\n    private int cnt = 0;\r\n    String parentId;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_add_child);\r\n\r\n        auth = FirebaseAuth.getInstance();\r\n        db = FirebaseFirestore.getInstance();\r\n\r\n        FirebaseUser parent = auth.getCurrentUser();\r\n        if (parent == null) {\r\n            Toast.makeText(this, \"Please log in first.\", Toast.LENGTH_SHORT).show();\r\n            finish();\r\n            return;\r\n        }\r\n\r\n        textGreeting = findViewById(R.id.textGreeting);\r\n        editChildUsername = findViewById(R.id.editChildUsername);\r\n        editChildPassword = findViewById(R.id.editChildPassword);\r\n        editChildName = findViewById(R.id.editChildName);\r\n        editChildNotes = findViewById(R.id.editChildNotes);\r\n        editChildDOB = findViewById(R.id.editChildDOB);\r\n\r\n        editChildDOB.setOnClickListener(v -> showDatePickerDialog());\r\n\r\n        findViewById(R.id.btnAddChild).setOnClickListener(v -> checkUsernameAndAddChild());\r\n\r\n        loadParentName(parent.getUid());\r\n    }\r\n\r\n    private void loadParentName(String uid) {\r\n        db.collection(\"users\").document(uid).get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (doc.exists()) {\r\n                        String name = doc.getString(\"name\");\r\n                        if (name != null && !name.isEmpty()) {\r\n                            textGreeting.setText(\"Hello, \" + name);\r\n                        }\r\n                    }\r\n                });\r\n    }\r\n\r\n    private void showDatePickerDialog() {\r\n        Calendar c = Calendar.getInstance();\r\n        int year = c.get(Calendar.YEAR);\r\n        int month = c.get(Calendar.MONTH);\r\n        int day = c.get(Calendar.DAY_OF_MONTH);\r\n\r\n        DatePickerDialog dialog = new DatePickerDialog(\r\n                this,\r\n                (view, yr, mo, dy) -> {\r\n                    selectedDOB = String.format(\"%02d/%02d/%d\", dy, mo + 1, yr);\r\n                    editChildDOB.setText(selectedDOB);\r\n                },\r\n                year, month, day\r\n        );\r\n        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());\r\n        dialog.show();\r\n    }\r\n\r\n    private void checkUsernameAndAddChild() {\r\n        String username = editChildUsername.getText().toString().trim();\r\n        String password = editChildPassword.getText().toString().trim();\r\n        String name = editChildName.getText().toString().trim();\r\n        String dob = selectedDOB;\r\n        String notes = editChildNotes.getText().toString().trim();\r\n\r\n        if (username.isEmpty() || password.isEmpty() || name.isEmpty() || dob.isEmpty()) {\r\n            Toast.makeText(this, \"All fields required.\", Toast.LENGTH_SHORT).show();\r\n            return;\r\n        }\r\n\r\n        // 检查 username 是否存在\r\n        DocumentReference usernameRef = db.collection(\"usernames\").document(username);\r\n        usernameRef.get().addOnSuccessListener(doc -> {\r\n            if (doc.exists()) {\r\n                Toast.makeText(this, \"Username already exists.\", Toast.LENGTH_LONG).show();\r\n            } else {\r\n                // Create child WITHOUT FirebaseAuth account\r\n                createChildFirebaseAuth(username, password, name, dob, notes);\r\n            }\r\n        });\r\n    }\r\n\r\n    private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {\r\n        String email = username + \"@child.smartair.com\";\r\n\r\n        // Save parent UID BEFORE Firebase logs them out\r\n        if (cnt == 0) {\r\n            parentId = auth.getCurrentUser().getUid();\r\n            cnt++;\r\n        }\r\n\r\n        String parentEmail = SharedPrefsHelper.getString(this, \"PARENT_EMAIL\");\r\n        String parentPassword = SharedPrefsHelper.getString(this, \"PARENT_PASSWORD\");\r\n\r\n        if (parentEmail == null || parentPassword == null) {\r\n            Toast.makeText(this, \"Parent login info missing. Please log in again.\", Toast.LENGTH_LONG).show();\r\n            return;\r\n        }\r\n\r\n        auth.createUserWithEmailAndPassword(email, password)\r\n                .addOnSuccessListener(authResult -> {\r\n                    String childUid = authResult.getUser().getUid();\r\n                    auth.signInWithEmailAndPassword(parentEmail, parentPassword)\r\n\r\n\r\n                            .addOnSuccessListener(parentLoginResult -> {\r\n\r\n\r\n\r\n\r\n\r\n                                saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);\r\n\r\n\r\n\r\n\r\n\r\n                            })\r\n\r\n\r\n                            .addOnFailureListener(e -> {\r\n\r\n\r\n                                Toast.makeText(this, \"Failed to log parent back in: \" + e.getMessage(), Toast.LENGTH_LONG).show();\r\n\r\n\r\n                            });\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    Toast.makeText(this, \"Failed to create child account: \" + e.getMessage(), Toast.LENGTH_SHORT).show();\r\n                });\r\n    }\r\n\r\n    /**\r\n     * Store child in:\r\n     *  - users/{parentId}/children/{childUid}\r\n     *  - users/{childUid}\r\n     *  - usernames/{username}\r\n     */\r\n    private void saveChildFirestore(String parentId, String childUid, String username, String email,\r\n                                    String name, String dob, String notes, String password) {\r\n\r\n        WriteBatch batch = db.batch();\r\n\r\n        // users/{parentId}/children/{childUid}\r\n        DocumentReference childRef = db.collection(\"users\")\r\n                .document(parentId)\r\n                .collection(\"children\")\r\n                .document(childUid);\r\n\r\n        Map<String, Object> childData = new HashMap<>();\r\n        childData.put(\"uid\", childUid);\r\n        childData.put(\"username\", username);\r\n        childData.put(\"email\", email);\r\n        childData.put(\"password\", password);\r\n        childData.put(\"name\", name);\r\n        childData.put(\"dob\", dob);\r\n        childData.put(\"notes\", notes);\r\n        childData.put(\"role\", \"child\");\r\n        childData.put(\"createdAt\", FieldValue.serverTimestamp());\r\n\r\n        DocumentReference usernameRef = db.collection(\"usernames\").document(username);\r\n        Map<String, Object> usernameMap = new HashMap<>();\r\n        usernameMap.put(\"childUid\", childUid);\r\n        usernameMap.put(\"parentId\", parentId);\r\n        usernameMap.put(\"email\", email);\r\n\r\n        batch.set(childRef, childData);\r\n        batch.set(usernameRef, usernameMap);\r\n\r\n        batch.commit()\r\n                .addOnSuccessListener(unused -> {\r\n                    Toast.makeText(this, \"Child account created successfully!\", Toast.LENGTH_SHORT).show();\r\n\r\n                    // 直接回到 ChooseChildForSharingActivity，传父母 UID\r\n                    Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);\r\n                    intent.putExtra(\"parentId\", parentId);\r\n                    startActivity(intent);\r\n\r\n                    finish();\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    Toast.makeText(this, \"Failed to save Firestore data: \" + e.getMessage(), Toast.LENGTH_SHORT).show();\r\n                });\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java b/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java
+--- a/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java	(revision 39fad1dcd5405a2a201b7bb37d291644e0056dbc)
++++ b/app/src/main/java/com/example/smartair/child_managent/AddChildActivity.java	(date 1764622170379)
+@@ -137,31 +137,7 @@
+         auth.createUserWithEmailAndPassword(email, password)
+                 .addOnSuccessListener(authResult -> {
+                     String childUid = authResult.getUser().getUid();
+-                    auth.signInWithEmailAndPassword(parentEmail, parentPassword)
+-
+-
+-                            .addOnSuccessListener(parentLoginResult -> {
+-
+-
+-
+-
+-
+-                                saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+-
+-
+-
+-
+-
+-                            })
+-
+-
+-                            .addOnFailureListener(e -> {
+-
+-
+-                                Toast.makeText(this, "Failed to log parent back in: " + e.getMessage(), Toast.LENGTH_LONG).show();
+-
+-
+-                            });
++                    saveChildFirestore(parentId, childUid, username, email, name, dob, notes, password);
+                 })
+                 .addOnFailureListener(e -> {
+                     Toast.makeText(this, "Failed to create child account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+@@ -220,4 +196,4 @@
+                     Toast.makeText(this, "Failed to save Firestore data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                 });
+     }
+-}
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/smartair/auth/LoginActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.smartair.auth;\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.Button;\r\nimport android.widget.EditText;\r\nimport android.widget.ProgressBar;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.example.smartair.R;\r\nimport com.example.smartair.homepages.HomepageActivity;\r\nimport com.example.smartair.homepages.HomepageParentsActivity;\r\nimport com.example.smartair.homepages.HomepageProvidersActivity;\r\nimport com.example.smartair.models.UserRole;\r\nimport com.example.smartair.utils.SharedPrefsHelper;\r\nimport com.google.firebase.FirebaseApp;\r\nimport com.google.firebase.auth.FirebaseAuth;\r\nimport com.google.firebase.auth.FirebaseUser;\r\n\r\nimport com.google.firebase.firestore.FirebaseFirestore;\r\n\r\n\r\npublic class LoginActivity extends AppCompatActivity implements LoginContract.View {\r\n\r\n    private static final String TAG = \"LoginActivity\";\r\n\r\n    private EditText emailEditText, passwordEditText;\r\n    private Button loginButton;\r\n    private TextView registerTextView;\r\n    private ProgressBar progressBar;\r\n\r\n    private TextView textForgotPassword;\r\n    private LoginContract.Presenter presenter;\r\n    private SharedPrefsHelper prefsHelper;\r\n    private FirebaseFirestore db;\r\n    private boolean isChildLogin = false;\r\n\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n\r\n        try {\r\n            FirebaseApp.initializeApp(this);\r\n        } catch (Exception e) {\r\n            Log.e(TAG, \"Firebase init failed\", e);\r\n            Toast.makeText(this, \"Firebase initialization failed\", Toast.LENGTH_LONG).show();\r\n        }\r\n\r\n        setContentView(R.layout.activity_login);\r\n\r\n        emailEditText = findViewById(R.id.emailEditText);\r\n        passwordEditText = findViewById(R.id.passwordEditText);\r\n        loginButton = findViewById(R.id.loginButton);\r\n        registerTextView = findViewById(R.id.registerTextView);\r\n        progressBar = findViewById(R.id.progressBar);\r\n\r\n        textForgotPassword = findViewById(R.id.textForgotPassword);\r\n\r\n        textForgotPassword.setOnClickListener(v ->\r\n                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));\r\n\r\n        db = FirebaseFirestore.getInstance();\r\n        prefsHelper = new SharedPrefsHelper(this);\r\n\r\n        AuthModel model = new AuthModel();\r\n        presenter = new LoginPresenter(this, model);\r\n\r\n        loginButton.setOnClickListener(v -> handleLogin());\r\n\r\n        registerTextView.setOnClickListener(v -> {\r\n            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));\r\n        });\r\n    }\r\n    private void handleLogin() {\r\n        String input = getEmail();\r\n        String password = getPassword();\r\n\r\n        if (input.isEmpty() || password.isEmpty()) {\r\n            showError(\"Please enter login credentials\");\r\n            return;\r\n        }\r\n        if (!input.contains(\"@\")) {\r\n            loginChild(input, password);\r\n            return;\r\n        }\r\n\r\n        presenter.onLoginClicked();\r\n    }\r\n    private void loginChild(String username, String password) {\r\n        showLoading();\r\n\r\n        FirebaseAuth.getInstance().signOut();\r\n\r\n        db.collection(\"usernames\")\r\n                .document(username)\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (!doc.exists()) {\r\n                        hideLoading();\r\n                        showError(\"Invalid username\");\r\n                        return;\r\n                    }\r\n\r\n                    String parentId = doc.getString(\"parentId\");\r\n                    String childUid = doc.getString(\"childUid\");\r\n\r\n                    if (parentId == null || childUid == null) {\r\n                        hideLoading();\r\n                        showError(\"Account is not configured correctly\");\r\n                        return;\r\n                    }\r\n\r\n                    db.collection(\"users\")\r\n                            .document(parentId)\r\n                            .collection(\"children\")\r\n                            .document(childUid)\r\n                            .get()\r\n                            .addOnSuccessListener(childDoc -> {\r\n                                hideLoading();\r\n\r\n                                if (!childDoc.exists()) {\r\n                                    hideLoading();\r\n                                    showError(\"Child profile missing\");\r\n                                    return;\r\n                                }\r\n\r\n                                String savedPw = childDoc.getString(\"password\");\r\n                                String email = childDoc.getString(\"email\");\r\n\r\n                                if (!password.equals(savedPw)) {\r\n                                    hideLoading();\r\n                                    showError(\"Incorrect password\");\r\n                                    return;\r\n                                }\r\n\r\n                                if (email == null) {\r\n                                    hideLoading();\r\n                                    showError(\"Missing email for child account\");\r\n                                    return;\r\n                                }\r\n\r\n                                FirebaseAuth.getInstance()\r\n                                        .signInWithEmailAndPassword(email, password)\r\n                                        .addOnSuccessListener(authResult -> {\r\n                                            hideLoading();\r\n\r\n                                            prefsHelper.saveUserRole(\"child\");\r\n                                prefsHelper.saveUserRole(\"child\");\r\n                                prefsHelper.saveUserId(childUid);\r\n                                prefsHelper.saveParentId(parentId);\r\n\r\n                                            // IMPORTANT: Use the CHILD homepage\r\n                                            startActivity(new Intent(this, HomepageActivity.class));\r\n                                            finish();\r\n                                        })\r\n                                        .addOnFailureListener(e -> {\r\n                                            hideLoading();\r\n                                            showError(\"Auth login failed: \" + e.getMessage());\r\n                                        });\r\n\r\n                            })\r\n                            .addOnFailureListener(e -> {\r\n                                hideLoading();\r\n                                showError(\"Failed to load child account\");\r\n                            });\r\n\r\n                })\r\n                .addOnFailureListener(e -> {\r\n                    hideLoading();\r\n                    showError(\"Login failed: \" + e.getMessage());\r\n                });\r\n    }\r\n\r\n    @Override\r\n    public void showLoading() {\r\n        progressBar.setVisibility(ProgressBar.VISIBLE);\r\n        loginButton.setEnabled(false);\r\n    }\r\n\r\n    @Override\r\n    public void hideLoading() {\r\n        progressBar.setVisibility(ProgressBar.GONE);\r\n        loginButton.setEnabled(true);\r\n    }\r\n\r\n    @Override\r\n    public void showError(String message) {\r\n        Toast.makeText(this, message, Toast.LENGTH_LONG).show();\r\n    }\r\n\r\n\r\n    @Override\r\n    public void navigateToHome(UserRole role) {\r\n        FirebaseUser user = AuthModel.mAuth.getCurrentUser();\r\n        if (user == null) return;\r\n\r\n        // CHILD LOGIN FLOW\r\n        if (isChildLogin) {\r\n            prefsHelper.saveUserRole(\"child\");\r\n\r\n            Intent intent;\r\n            if (!prefsHelper.isOnboardingComplete()) {\r\n                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);\r\n                intent.putExtra(\"userRole\", \"child\");\r\n            } else {\r\n                intent = new Intent(this, HomepageActivity.class);\r\n            }\r\n\r\n            startActivity(intent);\r\n            finish();\r\n            return;\r\n        }\r\n\r\n        // NORMAL LOGIN FLOW (parent/provider)\r\n        SharedPrefsHelper.saveString(LoginActivity.this, \"PARENT_EMAIL\", getEmail());\r\n        SharedPrefsHelper.saveString(LoginActivity.this, \"PARENT_PASSWORD\", getPassword());\r\n\r\n\r\n        db.collection(\"users\")\r\n                .document(user.getUid())\r\n                .get()\r\n                .addOnSuccessListener(doc -> {\r\n                    if (!doc.exists()) {\r\n                        Toast.makeText(this, \"User role not found\", Toast.LENGTH_SHORT).show();\r\n                        return;\r\n                    }\r\n\r\n                    String roleStr = doc.getString(\"role\");\r\n                    if (roleStr == null) roleStr = \"child\";\r\n\r\n                    UserRole userRole = UserRole.fromString(roleStr);\r\n                    prefsHelper.saveUserRole(userRole.getValue());\r\n                    prefsHelper.saveUserId(user.getUid());\r\n\r\n                    switch (userRole) {\r\n                        case CHILD:\r\n                            startActivity(new Intent(this, HomepageActivity.class));\r\n                            break;\r\n                        case PARENT:\r\n                            startActivity(new Intent(this, HomepageParentsActivity.class));\r\n                            break;\r\n                        case PROVIDER:\r\n                            startActivity(new Intent(this, HomepageProvidersActivity.class));\r\n                            break;\r\n                    }\r\n\r\n                    finish();\r\n                })\r\n                .addOnFailureListener(e ->\r\n                        Toast.makeText(this, \"Failed to fetch user role: \" + e.getMessage(), Toast.LENGTH_SHORT).show()\r\n                );\r\n    }\r\n\r\n\r\n    @Override\r\n    public String getEmail() {\r\n        return emailEditText.getText().toString().trim();\r\n    }\r\n\r\n    @Override\r\n    public String getPassword() {\r\n        return passwordEditText.getText().toString();\r\n    }\r\n\r\n    @Override\r\n    protected void onDestroy() {\r\n        super.onDestroy();\r\n        presenter.onDestroy();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/smartair/auth/LoginActivity.java b/app/src/main/java/com/example/smartair/auth/LoginActivity.java
+--- a/app/src/main/java/com/example/smartair/auth/LoginActivity.java	(revision 39fad1dcd5405a2a201b7bb37d291644e0056dbc)
++++ b/app/src/main/java/com/example/smartair/auth/LoginActivity.java	(date 1764623112429)
+@@ -34,7 +34,6 @@
+     private TextView registerTextView;
+     private ProgressBar progressBar;
+ 
+-    private TextView textForgotPassword;
+     private LoginContract.Presenter presenter;
+     private SharedPrefsHelper prefsHelper;
+     private FirebaseFirestore db;
+@@ -60,10 +59,11 @@
+         registerTextView = findViewById(R.id.registerTextView);
+         progressBar = findViewById(R.id.progressBar);
+ 
+-        textForgotPassword = findViewById(R.id.textForgotPassword);
+-
+-        textForgotPassword.setOnClickListener(v ->
+-                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
++        TextView textForgotPassword = findViewById(R.id.textForgotPassword);
++        textForgotPassword.setOnClickListener(v -> {
++            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
++            startActivity(intent);
++        });
+ 
+         db = FirebaseFirestore.getInstance();
+         prefsHelper = new SharedPrefsHelper(this);
+@@ -77,6 +77,7 @@
+             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+         });
+     }
++
+     private void handleLogin() {
+         String input = getEmail();
+         String password = getPassword();
+@@ -92,6 +93,7 @@
+ 
+         presenter.onLoginClicked();
+     }
++
+     private void loginChild(String username, String password) {
+         showLoading();
+ 
+@@ -108,9 +110,9 @@
+                     }
+ 
+                     String parentId = doc.getString("parentId");
+-                    String childUid = doc.getString("childUid");
++                    String childUId = doc.getString("childUid");
+ 
+-                    if (parentId == null || childUid == null) {
++                    if (parentId == null || childUId == null) {
+                         hideLoading();
+                         showError("Account is not configured correctly");
+                         return;
+@@ -119,51 +121,36 @@
+                     db.collection("users")
+                             .document(parentId)
+                             .collection("children")
+-                            .document(childUid)
++                            .document(childUId)
+                             .get()
+                             .addOnSuccessListener(childDoc -> {
+                                 hideLoading();
+ 
+                                 if (!childDoc.exists()) {
+-                                    hideLoading();
+                                     showError("Child profile missing");
+                                     return;
+                                 }
+ 
+                                 String savedPw = childDoc.getString("password");
+-                                String email = childDoc.getString("email");
+ 
+                                 if (!password.equals(savedPw)) {
+-                                    hideLoading();
+                                     showError("Incorrect password");
+                                     return;
+                                 }
+ 
+-                                if (email == null) {
+-                                    hideLoading();
+-                                    showError("Missing email for child account");
+-                                    return;
+-                                }
+-
+-                                FirebaseAuth.getInstance()
+-                                        .signInWithEmailAndPassword(email, password)
+-                                        .addOnSuccessListener(authResult -> {
+-                                            hideLoading();
+-
+-                                            prefsHelper.saveUserRole("child");
+                                 prefsHelper.saveUserRole("child");
+-                                prefsHelper.saveUserId(childUid);
++                                prefsHelper.saveUserId(childUId);
+                                 prefsHelper.saveParentId(parentId);
+ 
+-                                            // IMPORTANT: Use the CHILD homepage
+-                                            startActivity(new Intent(this, HomepageActivity.class));
+-                                            finish();
+-                                        })
+-                                        .addOnFailureListener(e -> {
+-                                            hideLoading();
+-                                            showError("Auth login failed: " + e.getMessage());
+-                                        });
+-
++                                Intent intent;
++                                if (!prefsHelper.isOnboardingComplete()) {
++                                    intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
++                                    intent.putExtra("userRole", "child");
++                                } else {
++                                    intent = new Intent(this, HomepageActivity.class);
++                                }
++                                startActivity(intent);
++                                finish();
+                             })
+                             .addOnFailureListener(e -> {
+                                 hideLoading();
+@@ -194,69 +181,49 @@
+         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+     }
+ 
+-
+     @Override
+     public void navigateToHome(UserRole role) {
+         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
+         if (user == null) return;
+ 
+-        // CHILD LOGIN FLOW
+-        if (isChildLogin) {
+-            prefsHelper.saveUserRole("child");
+-
+-            Intent intent;
+-            if (!prefsHelper.isOnboardingComplete()) {
+-                intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+-                intent.putExtra("userRole", "child");
+-            } else {
+-                intent = new Intent(this, HomepageActivity.class);
+-            }
+-
+-            startActivity(intent);
+-            finish();
+-            return;
+-        }
+-
+-        // NORMAL LOGIN FLOW (parent/provider)
+-        SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_EMAIL", getEmail());
+-        SharedPrefsHelper.saveString(LoginActivity.this, "PARENT_PASSWORD", getPassword());
+-
+-
+-        db.collection("users")
+-                .document(user.getUid())
++        db.collection("users").document(user.getUid())
+                 .get()
+                 .addOnSuccessListener(doc -> {
+-                    if (!doc.exists()) {
+-                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
+-                        return;
+-                    }
+-
+-                    String roleStr = doc.getString("role");
+-                    if (roleStr == null) roleStr = "child";
++                    if (doc.exists()) {
++                        String roleStr = doc.getString("role");
++                        if (roleStr == null) roleStr = "child";
+ 
+-                    UserRole userRole = UserRole.fromString(roleStr);
+-                    prefsHelper.saveUserRole(userRole.getValue());
+-                    prefsHelper.saveUserId(user.getUid());
++                        UserRole userRole = UserRole.fromString(roleStr);
++                        prefsHelper.saveUserRole(userRole.getValue());
++                        prefsHelper.saveUserId(user.getUid());
+ 
+-                    switch (userRole) {
+-                        case CHILD:
+-                            startActivity(new Intent(this, HomepageActivity.class));
+-                            break;
+-                        case PARENT:
+-                            startActivity(new Intent(this, HomepageParentsActivity.class));
+-                            break;
+-                        case PROVIDER:
+-                            startActivity(new Intent(this, HomepageProvidersActivity.class));
+-                            break;
+-                    }
+-
+-                    finish();
++                        Intent intent;
++                        if (!prefsHelper.isOnboardingComplete()) {
++                            intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
++                            intent.putExtra("userRole", userRole.getValue());
++                        } else {
++                            switch (userRole) {
++                                case CHILD:
++                                    intent = new Intent(this, HomepageActivity.class);
++                                    break;
++                                case PARENT:
++                                    intent = new Intent(this, HomepageParentsActivity.class);
++                                    break;
++                                case PROVIDER:
++                                    intent = new Intent(this, HomepageProvidersActivity.class);
++                                    break;
++                                default:
++                                    intent = new Intent(this, HomepageActivity.class);
++                            }
++                        }
++                        startActivity(intent);
++                        finish();
++                    } else {
++                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
++                    }
+                 })
+-                .addOnFailureListener(e ->
+-                        Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+-                );
++                .addOnFailureListener(e -> Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+     }
+-
+ 
+     @Override
+     public String getEmail() {

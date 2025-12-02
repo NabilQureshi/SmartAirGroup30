@@ -11,6 +11,9 @@ public class Child {
     private String dob;
     private String notes;
     private String role;
+    private Integer personalBest;
+    private String latestZoneState;
+    private Double latestZonePercent;
 
     // 无参构造函数，必须有
     public Child() {}
@@ -27,6 +30,9 @@ public class Child {
         this.dob = dob;
         this.notes = notes;
         this.role = role;
+        this.personalBest = null;
+        this.latestZoneState = null;
+        this.latestZonePercent = null;
     }
 
     // Getter & Setter
@@ -56,4 +62,13 @@ public class Child {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public Integer getPersonalBest() { return personalBest; }
+    public void setPersonalBest(Integer personalBest) { this.personalBest = personalBest; }
+
+    public String getLatestZoneState() { return latestZoneState; }
+    public void setLatestZoneState(String latestZoneState) { this.latestZoneState = latestZoneState; }
+
+    public Double getLatestZonePercent() { return latestZonePercent; }
+    public void setLatestZonePercent(Double latestZonePercent) { this.latestZonePercent = latestZonePercent; }
 }

@@ -59,6 +59,12 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         registerTextView = findViewById(R.id.registerTextView);
         progressBar = findViewById(R.id.progressBar);
 
+        TextView textForgotPassword = findViewById(R.id.textForgotPassword);
+        textForgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
+
         db = FirebaseFirestore.getInstance();
         prefsHelper = new SharedPrefsHelper(this);
 
@@ -71,6 +77,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
     }
+
     private void handleLogin() {
         String input = getEmail();
         String password = getPassword();
@@ -86,8 +93,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
         presenter.onLoginClicked();
     }
+
     private void loginChild(String username, String password) {
         showLoading();
+
+        FirebaseAuth.getInstance().signOut();
 
         db.collection("usernames")
                 .document(username)
@@ -127,8 +137,19 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                                     showError("Incorrect password");
                                     return;
                                 }
+
+                                prefsHelper.saveUserId(childId);
                                 prefsHelper.saveUserRole("child");
-                                startActivity(new Intent(this, HomepageActivity.class));
+                                prefsHelper.saveParentId(parentId);
+
+                                Intent intent;
+                                if (!prefsHelper.isOnboardingComplete()) {
+                                    intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+                                    intent.putExtra("userRole", "child");
+                                } else {
+                                    intent = new Intent(this, HomepageActivity.class);
+                                }
+                                startActivity(intent);
                                 finish();
                             })
                             .addOnFailureListener(e -> {
@@ -164,40 +185,51 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void navigateToHome(UserRole role) {
         FirebaseUser user = AuthModel.mAuth.getCurrentUser();
         if (user == null) return;
-        if (isChildLogin) {
-            prefsHelper.saveUserRole("child");
-            startActivity(new Intent(this, HomepageActivity.class));
-            finish();
-            return;
-        }
 
-        db.collection("users").document(user.getUid())
+        db.collection("users")
+                .document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String roleStr = doc.getString("role");
-                        if (roleStr == null) roleStr = "child";
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                        UserRole userRole = UserRole.fromString(roleStr);
-                        prefsHelper.saveUserRole(userRole.getValue());
+                    String roleStr = doc.getString("role");
+                    if (roleStr == null) roleStr = "child";
 
+                    UserRole userRole = UserRole.fromString(roleStr);
+
+                    prefsHelper.saveUserId(user.getUid());
+                    prefsHelper.saveUserRole(userRole.getValue());
+                    SharedPrefsHelper.saveString(this, "PARENT_EMAIL", getEmail());
+                    SharedPrefsHelper.saveString(this, "PARENT_PASSWORD", getPassword());
+
+                    Intent intent;
+                    if (!prefsHelper.isOnboardingComplete()) {
+                        intent = new Intent(this, com.example.smartair.onboarding.OnboardingActivity.class);
+                        intent.putExtra("userRole", userRole.getValue());
+                    } else {
                         switch (userRole) {
                             case CHILD:
-                                startActivity(new Intent(this, HomepageActivity.class));
+                                intent = new Intent(this, HomepageActivity.class);
                                 break;
                             case PARENT:
-                                startActivity(new Intent(this, HomepageParentsActivity.class));
+                                intent = new Intent(this, HomepageParentsActivity.class);
                                 break;
                             case PROVIDER:
-                                startActivity(new Intent(this, HomepageProvidersActivity.class));
+                                intent = new Intent(this, HomepageProvidersActivity.class);
                                 break;
+                            default:
+                                intent = new Intent(this, HomepageActivity.class);
                         }
-                        finish();
-                    } else {
-                        Toast.makeText(this, "User role not found", Toast.LENGTH_SHORT).show();
                     }
+                    startActivity(intent);
+                    finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to fetch user role: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 
     @Override

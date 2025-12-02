@@ -4,12 +4,17 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.smartair.R;
-import com.example.smartair.data.ChildRepository;
 import com.example.smartair.model.Child;
 import com.example.smartair.util.ZoneCalculator;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,25 +22,26 @@ import java.util.List;
  * Allows parents to view children, set/update PB, and see zone information.
  */
 public class ParentHomeActivity extends AppCompatActivity {
-    private ChildRepository childRepository;
     private LinearLayout childrenContainer;
     private TextView emptyStateText;
+    private FirebaseFirestore db;
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent_home);
 
-        childRepository = new ChildRepository(this);
+        db = FirebaseFirestore.getInstance();
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         childrenContainer = findViewById(R.id.children_container);
         emptyStateText = findViewById(R.id.empty_state_text);
-
-        // for test create sample of child it it don't exist
-        if (childRepository.getAllChildren().isEmpty()) {
-            Child sampleChild = new Child(null, "Sample Child", "2010-01-01");
-            childRepository.addChild(sampleChild);
-        }
 
         refreshChildrenList();
     }
@@ -47,20 +53,46 @@ public class ParentHomeActivity extends AppCompatActivity {
     }
 
     private void refreshChildrenList() {
-        List<Child> children = childRepository.getAllChildren();
+        if (user == null) return;
+
+        db.collection("users")
+                .document(user.getUid())
+                .collection("children")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<Child> children = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        Child child = new Child();
+                        child.setId(doc.getId()); // child UID
+                        child.setName(doc.getString("name"));
+                        child.setDateOfBirth(doc.getString("dob"));
+                        Long pbValue = doc.getLong("personalBest");
+                        if (pbValue != null) child.setPersonalBest(pbValue.intValue());
+                        children.add(child);
+                    }
+                    bindChildren(children);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load children", Toast.LENGTH_SHORT).show();
+                    bindChildren(new ArrayList<>());
+                });
+    }
+
+    private void bindChildren(List<Child> children) {
         childrenContainer.removeAllViews();
 
         if (children.isEmpty()) {
             emptyStateText.setVisibility(View.VISIBLE);
             childrenContainer.setVisibility(View.GONE);
-        } else {
-            emptyStateText.setVisibility(View.GONE);
-            childrenContainer.setVisibility(View.VISIBLE);
+            return;
+        }
 
-            for (Child child : children) {
-                View childCard = createChildCard(child);
-                childrenContainer.addView(childCard);
-            }
+        emptyStateText.setVisibility(View.GONE);
+        childrenContainer.setVisibility(View.VISIBLE);
+
+        for (Child child : children) {
+            View childCard = createChildCard(child);
+            childrenContainer.addView(childCard);
         }
     }
 
@@ -83,7 +115,7 @@ public class ParentHomeActivity extends AppCompatActivity {
             int greenThreshold = thresholds[0];
             int yellowThreshold = thresholds[1];
             String zoneInfo = String.format(
-                "Green: ≥%d | Yellow: %d-%d | Red: <%d",
+                "Green: >=%d | Yellow: %d-%d | Red: <%d",
                 greenThreshold, yellowThreshold, greenThreshold - 1, yellowThreshold
             );
             zoneInfoText.setText(zoneInfo);

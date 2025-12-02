@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.smartair.R;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Date;
@@ -111,9 +112,59 @@ public class EnterInviteCodeActivity extends AppCompatActivity {
                 .collection("linkedProviders")
                 .document(providerId)
                 .set(linkData)
-                .addOnSuccessListener(a ->
-                        Toast.makeText(this, "Child linked successfully!", Toast.LENGTH_LONG).show())
+                .addOnSuccessListener(a -> {
+                    copySharingSettingsToProvider(providerId, parentId, childId);
+                    Toast.makeText(this, "Child linked successfully!", Toast.LENGTH_LONG).show();
+                })
                 .addOnFailureListener(a ->
                         Toast.makeText(this, "Failed to link child", Toast.LENGTH_LONG).show());
+    }
+
+    private void copySharingSettingsToProvider(String providerId, String parentId, String childId) {
+        db.collection("users")
+                .document(parentId)
+                .collection("children")
+                .document(childId)
+                .collection("settings")
+                .document("sharing")
+                .get()
+                .addOnSuccessListener(doc -> {
+                    Map<String, Object> data = buildSharingMap(doc);
+
+                    // Seed provider-facing copy
+                    db.collection("providers")
+                            .document(providerId)
+                            .collection("linkedChildren")
+                            .document(childId)
+                            .collection("settings")
+                            .document("sharing")
+                            .set(data, com.google.firebase.firestore.SetOptions.merge());
+
+                    // Keep a copy next to the link for quick reads in parent space
+                    db.collection("parents")
+                            .document(parentId)
+                            .collection("children")
+                            .document(childId)
+                            .collection("linkedProviders")
+                            .document(providerId)
+                            .collection("settings")
+                            .document("sharing")
+                            .set(data, com.google.firebase.firestore.SetOptions.merge());
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Linked, but failed to copy sharing settings.", Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private Map<String, Object> buildSharingMap(DocumentSnapshot doc) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("rescueLogs", doc != null && Boolean.TRUE.equals(doc.getBoolean("rescueLogs")));
+        data.put("controller", doc != null && Boolean.TRUE.equals(doc.getBoolean("controller")));
+        data.put("symptoms", doc != null && Boolean.TRUE.equals(doc.getBoolean("symptoms")));
+        data.put("triggers", doc != null && Boolean.TRUE.equals(doc.getBoolean("triggers")));
+        data.put("pef", doc != null && Boolean.TRUE.equals(doc.getBoolean("pef")));
+        data.put("triage", doc != null && Boolean.TRUE.equals(doc.getBoolean("triage")));
+        data.put("charts", doc != null && Boolean.TRUE.equals(doc.getBoolean("charts")));
+        return data;
     }
 }

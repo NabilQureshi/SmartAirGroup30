@@ -3,7 +3,6 @@ package com.example.smartair.pre_post_checks;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RatingBar;
@@ -18,11 +17,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartair.R;
 import com.example.smartair.badges_system.BadgeActivity;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -39,12 +38,14 @@ public class PrePostCheckActivity extends AppCompatActivity {
     private Button btnSubmit;
     private RecyclerView rvCheckHistory;
     private PrePostCheckAdapter adapter;
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private CollectionReference checkRef;
     private FirebaseUser user;
+    private String targetUid;
+    private String targetEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,25 +62,34 @@ public class PrePostCheckActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         user = auth.getCurrentUser();
-        if (user == null) {
+
+        SharedPrefsHelper prefs = new SharedPrefsHelper(this);
+        String savedRole = prefs.getUserRole();
+        String savedChildId = prefs.getUserId();
+
+        if ("child".equalsIgnoreCase(savedRole) && savedChildId != null) {
+            targetUid = savedChildId;
+            targetEmail = null;
+        } else if (user != null) {
+            targetUid = user.getUid();
+            targetEmail = user.getEmail();
+        } else {
             Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         checkRef = db.collection("users")
-                .document(user.getUid())
+                .document(targetUid)
                 .collection("prepost_checks");
 
-        // 初始化 RecyclerView
         adapter = new PrePostCheckAdapter();
         rvCheckHistory.setAdapter(adapter);
         rvCheckHistory.setLayoutManager(new LinearLayoutManager(this));
 
-        // 读取历史记录
         checkRef.orderBy("timestamp").limit(50).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> adapter.setChecks(queryDocumentSnapshots.getDocuments()))
-                .addOnFailureListener(e -> Toast.makeText(this, "读取历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, "加载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
 
         btnSubmit.setOnClickListener(view -> submitCheck());
     }
@@ -97,13 +107,11 @@ public class PrePostCheckActivity extends AppCompatActivity {
         float rating = ratingBar.getRating();
         String note = etNote.getText().toString();
 
-        String uid = user.getUid();
-        String email = user.getEmail();
         long now = System.currentTimeMillis();
 
         HashMap<String, Object> data = new HashMap<>();
-        data.put("uid", uid);
-        data.put("email", email);
+        data.put("uid", targetUid);
+        data.put("email", targetEmail);
         data.put("when", when);
         data.put("result", result);
         data.put("rating", rating);
@@ -113,16 +121,14 @@ public class PrePostCheckActivity extends AppCompatActivity {
         btnSubmit.setEnabled(false);
         checkRef.add(data).addOnSuccessListener(documentReference -> {
             btnSubmit.setEnabled(true);
-            Toast.makeText(this, "评估已保存", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "记录已保存", Toast.LENGTH_SHORT).show();
 
-            // 自动检查徽章
-            checkAndUnlockBadge(uid);
-
-            // 将刚提交的数据直接插入 RecyclerView
             documentReference.get().addOnSuccessListener(doc -> adapter.addCheck(doc));
 
             ratingBar.setRating(0);
             etNote.setText("");
+
+            checkAndUnlockBadge(targetUid);
         }).addOnFailureListener(e -> {
             btnSubmit.setEnabled(true);
             Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -136,14 +142,14 @@ public class PrePostCheckActivity extends AppCompatActivity {
                 .document("badge_1")
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) return; // 已经解锁过，不重复弹窗
+                    if (doc.exists()) return;
 
                     HashMap<String, Object> data = new HashMap<>();
                     data.put("unlocked", true);
                     data.put("timestamp", System.currentTimeMillis());
                     data.put("achieved", true);
                     data.put("firstAchieved", Timestamp.now());
-                    data.put("description", "You have achieved 5 breathing sessions with a rating of 4 or higher — it shows that you’re becoming better at taking care of yourself!");
+                    data.put("description", "You have achieved 5 breathing sessions with a rating of 4 or higher.");
 
                     db.collection("users")
                             .document(uid)
@@ -156,8 +162,8 @@ public class PrePostCheckActivity extends AppCompatActivity {
     }
 
     private void checkAndUnlockBadge(String uid) {
-        int THRESHOLD = 4;   // 评分阈值
-        int REQUIRED = 5;    // 需要多少次评分达标
+        int THRESHOLD = 4;
+        int REQUIRED = 5;
 
         db.collection("users")
                 .document(uid)
@@ -166,21 +172,19 @@ public class PrePostCheckActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(snap -> {
                     int highCount = snap.size();
-
                     if (highCount >= REQUIRED) {
                         unlockBadge(uid);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "检查徽章失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "获取徽章状态失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
-
     private void showBadgePopup() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🎉 恭喜获得徽章！");
-        builder.setMessage("你已经连续获得 5 次高评分呼吸记录！");
+        builder.setTitle("干得好！");
+        builder.setMessage("你已完成 5 次评分 ≥4 的呼吸训练，解锁了一枚徽章！");
 
         builder.setPositiveButton("查看徽章", (dialog, which) -> {
             Intent intent = new Intent(this, BadgeActivity.class);
@@ -188,7 +192,8 @@ public class PrePostCheckActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        builder.setNegativeButton("关闭", null);
+        builder.setNegativeButton("稍后查看", null);
         builder.show();
     }
 }
+

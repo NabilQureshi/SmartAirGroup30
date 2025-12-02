@@ -15,9 +15,15 @@ import java.util.List;
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
 
     private List<HistoryEntry> items;
+    private boolean showSharedTag;
 
     public HistoryAdapter(List<HistoryEntry> items) {
         this.items = items;
+    }
+
+    public void setShowSharedTag(boolean showSharedTag) {
+        this.showSharedTag = showSharedTag;
+        notifyDataSetChanged();
     }
 
     public void update(List<HistoryEntry> newItems) {
@@ -27,7 +33,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     static class HistoryViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvDate, tvSummary, tvTriggers, tvSubmittedBy;
+        TextView tvDate, tvSummary, tvTriggers, tvSubmittedBy, tvSharedTag;
 
         public HistoryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -35,6 +41,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             tvSummary = itemView.findViewById(R.id.h_summary);
             tvTriggers = itemView.findViewById(R.id.h_triggers);
             tvSubmittedBy = itemView.findViewById(R.id.h_by);
+            tvSharedTag = itemView.findViewById(R.id.h_shared_tag);
         }
     }
 
@@ -53,6 +60,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         holder.tvSummary.setText(e.summary);
         holder.tvTriggers.setText("Triggers: " + e.triggers);
         holder.tvSubmittedBy.setText("Submitted by: " + e.submittedBy);
+        holder.tvSharedTag.setVisibility(showSharedTag ? View.VISIBLE : View.GONE);
     }
 
     @Override
