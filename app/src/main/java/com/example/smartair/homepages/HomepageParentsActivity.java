@@ -159,6 +159,10 @@ public class HomepageParentsActivity extends BaseActivity {
                     String message = change.getDocument().getString("message");
                     Boolean emergency = change.getDocument().getBoolean("emergency");
                     String childName = change.getDocument().getString("childName");
+                    String childId = change.getDocument().getString("childId");
+                    if ((childName == null || childName.isEmpty()) && childId != null) {
+                        childName = childNameCache.get(childId);
+                    }
                     showTriageAlert(message, emergency != null && emergency, childName);
                 }
             }
@@ -172,6 +176,9 @@ public class HomepageParentsActivity extends BaseActivity {
                 : message;
         if (childName != null && !childName.isEmpty()) {
             body = body.replaceAll("child\\s+[A-Za-z0-9_-]+", "child " + childName);
+            if (!body.toLowerCase().contains(childName.toLowerCase())) {
+                body = body + " (child: " + childName + ")";
+            }
         }
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(title)
@@ -223,7 +230,7 @@ public class HomepageParentsActivity extends BaseActivity {
             }
             if (recentTimestamps.size() >= 3) {
                 Long lastAlertTime = lastRescueAlert.get(childUid);
-                // simple throttle to alert again only if 5 minutes have passed since last alert for this child and prevent spam
+                // alert again only if 5 minutes have passed since last alert for this child and prevent spam
                 if (lastAlertTime == null || now - lastAlertTime > 5 * 60 * 1000L) {
                     lastRescueAlert.put(childUid, now);
                     String childName = childNameCache.get(childUid);
@@ -244,6 +251,7 @@ public class HomepageParentsActivity extends BaseActivity {
         payload.put("event", "rescue_repeat");
         payload.put("message", message);
         payload.put("childId", childUid);
+        if (childName != null) payload.put("childName", childName);
         payload.put("emergency", true);
         FirebaseFirestore.getInstance()
                 .collection("users")

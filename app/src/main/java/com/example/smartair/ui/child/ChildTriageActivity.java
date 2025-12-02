@@ -294,13 +294,29 @@ public class ChildTriageActivity extends AppCompatActivity {
                     });
             return;
         }
+        // Try to fetch child name for nicer parent alerts
+        db.collection("users")
+                .document(parentId)
+                .collection("children")
+                .document(childId)
+                .get()
+                .addOnSuccessListener(childDoc -> {
+                    String childName = childDoc.getString("name");
+                    pushNotification(parentId, childName, event, message, emergency);
+                })
+                .addOnFailureListener(e -> pushNotification(parentId, null, event, message, emergency));
+    }
 
+    private void pushNotification(String parentId, String childName, String event, String message, boolean emergency) {
         HashMap<String, Object> payload = new HashMap<>();
         payload.put("timestamp", System.currentTimeMillis());
         payload.put("event", event);
         payload.put("message", message);
         payload.put("childId", childId);
         payload.put("emergency", emergency);
+        if (childName != null) {
+            payload.put("childName", childName);
+        }
         db.collection("users")
                 .document(parentId)
                 .collection("notifications")
