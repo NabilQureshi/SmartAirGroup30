@@ -99,12 +99,8 @@ public class AddChildActivity extends AppCompatActivity {
         String dob = selectedDOB;
         String notes = editChildNotes.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty() || name.isEmpty() || dob.isEmpty()) {
-            Toast.makeText(this, "All fields required.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (!validateInputs(username, password, name, dob)) return;
 
-        // 检查 username 是否存在
         DocumentReference usernameRef = db.collection("usernames").document(username);
         usernameRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
@@ -112,7 +108,29 @@ public class AddChildActivity extends AppCompatActivity {
             } else {
                 createChildFirebaseAuth(username, password, name, dob, notes);
             }
-        });
+        }).addOnFailureListener(e ->
+                Toast.makeText(this, "Could not check username: " + e.getMessage(), Toast.LENGTH_LONG).show()
+        );
+    }
+
+    private boolean validateInputs(String username, String password, String name, String dob) {
+        if (username.isEmpty() || password.isEmpty() || name.isEmpty() || dob.isEmpty()) {
+            Toast.makeText(this, "All fields required.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (username.length() < 3) {
+            Toast.makeText(this, "Username must be at least 3 characters.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (password.length() < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (password.contains(" ")) {
+            Toast.makeText(this, "Password cannot contain spaces.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 
     private void createChildFirebaseAuth(String username, String password, String name, String dob, String notes) {
@@ -193,7 +211,7 @@ public class AddChildActivity extends AppCompatActivity {
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Child account created successfully!", Toast.LENGTH_SHORT).show();
 
-                    // 直接回到 ChooseChildForSharingActivity，传父母 UID
+                    //  ChooseChildForSharingActivity
                     Intent intent = new Intent(AddChildActivity.this, ChooseChildForSharingActivity.class);
                     intent.putExtra("parentId", parentId);
                     startActivity(intent);
