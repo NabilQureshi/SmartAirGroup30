@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/background3"
     android:gravity="center"
-    tools:context=".HomepageProvidersActivity">
+    tools:context=".homepages.HomepageProvidersActivity">
 
     <LinearLayout
         android:orientation="vertical"
@@ -36,6 +36,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Share Logs"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/btnLinkedChildren"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Linked Children"
             android:textSize="18sp"
             android:layout_marginBottom="16dp"
             android:padding="12dp" />

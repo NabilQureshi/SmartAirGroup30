@@ -101,9 +101,6 @@
             android:name=".sharing.InviteProviderActivity"
             android:exported="false" />
         <activity
-            android:name=".auth.ForgotPasswordActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="false" />
         <activity android:name=".badges_system.BadgeActivity" />
@@ -113,7 +110,8 @@
             android:exported="false" />
         <activity android:name=".dashboard.DashboardActivity" /> <!-- SHARING MANAGEMENT -->
         <activity android:name=".dashboard.DashboardProvidersActivity" /> <!-- SHARING MANAGEMENT -->
-        <activity android:name=".providers.ShareLogActivity" />
+        <activity android:name=".proviers.ShareLogActivity" />
+        <activity android:name=".proviers.ProviderLinkedChildrenActivity" />
     </application>
 
 </manifest>

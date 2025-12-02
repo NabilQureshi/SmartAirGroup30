@@ -23,6 +23,7 @@ import com.example.smartair.R;
 import com.example.smartair.model.PEFEntry;
 import com.example.smartair.util.PEFValidator;
 import com.example.smartair.util.PEFZoneCalculator;
+import com.example.smartair.utils.SharedPrefsHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -72,6 +73,8 @@ public class ChildPEFActivity extends AppCompatActivity {
     private CollectionReference pefCollection;
     private CollectionReference zoneHistoryCollection;
     private FirebaseUser user;
+    private String targetUid;
+    private String targetEmail;
     private String lastUpdatedZoneState;
 
     private static final String TAG = "ChildPEFActivity";
@@ -84,14 +87,28 @@ public class ChildPEFActivity extends AppCompatActivity {
         // Firebase setup
         db = FirebaseFirestore.getInstance();
         user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            pefCollection = db.collection("users")
-                    .document(user.getUid())
-                    .collection("pef_entries");
-            zoneHistoryCollection = db.collection("users")
-                    .document(user.getUid())
-                    .collection("zone_history");
+        SharedPrefsHelper prefs = new SharedPrefsHelper(this);
+        String savedRole = prefs.getUserRole();
+        String savedChildId = prefs.getUserId();
+
+        if ("child".equalsIgnoreCase(savedRole) && savedChildId != null) {
+            targetUid = savedChildId;
+            targetEmail = null;
+        } else if (user != null) {
+            targetUid = user.getUid();
+            targetEmail = user.getEmail();
+        } else {
+            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
+
+        pefCollection = db.collection("users")
+                .document(targetUid)
+                .collection("pef_entries");
+        zoneHistoryCollection = db.collection("users")
+                .document(targetUid)
+                .collection("zone_history");
 
         // Views
         pefInput = findViewById(R.id.pef_input);
@@ -203,6 +220,12 @@ public class ChildPEFActivity extends AppCompatActivity {
             data.put("medicineTag", tag.name());
 
             saveButton.setEnabled(false);
+            if (pefCollection == null) {
+                Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
+                saveButton.setEnabled(true);
+                return;
+            }
+
             pefCollection.add(data)
                     .addOnSuccessListener(docRef -> {
                         saveButton.setEnabled(true);
@@ -251,10 +274,10 @@ public class ChildPEFActivity extends AppCompatActivity {
     }
 
     private void loadChildProfile() {
-        if (user == null) return;
+        if (targetUid == null) return;
 
         db.collection("users")
-                .document(user.getUid())
+                .document(targetUid)
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
@@ -405,7 +428,7 @@ public class ChildPEFActivity extends AppCompatActivity {
      * Only updates when the zone comes from the newest saved PEF entry.
      */
     private void updateLatestZone(PEFZoneCalculator.ZoneResult result) {
-        if (result == null || !result.isReady() || user == null) return;
+        if (result == null || !result.isReady() || targetUid == null) return;
 
         String newState = result.getZone().name();
         boolean zoneChanged = lastUpdatedZoneState == null
@@ -419,7 +442,7 @@ public class ChildPEFActivity extends AppCompatActivity {
         update.put("latestZoneUpdatedAt", now);
 
         db.collection("users")
-                .document(user.getUid())
+                .document(targetUid)
                 .set(update, SetOptions.merge());
 
         if (zoneChanged && zoneHistoryCollection != null) {

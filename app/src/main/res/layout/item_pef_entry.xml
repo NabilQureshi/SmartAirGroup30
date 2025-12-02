@@ -58,7 +58,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/pef_value_text" />
 
+        <TextView
+            android:id="@+id/shared_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Shared with Provider"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:background="#1F4CAF50"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/timestamp_text"
+            app:layout_constraintStart_toStartOf="parent"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>
-

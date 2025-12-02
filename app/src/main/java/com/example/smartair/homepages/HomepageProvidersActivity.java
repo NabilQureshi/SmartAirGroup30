@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.smartair.BaseActivity;
 import com.example.smartair.R;
-import com.example.smartair.providers.ShareLogActivity;
+import com.example.smartair.proviers.ProviderLinkedChildrenActivity;
+import com.example.smartair.proviers.ShareLogActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -15,7 +17,8 @@ public class HomepageProvidersActivity extends BaseActivity {
 
     private TextView textGreeting;
     private Button btnSignOut;
-    private Button btnShareLog;   // 新增按钮
+    private Button btnShareLog;
+    private Button btnLinkedChildren;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,21 +27,30 @@ public class HomepageProvidersActivity extends BaseActivity {
 
         textGreeting = findViewById(R.id.textGreeting);
         btnSignOut = findViewById(R.id.btnSignOut);
-        btnShareLog = findViewById(R.id.btnShareLog); // 绑定按钮
+        btnShareLog = findViewById(R.id.btnShareLog);
+        btnLinkedChildren = findViewById(R.id.btnLinkedChildren);
 
         btnSignOut.setOnClickListener(v -> signOut());
 
-        // 👉 新增跳转逻辑
-        btnShareLog.setOnClickListener(v -> {
-            Intent intent = new Intent(HomepageProvidersActivity.this, ShareLogActivity.class);
-            startActivity(intent);
-        });
+        btnShareLog.setOnClickListener(v ->
+                startActivity(new Intent(this, ShareLogActivity.class))
+        );
+
+        btnLinkedChildren.setOnClickListener(v ->
+                startActivity(new Intent(this, ProviderLinkedChildrenActivity.class))
+        );
 
         loadProviderName();
     }
 
     private void loadProviderName() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (uid == null) {
+            Toast.makeText(this, "Please log in", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         FirebaseFirestore.getInstance()
                 .collection("users")
@@ -51,8 +63,7 @@ public class HomepageProvidersActivity extends BaseActivity {
                             textGreeting.setText("Welcome, " + name);
                         }
                     }
-                })
-                .addOnFailureListener(e -> {
                 });
     }
 }
+

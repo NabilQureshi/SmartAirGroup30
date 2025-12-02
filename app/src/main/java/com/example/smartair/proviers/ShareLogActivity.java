@@ -1,4 +1,4 @@
-package com.example.smartair.providers;
+package com.example.smartair.proviers;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,9 +12,13 @@ import com.example.smartair.R;
 import com.example.smartair.dashboard.DashboardProvidersActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ShareLogActivity extends AppCompatActivity {
 
@@ -22,6 +26,8 @@ public class ShareLogActivity extends AppCompatActivity {
     private MaterialButton btnSubmitInvite;
 
     private FirebaseFirestore db;
+    private String parentIdFromInvite;
+    private String inviteCodeUsed;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +68,8 @@ public class ShareLogActivity extends AppCompatActivity {
 
                     // inviteCodes/{inviteCode} 读取 childId
                     String uid = doc.getString("childId");
+                    parentIdFromInvite = doc.getString("parentId");
+                    inviteCodeUsed = inviteCode;
                     if (uid == null) {
                         Toast.makeText(this, "Invite code is corrupted", Toast.LENGTH_SHORT).show();
                         return;
@@ -85,6 +93,9 @@ public class ShareLogActivity extends AppCompatActivity {
                     // Step 2：没过期 → 加载用户数据
                     loadUserData(uid);
 
+                    // Mark code as used (optional)
+                    db.collection("inviteCodes").document(inviteCode).update("used", true);
+
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to validate invite code", Toast.LENGTH_SHORT).show()
@@ -106,6 +117,9 @@ public class ShareLogActivity extends AppCompatActivity {
 
                     // --------- 从 Firestore 获取数据 ---------
                     String childId = doc.getString("uid");
+                    if (TextUtils.isEmpty(childId)) {
+                        childId = doc.getId(); // fall back to document ID
+                    }
                     String username = doc.getString("username");
                     String password = doc.getString("password");
                     String name = doc.getString("name");
@@ -117,12 +131,70 @@ public class ShareLogActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // Persist the link so provider can reopen without re-entering code
+                    saveLink(childId, username, password, name, dob, notes);
+
                     goToDashboard(childId, username, password, name, dob, notes);
 
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
                 );
+    }
+
+    private void saveLink(String childId, String username, String password,
+                          String name, String dob, String notes) {
+        String providerId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        if (providerId == null || parentIdFromInvite == null) return;
+
+        Map<String, Object> linkData = new HashMap<>();
+        linkData.put("parentId", parentIdFromInvite);
+        linkData.put("childId", childId);
+        linkData.put("username", username);
+        linkData.put("password", password);
+        linkData.put("name", name);
+        linkData.put("dob", dob);
+        linkData.put("notes", notes);
+        linkData.put("linkedAt", new Date());
+        if (inviteCodeUsed != null) linkData.put("inviteCode", inviteCodeUsed);
+
+        // Provider side
+        db.collection("providers")
+                .document(providerId)
+                .collection("linkedChildren")
+                .document(childId)
+                .set(linkData, SetOptions.merge());
+
+        // Parent side for revoke/visibility
+        db.collection("parents")
+                .document(parentIdFromInvite)
+                .collection("children")
+                .document(childId)
+                .collection("linkedProviders")
+                .document(providerId)
+                .set(linkData, SetOptions.merge());
+
+        // Copy sharing settings if present
+        db.collection("users")
+                .document(parentIdFromInvite)
+                .collection("children")
+                .document(childId)
+                .collection("settings")
+                .document("sharing")
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc != null && doc.exists()) {
+                        db.collection("providers")
+                                .document(providerId)
+                                .collection("linkedChildren")
+                                .document(childId)
+                                .collection("settings")
+                                .document("sharing")
+                                .set(doc.getData(), SetOptions.merge());
+                    }
+                });
     }
 
     /**

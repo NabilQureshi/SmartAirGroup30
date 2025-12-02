@@ -23,6 +23,12 @@ public class MedicineLogAdapter extends RecyclerView.Adapter<MedicineLogAdapter.
 
     private List<DocumentSnapshot> logList = new ArrayList<>();
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    private boolean showSharedTag;
+
+    public void setShowSharedTag(boolean showSharedTag) {
+        this.showSharedTag = showSharedTag;
+        notifyDataSetChanged();
+    }
 
     public void setLogs(List<DocumentSnapshot> logs) {
         this.logList = logs != null ? logs : new ArrayList<>();
@@ -39,7 +45,7 @@ public class MedicineLogAdapter extends RecyclerView.Adapter<MedicineLogAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
-        holder.bind(logList.get(position));
+        holder.bind(logList.get(position), showSharedTag);
     }
 
     @Override
@@ -49,16 +55,17 @@ public class MedicineLogAdapter extends RecyclerView.Adapter<MedicineLogAdapter.
 
     static class LogViewHolder extends RecyclerView.ViewHolder {
 
-        TextView typeText, doseText, timestampText;
+        TextView typeText, doseText, timestampText, sharedTag;
 
         public LogViewHolder(@NonNull View itemView) {
             super(itemView);
             typeText = itemView.findViewById(R.id.type_text);
             doseText = itemView.findViewById(R.id.dose_text);
             timestampText = itemView.findViewById(R.id.timestamp_text);
+            sharedTag = itemView.findViewById(R.id.shared_tag);
         }
 
-        public void bind(DocumentSnapshot doc) {
+        public void bind(DocumentSnapshot doc, boolean showSharedTag) {
             String type = doc.getString("type");
             Long dose = doc.getLong("dose");
             Long ts = doc.getLong("timestamp");
@@ -79,7 +86,8 @@ public class MedicineLogAdapter extends RecyclerView.Adapter<MedicineLogAdapter.
             } else {
                 timestampText.setText("-");
             }
+
+            sharedTag.setVisibility(showSharedTag ? View.VISIBLE : View.GONE);
         }
     }
 }
-
